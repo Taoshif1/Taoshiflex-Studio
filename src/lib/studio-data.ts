@@ -12,7 +12,7 @@ export async function getPublishedProjects(): Promise<Project[]> {
 }
 
 export async function getFeaturedProjects() {
-  return (await getPublishedProjects()).filter((project) => project.featured !== false);
+  return (await getPublishedProjects()).filter((project) => project.featured === true);
 }
 
 export async function getPublishedProject(slug:string) {
