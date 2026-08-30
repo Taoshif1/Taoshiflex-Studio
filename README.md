@@ -12,7 +12,7 @@ The commercial website and project platform for Taoshiflex Studio — a founder-
 - Supabase Storage for project media
 - Row Level Security for public/private content separation
 
-Phase 1 is a complete public experience backed by curated typed local content. Supabase is an intentionally disconnected future foundation; the public site and project brief require no credentials.
+Phase 1B keeps curated typed content as a resilient public fallback and adds an optional Supabase-backed operating layer. Published and Featured flags control public project visibility, inquiries persist through a validated server route, and authenticated admins can curate GitHub repositories into private drafts.
 
 ## Local setup
 
@@ -20,7 +20,7 @@ Phase 1 is a complete public experience backed by curated typed local content. S
 2. Copy `.env.example` to `.env.local`
 3. Run `npm run dev`
 
-Optional future data setup is documented in `docs/supabase-foundation.md` and `supabase/migrations/202608300001_public_foundation.sql`.
+Apply both migrations in `supabase/migrations`, then configure the variables shown in `.env.example`. The public site still renders safely without credentials; persistence, authentication, and GitHub curation clearly report that configuration is unavailable.
 
 ## Useful scripts
 
@@ -32,6 +32,12 @@ Optional future data setup is documented in `docs/supabase-foundation.md` and `s
 ## Content model
 
 Projects support a client/business name, service name, category, status, public/private visibility, case-study copy, repository URL, live URL, images, tags, and ordering. Inquiries are stored separately and are visible only to authenticated studio admins.
+
+## Studio Admin
+
+`/studio-admin` is noindexed and protected by Supabase Auth plus membership in `admin_users`. `SUPABASE_SERVICE_ROLE_KEY` and `GITHUB_CURATOR_TOKEN` are server-only. GitHub imports always enter as unpublished, unfeatured drafts with repository visibility disabled; an admin must replace generated placeholders with verified content before publishing.
+
+The Studio Assistant is a deliberately constrained foundation: its browser-side answers use approved pricing/process copy only and hand project-specific discussions to the persisted inquiry flow. It does not expose a model credential or claim autonomous knowledge.
 
 ## Product direction
 

@@ -1,6 +1,6 @@
 @import "tailwindcss";
 
-:root { --ink:#11110f; --charcoal:#1a1916; --panel:#23211d; --ivory:#f2eee5; --paper:#ded7ca; --stone:#9b958a; --gold:#b89055; --line:rgba(242,238,229,.16); --container:92rem; --gutter:clamp(1.25rem,4vw,4.5rem); --section:clamp(6rem,12vw,12rem); --radius-sm:.35rem; --radius-md:.8rem; --ease:cubic-bezier(.22,1,.36,1); --fast:180ms; --medium:650ms; --nav:70; }
+:root { --ink:#11110f; --charcoal:#1a1916; --panel:#23211d; --ivory:#f2eee5; --paper:#ded7ca; --stone:#9b958a; --gold:#b89055; --line:rgba(242,238,229,.16); --container:92rem; --gutter:clamp(1.25rem,4vw,4.5rem); --section:clamp(6rem,12vw,12rem); --radius-sm:.35rem; --radius-md:.8rem; --ease:cubic-bezier(.22,1,.36,1); --fast:180ms; --medium:650ms; /* Stack contract: content < fixed chrome < modal navigation. */ --z-content:0; --z-header:70; --z-navigation:80; }
 @theme inline { --color-ink:var(--ink); --color-charcoal:var(--charcoal); --color-panel:var(--panel); --color-ivory:var(--ivory); --color-paper:var(--paper); --color-stone:var(--stone); --color-gold:var(--gold); --font-sans:var(--font-sans); --font-display:var(--font-display); }
 * { box-sizing:border-box; }
 html { scroll-behavior:smooth; background:var(--ink); }
