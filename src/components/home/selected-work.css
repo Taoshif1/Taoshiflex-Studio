@@ -1,0 +1,2 @@
+.project-scene { background: var(--ivory); }
+@media (min-width: 768px) { .project-scene { position: sticky; top: 4.6rem; } }

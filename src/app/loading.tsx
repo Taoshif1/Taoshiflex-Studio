@@ -1,0 +1,1 @@
+export default function Loading(){return <div style={{minHeight:"100svh",display:"grid",placeItems:"center",background:"#11110f"}}><div className="eyebrow">Taoshiflex Studio / Loading system</div></div>}
