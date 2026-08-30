@@ -1,0 +1,2 @@
+import Link from "next/link";
+export function SiteFooter(){return <footer className="footer"><div className="container footer-grid"><p className="footer-mark">Taoshifle<span>x</span> Studio</p><div><p className="eyebrow">Independent studio</p><p>Dhaka → Working Anywhere</p></div><nav aria-label="Footer"><Link href="/work">Work</Link><Link href="/#services">Services</Link><Link href="/start-a-project">Start a Project</Link></nav><p className="technical">© {new Date().getFullYear()} Taoshiflex Studio</p></div></footer>}

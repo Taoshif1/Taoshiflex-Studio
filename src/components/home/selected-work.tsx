@@ -1,0 +1,9 @@
+"use client";
+import Link from "next/link";
+import { motion, useReducedMotion, useScroll, useTransform } from "motion/react";
+import { useRef } from "react";
+import type { Project } from "@/types/content";
+import { ResponsiveMedia } from "@/components/ui/primitives";
+import "./selected-work.css";
+export function SelectedWork({projects}:{projects:Project[]}){const ref=useRef<HTMLElement>(null);const reduce=useReducedMotion();const {scrollYProgress}=useScroll({target:ref,offset:["start end","end start"]});return <section ref={ref} id="work" className="work-section"><div className="container work-heading"><p className="eyebrow">02 / Selected work</p><h2 className="display display-md">Proof, not promises.</h2></div><div className="work-stage container">{projects.map((project,index)=><ProjectScene key={project.slug} project={project} index={index} progress={scrollYProgress} reduce={Boolean(reduce)}/>)}</div></section>}
+function ProjectScene({project,index,progress,reduce}:{project:Project;index:number;progress:ReturnType<typeof useScroll>["scrollYProgress"];reduce:boolean}){const start=index/3;const end=(index+1)/3;const scale=useTransform(progress,[start,end],[.96,1]);return <motion.article className="project-scene"><div className="project-meta"><p className="technical">0{index+1} / {project.category}</p><h3>{project.name}</h3><p>{project.summary}</p><dl><div><dt>State</dt><dd>{project.status}</dd></div><div><dt>Focus</dt><dd>{project.capabilities.slice(0,2).join(" + ")}</dd></div></dl><Link className="action" href={`/work/${project.slug}`}>View case study <span aria-hidden>↗</span></Link></div><motion.div style={reduce?undefined:{scale}}><ResponsiveMedia accent={project.accent} label={project.name}/></motion.div></motion.article>}

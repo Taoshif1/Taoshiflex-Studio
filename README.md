@@ -12,16 +12,15 @@ The commercial website and project platform for Taoshiflex Studio — a founder-
 - Supabase Storage for project media
 - Row Level Security for public/private content separation
 
-The public site still runs with curated local project data before Supabase is connected. Once environment variables are configured and the migration is applied, public project pages read from Supabase.
+Phase 1 is a complete public experience backed by curated typed local content. Supabase is an intentionally disconnected future foundation; the public site and project brief require no credentials.
 
 ## Local setup
 
 1. Install dependencies: `npm install`
 2. Copy `.env.example` to `.env.local`
-3. Add the URL and publishable key from the Supabase project Connect dialog
-4. Apply `supabase/migrations/202608130001_initial_schema.sql` in the Supabase SQL editor
-5. Create the first Auth user, then add its UUID to `public.admin_users`
-6. Run `npm run dev`
+3. Run `npm run dev`
+
+Optional future data setup is documented in `docs/supabase-foundation.md` and `supabase/migrations/202608300001_public_foundation.sql`.
 
 ## Useful scripts
 

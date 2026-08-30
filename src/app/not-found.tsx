@@ -1,0 +1,2 @@
+import { ActionLink } from "@/components/ui/primitives";
+export default function NotFound(){return <section className="container" style={{minHeight:"85svh",display:"grid",alignContent:"center",gap:"2rem",paddingTop:"8rem"}}><p className="eyebrow">404 / Outside the system</p><h1 className="display">This path<br/>doesn’t connect.</h1><div><ActionLink href="/" solid>Return home</ActionLink></div></section>}
