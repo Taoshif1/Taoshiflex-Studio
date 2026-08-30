@@ -1,5 +1,5 @@
 import { cookies } from "next/headers";
-import { supabaseConfig, verifyStudioAdminToken } from "@/lib/supabase-rest";
+import { supabaseConfig, supabaseHeaders, verifyStudioAdminToken } from "@/lib/supabase-rest";
 import { isSameOrigin } from "@/lib/admin-security";
 import { rateLimit } from "@/lib/rate-limit";
 
@@ -10,7 +10,7 @@ export async function POST(request:Request){
   if(!url||!publicKey) return Response.json({error:"Supabase is not configured."},{status:503});
   const body=await request.json().catch(()=>null) as {email?:string;password?:string}|null;
   if(!body?.email||!body.password) return Response.json({error:"Email and password are required."},{status:400});
-  const response=await fetch(`${url}/auth/v1/token?grant_type=password`,{method:"POST",headers:{apikey:publicKey,"Content-Type":"application/json"},body:JSON.stringify({email:body.email,password:body.password}),cache:"no-store"});
+  const response=await fetch(`${url}/auth/v1/token?grant_type=password`,{method:"POST",headers:supabaseHeaders("public",{"Content-Type":"application/json"}),body:JSON.stringify({email:body.email,password:body.password}),cache:"no-store"});
   const result=await response.json() as {access_token?:string;expires_in?:number;error_description?:string};
   if(!response.ok||!result.access_token) return Response.json({error:"Invalid credentials."},{status:401});
   if(!await verifyStudioAdminToken(result.access_token))return Response.json({error:"This account is not a Studio admin."},{status:403});

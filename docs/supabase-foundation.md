@@ -10,7 +10,15 @@ The second migration adds service packages, package features, assistant conversa
 
 ## Phase 1B.1 authorization
 
-The `studio_access_token` cookie is HttpOnly, Secure in production, SameSite=Lax, and limited to one hour. Every request first validates that access token against Supabase Auth. Only after Auth returns a valid user does server-only code use `SUPABASE_SERVICE_ROLE_KEY` to check that exact UUID in `admin_users`. No client or ordinary authenticated JWT can enumerate the allowlist. State-changing admin routes additionally require a matching `Origin`/`Host`, validate an explicit payload shape, and repeat the admin-session check. Logout is same-origin protected and deletes the cookie.
+The `studio_access_token` cookie is HttpOnly, Secure in production, SameSite=Lax, and limited to one hour. Every request first validates that user access token against Supabase Auth. Only after Auth returns a valid user does server-only code use `SUPABASE_SECRET_KEY` to check that exact UUID in `admin_users`. No client or ordinary authenticated JWT can enumerate the allowlist. State-changing admin routes additionally require a matching `Origin`/`Host`, validate an explicit payload shape, and repeat the admin-session check. Logout is same-origin protected and deletes the cookie.
+
+## Supabase API keys and headers
+
+Configure `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` (`sb_publishable_…`), and backend-only `SUPABASE_SECRET_KEY` (`sb_secret_…`). A publishable key may be exposed to the browser and is sent to the Data/Auth APIs as `apikey` only. A modern secret key is sent from server code as `apikey` only. Neither modern API-key format is a JWT, so neither belongs in `Authorization: Bearer`.
+
+Authenticated user calls send the publishable key in `apikey` and the user access token returned by Supabase Auth in `Authorization: Bearer`. The user token—not either API key—is the JWT carrying the user identity.
+
+Never prefix the secret with `NEXT_PUBLIC_`, expose it to client components, or commit real keys. `SUPABASE_SERVICE_ROLE_KEY` remains supported as a transitional legacy fallback; only that legacy JWT path adds a privileged bearer header when `SUPABASE_SECRET_KEY` is absent.
 
 Apply `202608300003_phase_1b_hardening.sql` after the first two migrations. It seeds the approved pricing catalog only when each package slug does not already exist; its feature rows are inserted only for packages created by that migration, so rerunning it cannot overwrite later admin edits.
 
