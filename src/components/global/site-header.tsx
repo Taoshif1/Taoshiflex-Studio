@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { useEffect, useId, useRef, useState } from "react";
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 
@@ -13,6 +14,8 @@ const links = [
 ];
 
 export function SiteHeader() {
+  const pathname = usePathname();
+  const [activeSection, setActiveSection] = useState("");
   const [open, setOpen] = useState(false);
   const menuId = useId();
   const triggerRef = useRef<HTMLButtonElement>(null);
@@ -20,6 +23,16 @@ export function SiteHeader() {
   const wasOpen = useRef(false);
   const reduceMotion = useReducedMotion();
 
+  useEffect(() => {
+    if (pathname !== "/") return;
+    const sections = ["services", "process", "studio"].map((id) => document.getElementById(id)).filter((item): item is HTMLElement => Boolean(item));
+    const observer = new IntersectionObserver((entries) => {
+      const visible = entries.filter((entry) => entry.isIntersecting).sort((a, b) => b.intersectionRatio - a.intersectionRatio)[0];
+      if (visible) setActiveSection(visible.target.id);
+    }, { rootMargin: "-28% 0px -56%", threshold: [0, .2, .5] });
+    sections.forEach((section) => observer.observe(section));
+    return () => observer.disconnect();
+  }, [pathname]);
   useEffect(() => {
     if (!open) {
       if (wasOpen.current) triggerRef.current?.focus();
@@ -54,5 +67,7 @@ export function SiteHeader() {
     };
   }, [open]);
 
-  return <header className="site-header"><div className="container nav-inner"><Link href="/" className="wordmark" onClick={() => setOpen(false)}>Taoshifle<span>x</span> Studio</Link><nav className="desktop-nav" aria-label="Primary">{links.map((link) => <Link key={link.href} href={link.href}>{link.label}</Link>)}<Link className="nav-cta" href="/start-a-project">Start a Project</Link></nav><button ref={triggerRef} className="menu-button" type="button" onClick={() => setOpen((current) => !current)} aria-expanded={open} aria-controls={menuId}><span>{open ? "Close" : "Menu"}</span><i aria-hidden /></button></div><AnimatePresence>{open ? <motion.div ref={menuRef} id={menuId} className="mobile-menu" initial={reduceMotion ? false : { clipPath: "inset(0 0 100% 0)", opacity: .85 }} animate={{ clipPath: "inset(0 0 0% 0)", opacity: 1 }} exit={reduceMotion ? { opacity: 0 } : { clipPath: "inset(0 0 100% 0)", opacity: .85 }} transition={{ duration: reduceMotion ? .01 : .48, ease: [.22, 1, .36, 1] }}><nav className="container" aria-label="Mobile">{links.map((link, index) => <Link key={link.href} href={link.href} onClick={() => setOpen(false)}><small>{String(index + 1).padStart(2, "0")}</small>{link.label}</Link>)}<Link href="/start-a-project" onClick={() => setOpen(false)}><small>06</small>Start a Project</Link></nav></motion.div> : null}</AnimatePresence></header>;
+  const routeActive=(href:string)=>href==="/work"?pathname==="/work"||pathname.startsWith("/work/"):pathname===href;
+  const linkActive=(href:string)=>href.startsWith("/#")?pathname==="/"&&activeSection===href.slice(2):routeActive(href);
+  return <header className="site-header"><div className="container nav-inner"><Link href="/" className="wordmark" onClick={() => setOpen(false)}>Taoshifle<span>x</span> Studio</Link><nav className="desktop-nav" aria-label="Primary">{links.map((link) => <Link key={link.href} href={link.href} className={linkActive(link.href)?"nav-active":undefined} aria-current={!link.href.includes("#")&&linkActive(link.href)?"page":undefined}>{link.label}</Link>)}<Link className={`nav-cta${routeActive("/start-a-project")?" nav-active":""}`} aria-current={routeActive("/start-a-project")?"page":undefined} href="/start-a-project">Start a Project</Link></nav><button ref={triggerRef} className="menu-button" type="button" onClick={() => setOpen((current) => !current)} aria-expanded={open} aria-controls={menuId}><span>{open ? "Close" : "Menu"}</span><i aria-hidden /></button></div><AnimatePresence>{open ? <motion.div ref={menuRef} id={menuId} className="mobile-menu" initial={reduceMotion ? false : { clipPath: "inset(0 0 100% 0)", opacity: .85 }} animate={{ clipPath: "inset(0 0 0% 0)", opacity: 1 }} exit={reduceMotion ? { opacity: 0 } : { clipPath: "inset(0 0 100% 0)", opacity: .85 }} transition={{ duration: reduceMotion ? .01 : .48, ease: [.22, 1, .36, 1] }}><nav className="container" aria-label="Mobile">{links.map((link, index) => <Link key={link.href} href={link.href} className={linkActive(link.href)?"nav-active":undefined} aria-current={!link.href.includes("#")&&linkActive(link.href)?"page":undefined} onClick={() => setOpen(false)}><small>{String(index + 1).padStart(2, "0")}</small>{link.label}</Link>)}<Link href="/start-a-project" className={routeActive("/start-a-project")?"nav-active":undefined} aria-current={routeActive("/start-a-project")?"page":undefined} onClick={() => setOpen(false)}><small>06</small>Start a Project</Link></nav></motion.div> : null}</AnimatePresence></header>;
 }
