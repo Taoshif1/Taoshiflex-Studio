@@ -1,6 +1,6 @@
 import type { Inquiry } from "@/types/content";
 
-export const inquiryStatuses = ["new", "contacted", "qualified", "closed"] as const;
+export const inquiryStatuses = ["new", "contacted", "qualified", "converted", "closed"] as const;
 export type InquiryStatus = typeof inquiryStatuses[number];
 export type InquiryRecord = {
   id: string;

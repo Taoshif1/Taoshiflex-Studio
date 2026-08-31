@@ -1,6 +1,7 @@
 import { cookies } from "next/headers";
 
 type SupabaseAccess = "public"|"privileged"|{userAccessToken:string}|true;
+export type SupabaseUser={id:string;email?:string};
 export const supabaseConfig=()=>({url:process.env.NEXT_PUBLIC_SUPABASE_URL?.replace(/\/$/,""),publicKey:process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY,secretKey:process.env.SUPABASE_SECRET_KEY,legacyServiceRoleKey:process.env.SUPABASE_SERVICE_ROLE_KEY});
 const isLegacyJwt=(key:string)=>key.startsWith("eyJ")&&key.split(".").length===3;
 
@@ -37,8 +38,14 @@ export async function supabaseRest<T>(path:string,init:RequestInit={},access:Sup
 export async function verifyStudioAdminToken(token:string|undefined){
   const {url}=supabaseConfig();if(!token||!url||!isSupabasePublicConfigured()||!isSupabaseServerConfigured())return null;
   const userResponse=await fetch(`${url}/auth/v1/user`,{headers:supabaseHeaders({userAccessToken:token}),cache:"no-store"});
-  if(!userResponse.ok)return null;const user=await userResponse.json()as{id:string;email?:string};if(!user.id)return null;
+  if(!userResponse.ok)return null;const user=await userResponse.json()as SupabaseUser;if(!user.id)return null;
   const adminResponse=await fetch(`${url}/rest/v1/admin_users?user_id=eq.${encodeURIComponent(user.id)}&select=user_id&limit=1`,{headers:supabaseHeaders("privileged"),cache:"no-store"});
   if(!adminResponse.ok||((await adminResponse.json())as unknown[]).length===0)return null;return user;
 }
-export async function getAdminSession(){return verifyStudioAdminToken((await cookies()).get("studio_access_token")?.value)}
+export async function verifySupabaseUserToken(token:string|undefined){
+  const {url}=supabaseConfig();if(!token||!url||!isSupabasePublicConfigured())return null;
+  const response=await fetch(`${url}/auth/v1/user`,{headers:supabaseHeaders({userAccessToken:token}),cache:"no-store"});
+  if(!response.ok)return null;const user=await response.json()as SupabaseUser;return user.id?user:null;
+}
+export async function getAdminAuthorization(){const token=(await cookies()).get("studio_access_token")?.value;const user=await verifyStudioAdminToken(token);return user&&token?{user,token}:null}
+export async function getAdminSession(){return (await getAdminAuthorization())?.user??null}
