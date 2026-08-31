@@ -2,6 +2,7 @@ import { cookies } from "next/headers";
 
 type SupabaseAccess = "public"|"privileged"|{userAccessToken:string}|true;
 export type SupabaseUser={id:string;email?:string};
+export class SupabaseRestError extends Error{constructor(public status:number,public code?:string,public databaseMessage?:string){super(`Supabase request failed (${status})`);this.name="SupabaseRestError"}}
 export const supabaseConfig=()=>({url:process.env.NEXT_PUBLIC_SUPABASE_URL?.replace(/\/$/,""),publicKey:process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY,secretKey:process.env.SUPABASE_SECRET_KEY,legacyServiceRoleKey:process.env.SUPABASE_SERVICE_ROLE_KEY});
 const isLegacyJwt=(key:string)=>key.startsWith("eyJ")&&key.split(".").length===3;
 
@@ -31,7 +32,7 @@ export function isSupabaseServerConfigured(){const {url,secretKey,legacyServiceR
 export async function supabaseRest<T>(path:string,init:RequestInit={},access:SupabaseAccess="public"):Promise<T>{
   const {url}=supabaseConfig();if(!url)throw new Error("Supabase URL is not configured");
   const response=await fetch(`${url}/rest/v1/${path}`,{...init,headers:supabaseHeaders(access,{"Content-Type":"application/json",...Object.fromEntries(new Headers(init.headers).entries())}),cache:"no-store"});
-  if(!response.ok)throw new Error(`Supabase request failed (${response.status})`);
+  if(!response.ok){const failure=await response.json().catch(()=>null) as {code?:unknown;message?:unknown}|null;throw new SupabaseRestError(response.status,typeof failure?.code==="string"?failure.code:undefined,typeof failure?.message==="string"?failure.message:undefined)}
   const text=await response.text();return(text?JSON.parse(text):null)as T;
 }
 
