@@ -11,7 +11,7 @@ export default async function StudioAdminPage(){
   let projects:Row[]=[],inquiries:Row[]=[],packages:Row[]=[],settings:Row[]=[];
   if(user){
     [projects,inquiries,packages,settings]=await Promise.all([
-      supabaseRest<Row[]>("projects?select=*&order=sort_order.asc",{},true).catch(()=>[]),
+      supabaseRest<Row[]>("projects?select=*,project_media(*)&order=sort_order.asc",{},true).catch(()=>[]),
       supabaseRest<Row[]>("inquiries?select=id,email,status,created_at,payload&order=created_at.desc&limit=50",{},true).catch(()=>[]),
       supabaseRest<Row[]>("service_packages?select=*,package_features(*)&order=sort_order.asc",{},true).catch(()=>[]),
       supabaseRest<Row[]>("site_settings?select=key,value,public",{},true).catch(()=>[]),
