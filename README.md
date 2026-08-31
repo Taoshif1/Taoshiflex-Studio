@@ -43,6 +43,12 @@ Supabase configuration prefers `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` (`sb_publi
 
 The Studio Assistant is a deliberately constrained foundation: its browser-side answers use approved pricing/process copy only and hand project-specific discussions to the persisted inquiry flow. It does not expose a model credential or claim autonomous knowledge.
 
+## Client Workspace
+
+`/client` uses Supabase Auth passwordless email access and migration `202608310006_client_workspace_foundation.sql`. Apply migration 006 manually after review; the application intentionally degrades to a setup notice before it exists. Add both the production `/client/auth/callback` URL and the local development callback (for example `http://localhost:3000/client/auth/callback`) to Supabase Auth Redirect URLs. Supabase email delivery and the email template must be configured to provide either a magic link or the `{{ .Token }}` one-time code.
+
+Clients can read only Client Projects where `client_project_members.user_id = auth.uid()`. The human-facing `TS-XXXXXXXX` reference is an identifier, never a password or authorization token. New client members must already exist in Supabase Auth before an Admin assigns their email. Deliverable file uploads are deliberately deferred; Phase 1D supports membership-protected records and optional external HTTPS links, while `storage_path` reserves the boundary for a future private bucket and signed-URL implementation.
+
 ## Product direction
 
 The public experience is organized around four conversion jobs:

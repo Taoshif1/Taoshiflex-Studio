@@ -1,4 +1,4 @@
-import { getAdminSession } from "./supabase-rest";
+import { getAdminAuthorization } from "./supabase-rest";
 
 export function isSameOrigin(request:Request){
   const origin=request.headers.get("origin");
@@ -9,9 +9,9 @@ export function isSameOrigin(request:Request){
 
 export async function authorizeMutation(request:Request){
   if(!isSameOrigin(request))return {error:Response.json({error:"Cross-origin request rejected."},{status:403})};
-  const user=await getAdminSession();
-  if(!user)return {error:Response.json({error:"Unauthorized"},{status:401})};
-  return {user};
+  const authorization=await getAdminAuthorization();
+  if(!authorization)return {error:Response.json({error:"Unauthorized"},{status:401})};
+  return {...authorization,error:null};
 }
 
 export function cleanText(value:unknown,max:number,required=false){
