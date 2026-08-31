@@ -25,3 +25,11 @@ Apply `202608300003_phase_1b_hardening.sql` after the first two migrations. It s
 ## Rate limiting
 
 The current limiter is a bounded, process-memory best-effort guard for local development and a single warm instance. It is not coordinated across regions or instances and resets when the process restarts. The `rateLimit` function is intentionally isolated so a distributed production implementation can replace it without changing inquiry or authentication route contracts.
+
+## Phase 1C project media
+
+Migration `202608310004_project_media_storage.sql` is additive and must be reviewed and applied manually after migrations 001 through 003. It adds an explicit `cover` / `gallery` role to `project_media`, enforces one Cover per project, indexes ordered galleries, restricts media rows to images, and creates the public `project-media` Storage bucket.
+
+The bucket contains intentionally public marketing assets. It accepts JPEG, PNG, WebP, and AVIF images only, with a 6 MB object limit. Studio Admin repeats MIME, size, and file-signature validation on the server before uploading through privileged server-only credentials. Browser code never receives the Supabase secret and never performs privileged Storage mutations.
+
+Storage paths are generated as `projects/<project-id>/<uuid>.<ext>`; raw filenames are not trusted. Public URLs are derived from `storage_path`, not persisted redundantly. Project deletion removes Storage objects before deleting the project row; the existing foreign-key cascade then removes `project_media` records. Media routes return a migration-required error when the bucket/role schema is unavailable, while public pages keep their designed placeholder fallback until media exists.

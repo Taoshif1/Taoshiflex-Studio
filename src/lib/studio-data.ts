@@ -1,12 +1,14 @@
 import { projects as localProjects } from "@/content/projects";
 import { servicePackages as localPackages } from "@/content/pricing";
 import type { AssistantSettings, Project, ServicePackage } from "@/types/content";
+import { projectMediaPublicUrl } from "./project-media-url";
 import { isSupabasePublicConfigured, supabaseRest } from "./supabase-rest";
+import { publicProjectStatus } from "./public-project-status";
 
 export async function getPublishedProjects(): Promise<Project[]> {
   if (!isSupabasePublicConfigured()) return localProjects.filter((project) => project.slug !== "redflint");
   try {
-    const rows = await supabaseRest<Array<Record<string, unknown>>>("projects?published=eq.true&select=*&order=sort_order.asc");
+    const rows = await supabaseRest<Array<Record<string, unknown>>>("projects?published=eq.true&select=*,project_media(*)&order=sort_order.asc");
     return rows.map(mapProject);
   } catch { return localProjects.filter((project) => project.slug !== "redflint"); }
 }
@@ -35,5 +37,8 @@ export async function getAssistantSettings():Promise<AssistantSettings>{
 
 function mapProject(row:Record<string,unknown>):Project {
   const content = (row.content ?? {}) as Partial<Project>;
-  return { ...content, slug:String(row.slug),name:String(row.name),category:String(row.category) as Project["category"],status:String(row.status),summary:String(row.summary),client:String(row.client ?? content.client ?? row.name),year:String(content.year ?? new Date(String(row.created_at)).getFullYear()),context:String(row.context ?? content.context ?? ""),challenge:String(row.challenge ?? content.challenge ?? ""),approach:String(row.approach ?? content.approach ?? ""),solution:String(row.solution ?? content.solution ?? ""),result:String(row.result ?? content.result ?? ""),capabilities:Array.isArray(row.services) ? row.services as string[] : content.capabilities ?? [],features:Array.isArray(row.features) ? row.features as string[] : content.features ?? [],technicalNotes:Array.isArray(row.technical_notes) ? row.technical_notes as string[] : content.technicalNotes ?? [],accent:String(row.accent ?? "#b89055"),media:content.media ?? [],repositoryUrl:row.repository_url ? String(row.repository_url) : undefined,showRepository:Boolean(row.show_repository),liveUrl:row.live_url ? String(row.live_url) : undefined,featured:Boolean(row.featured),published:Boolean(row.published),sortOrder:Number(row.sort_order),id:String(row.id),createdAt:String(row.created_at),updatedAt:String(row.updated_at) };
+  const relational=Array.isArray(row.project_media)?row.project_media as Array<Record<string,unknown>>:[];
+  const relationalMedia=relational.filter(item=>typeof item.storage_path==="string"&&item.storage_path).map(item=>{const metadata=(item.metadata??{}) as Record<string,unknown>,width=Number(metadata.width)||1600,height=Number(metadata.height)||1000,role=(item.role==="cover"?"cover":"gallery") as "cover"|"gallery";return{id:String(item.id),kind:"image" as const,role,alt:String(item.alt),aspect:(width===height?"square":width<height?"portrait":"landscape") as "square"|"portrait"|"landscape",src:projectMediaPublicUrl(String(item.storage_path)),storagePath:String(item.storage_path),width,height,mime:metadata.mime?String(metadata.mime):undefined,sortOrder:Number(item.sort_order)}}).sort((a,b)=>(a.role===b.role?Number(a.sortOrder)-Number(b.sortOrder):a.role==="cover"?-1:1));
+  const gallery=relationalMedia.filter(item=>item.role==="gallery"),coverMedia=relationalMedia.find(item=>item.role==="cover");
+  return { ...content, slug:String(row.slug),name:String(row.name),category:String(row.category) as Project["category"],status:publicProjectStatus(String(row.status),String(row.client ?? content.client ?? row.name)),summary:String(row.summary),client:String(row.client ?? content.client ?? row.name),year:String(content.year ?? new Date(String(row.created_at)).getFullYear()),context:String(row.context ?? content.context ?? ""),challenge:String(row.challenge ?? content.challenge ?? ""),approach:String(row.approach ?? content.approach ?? ""),solution:String(row.solution ?? content.solution ?? ""),result:String(row.result ?? content.result ?? ""),capabilities:Array.isArray(row.services) ? row.services as string[] : content.capabilities ?? [],features:Array.isArray(row.features) ? row.features as string[] : content.features ?? [],technicalNotes:Array.isArray(row.technical_notes) ? row.technical_notes as string[] : content.technicalNotes ?? [],accent:String(row.accent ?? "#b89055"),coverMedia,media:gallery.length?gallery:content.media ?? [],repositoryUrl:row.repository_url ? String(row.repository_url) : undefined,showRepository:Boolean(row.show_repository),liveUrl:row.live_url ? String(row.live_url) : undefined,featured:Boolean(row.featured),published:Boolean(row.published),sortOrder:Number(row.sort_order),id:String(row.id),createdAt:String(row.created_at),updatedAt:String(row.updated_at) };
 }
