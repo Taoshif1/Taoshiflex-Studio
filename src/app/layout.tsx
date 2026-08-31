@@ -3,6 +3,7 @@ import { Instrument_Sans, Cormorant_Garamond } from "next/font/google";
 import "./globals.css";
 import "@/components/global/global.css";
 import "./phase1c1.css";
+import "./phase1c2.css";
 import { SiteHeader } from "@/components/global/site-header";
 import { SiteFooter } from "@/components/global/site-footer";
 import { StudioAssistant } from "@/components/assistant/studio-assistant";
