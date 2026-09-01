@@ -1,0 +1,24 @@
+.work-section{position:relative;overflow:hidden}
+.work-section>.container{position:relative;z-index:1}
+.work-trajectory{position:absolute;z-index:0;inset:0;overflow:hidden;opacity:.34;pointer-events:none}
+.work-trajectory svg{position:absolute;inset:2% -3% 0;width:106%;height:96%;fill:none;stroke:rgba(17,17,15,.28);stroke-width:1;vector-effect:non-scaling-stroke}
+.work-trajectory .trajectory-guide{stroke-dasharray:3 12;opacity:.55}
+.work-trajectory .trajectory-path{stroke:rgba(184,144,85,.7);stroke-width:1.25}
+.work-trajectory .trajectory-path-two{stroke:rgba(71,88,96,.42);stroke-dasharray:14 7}
+.work-trajectory circle{fill:var(--ivory);stroke:rgba(184,144,85,.8);stroke-width:1.5}
+.registration-mark,.coordinate-ticks,.project-evidence{position:absolute;display:block;pointer-events:none}
+.registration-mark{width:2.2rem;height:2.2rem;border:1px solid rgba(17,17,15,.24);border-radius:50%}
+.registration-mark i{position:absolute;top:50%;left:-.45rem;width:calc(100% + .9rem);height:1px;background:rgba(17,17,15,.28)}
+.registration-mark i:last-child{transform:rotate(90deg)}
+.registration-a{top:13%;right:8%}.registration-b{bottom:10%;left:7%;transform:scale(.72)}
+.coordinate-ticks{display:flex;gap:.65rem;padding-top:.45rem;border-top:1px solid rgba(17,17,15,.28)}
+.coordinate-ticks i{width:1px;height:.45rem;background:rgba(17,17,15,.34)}
+.ticks-a{top:29%;left:3%;transform:rotate(-25deg)}.ticks-b{right:4%;bottom:31%;transform:rotate(-25deg)}
+.project-scene{isolation:isolate}
+.project-scene>*:not(.project-evidence){position:relative;z-index:1}
+.project-evidence{z-index:0;top:1rem;right:0;width:clamp(5rem,9vw,8rem);height:clamp(3.5rem,6vw,5rem);border-top:1px solid rgba(17,17,15,.22);border-right:1px solid rgba(17,17,15,.22);opacity:.48}
+.project-evidence i{position:absolute;top:-.3rem;width:1px;height:.6rem;background:rgba(17,17,15,.38)}
+.project-evidence i:first-child{left:25%}.project-evidence i:nth-child(2){left:58%}
+.project-evidence span{position:absolute;right:.45rem;bottom:.3rem;color:rgba(17,17,15,.5);font-size:.55rem;letter-spacing:.14em}
+@media(max-width:767px){.work-trajectory{opacity:.2}.registration-b,.ticks-b{display:none}.project-evidence{right:1rem}}
+@media(prefers-reduced-motion:reduce){.work-trajectory,.project-evidence{transform:none}}

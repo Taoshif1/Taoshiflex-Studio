@@ -45,9 +45,11 @@ The Studio Assistant is a deliberately constrained foundation: its browser-side 
 
 ## Client Workspace
 
-`/client` uses Supabase Auth passwordless email access and migration `202608310006_client_workspace_foundation.sql`. Apply migration 006 manually after review; the application intentionally degrades to a setup notice before it exists. Add both the production `/client/auth/callback` URL and the local development callback (for example `http://localhost:3000/client/auth/callback`) to Supabase Auth Redirect URLs. Supabase email delivery and the email template must be configured to provide either a magic link or the `{{ .Token }}` one-time code.
+`/client` uses Supabase Auth passwordless email access and migration `202608310006_client_workspace_foundation.sql`. Apply migration 006 manually after review; the application intentionally degrades to a setup notice before it exists. Allowlist the exact local callback `http://localhost:3000/client/auth/callback` and the production callback `https://<domain>/client/auth/callback` in Supabase Auth Redirect URLs. If a callback is missing from that allowlist, Supabase can ignore it and fall back to the configured Site URL.
 
-Clients can read only Client Projects where `client_project_members.user_id = auth.uid()`. The human-facing `TS-XXXXXXXX` reference is an identifier, never a password or authorization token. New client members must already exist in Supabase Auth before an Admin assigns their email. Deliverable file uploads are deliberately deferred; Phase 1D supports membership-protected records and optional external HTTPS links, while `storage_path` reserves the boundary for a future private bucket and signed-URL implementation.
+Client access is Magic-Link-first: the email action sends a secure sign-in link. The optional one-time-code field appears only when the client chooses “I received a code instead”; the UI does not claim that both are sent. Studio Admin can add an existing Auth user directly or invite a new email server-side, then assign project membership without exposing the Supabase secret.
+
+Clients can read only Client Projects where `client_project_members.user_id = auth.uid()`. The human-facing `TS-XXXXXXXX` reference is an identifier, never a password or authorization token. Deliverable file uploads are deliberately deferred; Phase 1D supports membership-protected records and optional external HTTPS links, while `storage_path` reserves the boundary for a future private bucket and signed-URL implementation.
 
 ## Product direction
 

@@ -33,3 +33,16 @@ Migration `202608310004_project_media_storage.sql` is additive and must be revie
 The bucket contains intentionally public marketing assets. It accepts JPEG, PNG, WebP, and AVIF images only, with a 6 MB object limit. Studio Admin repeats MIME, size, and file-signature validation on the server before uploading through privileged server-only credentials. Browser code never receives the Supabase secret and never performs privileged Storage mutations.
 
 Storage paths are generated as `projects/<project-id>/<uuid>.<ext>`; raw filenames are not trusted. Public URLs are derived from `storage_path`, not persisted redundantly. Project deletion removes Storage objects before deleting the project row; the existing foreign-key cascade then removes `project_media` records. Media routes return a migration-required error when the bucket/role schema is unavailable, while public pages keep their designed placeholder fallback until media exists.
+
+## Phase 1D client authentication
+
+Migration `202608310006_client_workspace_foundation.sql` creates the private Client Project workspace and project-scoped membership policies. Configure these exact Supabase Auth Redirect URLs:
+
+- Local: `http://localhost:3000/client/auth/callback`
+- Production: `https://<domain>/client/auth/callback`
+
+If the requested callback is not allowlisted, Supabase may ignore it and fall back to the Auth Site URL. The application includes a narrow root-fragment recovery for `magiclink` and `invite` responses: it transfers the URL fragment directly to `/client/auth/callback` without storing it, logging it, or converting it to query parameters. Correct redirect configuration remains the primary solution.
+
+The Client UI is Magic-Link-first. “Email secure access” requests the sign-in email, and the sent state directs the client to choose the link. A secondary “I received a code instead” action reveals OTP verification only when needed. This supports either email-template behavior without claiming that both a link and a code are sent simultaneously.
+
+Studio Admin membership mutations are same-origin protected and repeat Admin authorization. Existing Auth users are assigned membership through the Admin-authorized database function. Unknown emails are invited through the server-only Supabase Auth Admin API with the same callback, then assigned project membership using backend-only credentials. Supabase secrets, Auth sessions, and unrelated Auth users are never returned to the browser.
