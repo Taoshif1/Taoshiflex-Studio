@@ -19,11 +19,10 @@ export default async function ClientPage() {
           <p>Enter the email connected to your project.</p>
           <ClientAuthForm />
           <aside>
-            <strong>Secure email access</strong>
+            <strong>Private project access</strong>
             <span>
-              We send a one-time code to your project email. The code expires
-              automatically and your project membership controls what you can
-              see.
+              Sign in with the credentials provided by the Studio. Your project
+              membership controls what you can see.
             </span>
           </aside>
         </section>
