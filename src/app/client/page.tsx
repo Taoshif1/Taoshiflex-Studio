@@ -8,9 +8,26 @@ import {
 import { supabaseRest } from "@/lib/supabase-rest";
 import { ClientAuthForm, ClientLogout } from "./client-auth-form";
 
-export default async function ClientPage() {
+type Props = {
+  searchParams: Promise<{ auth_error?: string | string[] }>;
+};
+
+const authErrorMessages: Record<string, string> = {
+  callback_code_missing:
+    "This secure sign-in link is incomplete. Request a fresh email and try again.",
+  code_exchange_failed:
+    "This secure sign-in link is invalid, expired, or was opened in a different browser. Request a fresh email and try again.",
+  session_validation_failed:
+    "Your sign-in could not be verified. Request a fresh secure access email.",
+};
+
+export default async function ClientPage({ searchParams }: Props) {
   const authorization = await getClientAuthorization();
-  if (!authorization)
+  if (!authorization) {
+    const rawAuthError = (await searchParams).auth_error;
+    const authError = Array.isArray(rawAuthError)
+      ? rawAuthError[0]
+      : rawAuthError;
     return (
       <main className="client-shell client-login">
         <section className="client-login-panel">
@@ -20,18 +37,23 @@ export default async function ClientPage() {
             Use the email connected to your project. Your reference identifies
             the work, but it never grants access.
           </p>
-          <ClientAuthForm />
+          <ClientAuthForm
+            initialMessage={
+              authError ? authErrorMessages[authError] : undefined
+            }
+          />
           <aside>
             <strong>Magic Link access</strong>
             <span>
-              Supabase sends a secure sign-in link. If your email provides a
-              one-time code instead, reveal the optional code field after
-              sending. No password is stored by Taoshiflex Studio.
+              Supabase sends a secure sign-in link. Open it in the same browser
+              that requested access so the protected PKCE exchange can finish.
+              No password is stored by Taoshiflex Studio.
             </span>
           </aside>
         </section>
       </main>
     );
+  }
   const projects = await supabaseRest<ClientProject[]>(
     "client_projects?select=id,reference,name,client_name,summary,status,progress,current_phase,next_action,start_date,target_date,created_at,updated_at&order=updated_at.desc",
     {},

@@ -44,11 +44,6 @@ export async function verifyStudioAdminToken(token:string|undefined){
   const adminResponse=await fetch(`${url}/rest/v1/admin_users?user_id=eq.${encodeURIComponent(user.id)}&select=user_id&limit=1`,{headers:supabaseHeaders("privileged"),cache:"no-store"});
   if(!adminResponse.ok||((await adminResponse.json())as unknown[]).length===0)return null;return user;
 }
-export async function verifySupabaseUserToken(token:string|undefined){
-  const {url}=supabaseConfig();if(!token||!url||!isSupabasePublicConfigured())return null;
-  const response=await fetch(`${url}/auth/v1/user`,{headers:supabaseHeaders({userAccessToken:token}),cache:"no-store"});
-  if(!response.ok)return null;const user=await response.json()as SupabaseUser;return user.id?user:null;
-}
 export async function inviteSupabaseUser(email:string,redirectTo:string){
   const {url,secretKey,legacyServiceRoleKey}=supabaseConfig(),key=secretKey||legacyServiceRoleKey;
   if(!url||!key)throw new Error("Supabase server access is not configured");
