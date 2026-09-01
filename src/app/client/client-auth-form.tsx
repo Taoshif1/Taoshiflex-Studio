@@ -3,19 +3,18 @@
 import { FormEvent, useRef, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 
-const genericSignInError =
-  "Secure access could not be sent. Confirm this email has Client Project access and try again.";
+const genericSendError =
+  "The access code could not be sent. Please wait and try again.";
+const invalidCodeError =
+  "That code is invalid or expired. Request a new one.";
 
-export function ClientAuthForm({
-  initialMessage = "",
-}: {
-  initialMessage?: string;
-}) {
+export function ClientAuthForm() {
   const pendingRef = useRef(false);
   const [email, setEmail] = useState("");
   const [sent, setSent] = useState(false);
+  const [code, setCode] = useState("");
   const [pending, setPending] = useState(false);
-  const [message, setMessage] = useState(initialMessage);
+  const [message, setMessage] = useState("");
 
   async function requestAccess(resend = false) {
     const normalizedEmail = email.trim().toLowerCase();
@@ -24,14 +23,14 @@ export function ClientAuthForm({
       email: normalizedEmail,
       options: {
         shouldCreateUser: false,
-        emailRedirectTo: `${location.origin}/client/auth/callback`,
       },
     });
-    if (error) throw new Error(genericSignInError);
+    if (error) throw new Error(genericSendError);
 
     setEmail(normalizedEmail);
     setSent(true);
-    setMessage(resend ? "Secure access resent." : "");
+    setCode("");
+    setMessage(resend ? "A new access code was sent." : "");
   }
 
   async function runRequest(resend = false) {
@@ -43,7 +42,9 @@ export function ClientAuthForm({
       await requestAccess(resend);
     } catch {
       setMessage(
-        resend ? "The secure access email could not be resent." : genericSignInError,
+        resend
+          ? "The access code could not be resent. Please wait and try again."
+          : genericSendError,
       );
     } finally {
       pendingRef.current = false;
@@ -53,11 +54,33 @@ export function ClientAuthForm({
 
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    await runRequest();
+    if (!sent) {
+      await runRequest();
+      return;
+    }
+    if (pendingRef.current) return;
+    pendingRef.current = true;
+    setPending(true);
+    setMessage("");
+    try {
+      const supabase = createClient();
+      const { data, error } = await supabase.auth.verifyOtp({
+        email,
+        token: code.trim(),
+        type: "email",
+      });
+      if (error || !data.session) throw new Error(invalidCodeError);
+      location.assign("/client");
+    } catch {
+      setMessage(invalidCodeError);
+      pendingRef.current = false;
+      setPending(false);
+    }
   }
 
   function anotherEmail() {
     setSent(false);
+    setCode("");
     setMessage("");
   }
 
@@ -65,12 +88,10 @@ export function ClientAuthForm({
     <form className="client-auth-form" onSubmit={submit}>
       {sent ? (
         <div className="client-sent-state">
-          <p className="eyebrow">Secure access sent</p>
+          <p className="eyebrow">Client Access</p>
           <h2>Check your email.</h2>
           <p>
-            We sent a secure sign-in link to <strong>{email}</strong>.
-            <br />
-            Open the email and choose Sign in.
+            We sent a one-time access code to <strong>{email}</strong>.
           </p>
         </div>
       ) : (
@@ -86,17 +107,37 @@ export function ClientAuthForm({
           />
         </label>
       )}
+      {sent ? (
+        <label>
+          One-time code
+          <input
+            type="text"
+            value={code}
+            onChange={(event) => setCode(event.target.value)}
+            inputMode="numeric"
+            autoComplete="one-time-code"
+            minLength={6}
+            maxLength={8}
+            disabled={pending}
+            required
+            autoFocus
+          />
+        </label>
+      ) : null}
       <p className="client-form-note" aria-live="polite">
         {message ||
           (!sent
-            ? "Access is available only to email addresses assigned to a Client Project."
-            : "The link opens this secure workspace and expires automatically.")}
+            ? "Enter the email connected to your project."
+            : "Enter the one-time code we sent.")}
       </p>
-      {!sent ? (
-        <button className="action action-solid" disabled={pending}>
-          {pending ? "Please wait..." : "Email secure access"}
-        </button>
-      ) : (
+      <button className="action action-solid" disabled={pending}>
+        {pending
+          ? "Please wait..."
+          : sent
+            ? "Access project"
+            : "Send access code"}
+      </button>
+      {sent ? (
         <div className="client-auth-actions">
           <button
             className="client-text-button"
@@ -104,7 +145,7 @@ export function ClientAuthForm({
             disabled={pending}
             onClick={() => void runRequest(true)}
           >
-            Resend email
+            Resend code
           </button>
           <button
             className="client-text-button"
@@ -115,7 +156,7 @@ export function ClientAuthForm({
             Use another email
           </button>
         </div>
-      )}
+      ) : null}
     </form>
   );
 }

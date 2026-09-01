@@ -47,9 +47,22 @@ The Studio Assistant is a deliberately constrained foundation: its browser-side 
 
 `/client` uses Supabase Auth passwordless email access and migration `202608310006_client_workspace_foundation.sql`. Apply migration 006 manually after review; the application intentionally degrades to a setup notice before it exists.
 
-Client access is Magic-Link-first and uses `@supabase/ssr` cookies with PKCE. The browser calls `signInWithOtp`, Supabase redirects to `/client/auth/callback?code=...`, and the server route calls `exchangeCodeForSession` before returning to the server-rendered workspace. The former implicit fragment and custom `client_access_token` / `client_refresh_token` cookie architecture is retired. OTP entry is deferred so it cannot create a competing session path.
+Client access uses email OTP with the existing `@supabase/ssr` cookie session. The browser calls `signInWithOtp` with `shouldCreateUser: false`, then verifies the emailed code with `verifyOtp({ email, token, type: "email" })`. Verification writes the same Supabase SSR cookies used by server authorization and the Next.js 16 session-refresh proxy. Normal Client login has no Magic Link, PKCE callback, custom token POST, or application-managed access/refresh cookie.
 
-In Supabase Auth URL Configuration, use the local Site URL `http://localhost:3000` and allow the exact local Redirect URL `http://localhost:3000/client/auth/callback`. For production, allow `https://<domain>/client/auth/callback`. A Magic Link should be opened in the same browser that requested it so the PKCE verifier cookie is available. Studio Admin can add an existing Auth user directly or invite a new email server-side, then assign project membership without exposing the Supabase secret. Invitation acceptance activates the Auth user; normal subsequent Client Workspace access uses the same PKCE Magic Link flow.
+Configure the hosted Supabase project at **Authentication → Email Templates → Magic Link**. Set the subject to **Your Taoshiflex Studio access code** and replace `{{ .ConfirmationURL }}` with an OTP-only body such as:
+
+```text
+Your secure Taoshiflex Studio access code is:
+
+{{ .Token }}
+
+This code expires automatically.
+Never share this code.
+```
+
+Do not include a login Magic Link in the normal template. Studio Admin's **Add Client Access** action provisions a missing Auth user server-side with a confirmed email and no password, then assigns project membership. Existing Auth users are assigned directly. The secret/service credential remains server-only; possessing the OTP establishes identity, while membership and RLS determine project access.
+
+For previously invited test accounts only, use **Supabase → Authentication → Users** to delete the specific TEST Client user if a clean reprovision is needed, then run **Studio Admin → Client Project → Members → Add Client Access** again. Never bulk-delete Auth users or remove unrelated production users.
 
 Clients can read only Client Projects where `client_project_members.user_id = auth.uid()`. The human-facing `TS-XXXXXXXX` reference is an identifier, never a password or authorization token. Deliverable file uploads are deliberately deferred; Phase 1D supports membership-protected records and optional external HTTPS links, while `storage_path` reserves the boundary for a future private bucket and signed-URL implementation.
 

@@ -201,11 +201,11 @@ export function ClientProjectEditor({
                 email: form.get("email"),
                 role: form.get("role"),
               },
-              "Member added.",
+              "Client access created.",
             );
           }}
         >
-          <Field name="email" label="Client email" type="email" />
+          <Field name="email" label="Email" type="email" />
           <label>
             Role
             <select name="role" defaultValue="client">
@@ -213,10 +213,9 @@ export function ClientProjectEditor({
               <option value="studio">Studio</option>
             </select>
           </label>
-          <button disabled={pending}>Add member</button>
+          <button disabled={pending}>Add Client Access</button>
           <small>
-            Existing Auth users receive access immediately. New users receive a
-            Supabase invitation and project access is assigned server-side.
+            The client can sign in at /client using a one-time email code.
             Membership—not the reference—authorizes the workspace.
           </small>
         </form>
