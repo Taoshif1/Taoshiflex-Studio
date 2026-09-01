@@ -1,7 +1,9 @@
 import { cookies } from "next/headers";
+import { createClient } from "@supabase/supabase-js";
 
 type SupabaseAccess = "public"|"privileged"|{userAccessToken:string}|true;
 export type SupabaseUser={id:string;email?:string};
+export class SupabaseRestError extends Error{constructor(public status:number,public code?:string,public databaseMessage?:string){super(`Supabase request failed (${status})`);this.name="SupabaseRestError"}}
 export const supabaseConfig=()=>({url:process.env.NEXT_PUBLIC_SUPABASE_URL?.replace(/\/$/,""),publicKey:process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY,secretKey:process.env.SUPABASE_SECRET_KEY,legacyServiceRoleKey:process.env.SUPABASE_SERVICE_ROLE_KEY});
 const isLegacyJwt=(key:string)=>key.startsWith("eyJ")&&key.split(".").length===3;
 
@@ -31,7 +33,7 @@ export function isSupabaseServerConfigured(){const {url,secretKey,legacyServiceR
 export async function supabaseRest<T>(path:string,init:RequestInit={},access:SupabaseAccess="public"):Promise<T>{
   const {url}=supabaseConfig();if(!url)throw new Error("Supabase URL is not configured");
   const response=await fetch(`${url}/rest/v1/${path}`,{...init,headers:supabaseHeaders(access,{"Content-Type":"application/json",...Object.fromEntries(new Headers(init.headers).entries())}),cache:"no-store"});
-  if(!response.ok)throw new Error(`Supabase request failed (${response.status})`);
+  if(!response.ok){const failure=await response.json().catch(()=>null) as {code?:unknown;message?:unknown}|null;throw new SupabaseRestError(response.status,typeof failure?.code==="string"?failure.code:undefined,typeof failure?.message==="string"?failure.message:undefined)}
   const text=await response.text();return(text?JSON.parse(text):null)as T;
 }
 
@@ -42,10 +44,14 @@ export async function verifyStudioAdminToken(token:string|undefined){
   const adminResponse=await fetch(`${url}/rest/v1/admin_users?user_id=eq.${encodeURIComponent(user.id)}&select=user_id&limit=1`,{headers:supabaseHeaders("privileged"),cache:"no-store"});
   if(!adminResponse.ok||((await adminResponse.json())as unknown[]).length===0)return null;return user;
 }
-export async function verifySupabaseUserToken(token:string|undefined){
-  const {url}=supabaseConfig();if(!token||!url||!isSupabasePublicConfigured())return null;
-  const response=await fetch(`${url}/auth/v1/user`,{headers:supabaseHeaders({userAccessToken:token}),cache:"no-store"});
-  if(!response.ok)return null;const user=await response.json()as SupabaseUser;return user.id?user:null;
+export async function provisionSupabaseUser(email:string){
+  const {url,secretKey,legacyServiceRoleKey}=supabaseConfig(),key=secretKey||legacyServiceRoleKey;
+  if(!url||!key)throw new Error("Supabase server access is not configured");
+  const client=createClient(url,key,{auth:{autoRefreshToken:false,persistSession:false,detectSessionInUrl:false}});
+  const {data,error}=await client.auth.admin.createUser({email,email_confirm:true});
+  if(error)throw error;
+  if(!data.user?.id)throw new Error("Supabase did not return the provisioned user");
+  return {id:data.user.id,email:data.user.email};
 }
 export async function getAdminAuthorization(){const token=(await cookies()).get("studio_access_token")?.value;const user=await verifyStudioAdminToken(token);return user&&token?{user,token}:null}
 export async function getAdminSession(){return (await getAdminAuthorization())?.user??null}

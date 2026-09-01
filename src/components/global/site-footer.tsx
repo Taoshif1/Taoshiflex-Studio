@@ -1,2 +1,80 @@
+import Image from "next/image";
 import Link from "next/link";
-export function SiteFooter(){return <footer className="footer"><div className="container footer-grid"><div><p className="footer-mark">Taoshifle<span>x</span> Studio</p><p className="footer-founder">Founder-led by Gazi Taoshif — strategy, design and engineering with one accountable point of contact.</p></div><div><p className="eyebrow">Independent studio</p><p>Dhaka → Working Anywhere</p></div><nav aria-label="Footer"><Link href="/work">Work</Link><Link href="/pricing">Pricing</Link><Link href="/#services">Services</Link><Link href="/start-a-project">Start a Project</Link></nav><p className="technical">© {new Date().getFullYear()} Taoshiflex Studio / Built with restraint</p></div></footer>}
+import { site } from "@/content/site";
+
+const explore = [
+  { href: "/work", label: "Work" },
+  { href: "/pricing", label: "Pricing" },
+  { href: "/#services", label: "Services" },
+  { href: "/#process", label: "Process" },
+  { href: "/#studio", label: "Studio" },
+];
+
+export function SiteFooter() {
+  return (
+    <footer className="footer">
+      <div className="container">
+        <div className="footer-grid">
+          <section className="footer-brand" aria-labelledby="footer-brand-name">
+            <Link
+              className="footer-identity"
+              href="/"
+              aria-label="Taoshiflex Studio home"
+            >
+              <Image src="/brand/txs-mark.png" alt="" width={40} height={33} />
+              <span id="footer-brand-name">
+                Taoshifle<span className="brand-x">x</span> Studio
+              </span>
+            </Link>
+            <p>{site.description}</p>
+            <span className="footer-axis" aria-hidden>
+              <i />
+              <i />
+            </span>
+          </section>
+          <nav className="footer-column" aria-label="Explore">
+            <p className="footer-label">Explore</p>
+            {explore.map((link) => (
+              <Link key={link.href} href={link.href}>
+                {link.label}
+                <span aria-hidden>&#8599;</span>
+              </Link>
+            ))}
+          </nav>
+          <nav className="footer-column footer-work" aria-label="Work with us">
+            <p className="footer-label">Work with us</p>
+            <Link href="/start-a-project">
+              Start a Project<span aria-hidden>&#8599;</span>
+            </Link>
+            <Link href="/client">
+              Client Access<span aria-hidden>&#8599;</span>
+            </Link>
+          </nav>
+          <div className="footer-column footer-details">
+            <div>
+              <p className="footer-label">Location / Availability</p>
+              <p>
+                Dhaka, Bangladesh
+                <br />
+                <span>Available for remote collaboration</span>
+              </p>
+            </div>
+            <div>
+              <p className="footer-label">Contact</p>
+              <a href={`mailto:${site.email}`}>
+                {site.email}
+                <span aria-hidden>&#8599;</span>
+              </a>
+            </div>
+          </div>
+        </div>
+        <div className="footer-bottom">
+          <p>&copy; {new Date().getFullYear()} Taoshiflex Studio</p>
+          <p className="technical">
+            Design <span>&bull;</span> Develop <span>&bull;</span> Deliver
+          </p>
+        </div>
+      </div>
+    </footer>
+  );
+}

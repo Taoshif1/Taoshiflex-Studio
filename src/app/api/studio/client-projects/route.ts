@@ -1,12 +1,27 @@
 import { authorizeMutation, cleanText, cleanUrl } from "@/lib/admin-security";
 import { clientProjectStatuses, deliverableStatuses, milestoneStatuses } from "@/lib/client-projects";
-import { supabaseRest } from "@/lib/supabase-rest";
+import { provisionSupabaseUser, SupabaseRestError, supabaseRest } from "@/lib/supabase-rest";
 const uuid=/^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i,date=/^\d{4}-\d{2}-\d{2}$/;
 const validId=(value:unknown)=>typeof value==="string"&&uuid.test(value);
 const optionalDate=(value:unknown)=>{const clean=cleanText(value,10);return clean&&date.test(clean)?clean:null};
 const error=()=>Response.json({error:"Client Projects require reviewed migration 006."},{status:409});
 export async function POST(request:Request){const auth=await authorizeMutation(request);if(auth.error)return auth.error;const body=await request.json().catch(()=>null) as Record<string,unknown>|null,kind=cleanText(body?.kind,30,true),projectId=body?.projectId;if(!kind||!validId(projectId))return Response.json({error:"Valid operation and project are required."},{status:400});try{
-  if(kind==="member"){const email=cleanText(body?.email,254,true)?.toLowerCase(),role=cleanText(body?.role,20,true);if(!email||!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)||!role||!['client','studio'].includes(role))return Response.json({error:"Enter a valid Supabase Auth member email and role."},{status:400});await supabaseRest("rpc/add_client_project_member_by_email",{method:"POST",body:JSON.stringify({target_project_id:projectId,member_email:email,member_role:role})},{userAccessToken:auth.token});return Response.json({ok:true})}
+  if(kind==="member"){
+    const email=cleanText(body?.email,254,true)?.toLowerCase(),role=cleanText(body?.role,20,true);
+    if(!email||!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)||!role||!['client','studio'].includes(role))return Response.json({error:"Enter a valid client email and role."},{status:400});
+    const existing=await supabaseRest<Array<{id:string}>>(`client_project_members?project_id=eq.${projectId}&email=eq.${encodeURIComponent(email)}&select=id&limit=1`,{},true);
+    if(existing.length)return Response.json({ok:true,status:"already_has_access",message:"Client already has access."});
+    const addExisting=()=>supabaseRest("rpc/add_client_project_member_by_email",{method:"POST",body:JSON.stringify({target_project_id:projectId,member_email:email,member_role:role})},{userAccessToken:auth.token});
+    try{await addExisting();return Response.json({ok:true,status:"member_added",message:"Existing client added to this project."})}catch(cause){
+      if(!(cause instanceof SupabaseRestError&&cause.databaseMessage==="No Supabase Auth user exists for this email"))throw cause;
+    }
+    let provisioned:{id:string};
+    try{provisioned=await provisionSupabaseUser(email)}catch{
+      try{await addExisting();return Response.json({ok:true,status:"member_added",message:"Existing client added to this project."})}catch{return Response.json({error:"Client access could not be created. Please retry."},{status:502})}
+    }
+    try{await supabaseRest("client_project_members",{method:"POST",headers:{Prefer:"resolution=merge-duplicates,return=minimal"},body:JSON.stringify({project_id:projectId,user_id:provisioned.id,email,role})},true)}catch{return Response.json({error:"Client access was created, but project assignment failed. Retry Add Client Access."},{status:409})}
+    return Response.json({ok:true,status:"access_created",message:"Client access created."});
+  }
   if(kind==="milestone"){const title=cleanText(body?.title,180,true),description=cleanText(body?.description,1200),status=cleanText(body?.status,30,true),sortOrder=Math.max(0,Math.min(1000,Number(body?.sortOrder)||0));if(!title||!status||!milestoneStatuses.includes(status as typeof milestoneStatuses[number]))return Response.json({error:"Complete the milestone fields."},{status:400});await supabaseRest("project_milestones",{method:"POST",headers:{Prefer:"return=minimal"},body:JSON.stringify({project_id:projectId,title,description:description||"",status,due_date:optionalDate(body?.dueDate),completed_at:status==="completed"?new Date().toISOString():null,sort_order:sortOrder})},true);return Response.json({ok:true})}
   if(kind==="update"){const title=cleanText(body?.title,180,true),updateBody=cleanText(body?.body,2000,true);if(!title||!updateBody)return Response.json({error:"Update title and body are required."},{status:400});await supabaseRest("project_updates",{method:"POST",headers:{Prefer:"return=minimal"},body:JSON.stringify({project_id:projectId,title,body:updateBody,published_at:new Date().toISOString()})},true);return Response.json({ok:true})}
   if(kind==="deliverable"){const title=cleanText(body?.title,180,true),description=cleanText(body?.description,1200),status=cleanText(body?.status,30,true),externalUrl=cleanUrl(body?.externalUrl);if(!title||!status||!deliverableStatuses.includes(status as typeof deliverableStatuses[number])||externalUrl===null)return Response.json({error:"Complete the deliverable fields with a valid optional URL."},{status:400});await supabaseRest("project_deliverables",{method:"POST",headers:{Prefer:"return=minimal"},body:JSON.stringify({project_id:projectId,title,description:description||"",status,external_url:externalUrl||null})},true);return Response.json({ok:true})}

@@ -1,0 +1,17 @@
+.process{position:relative;overflow:hidden}
+.process>.container{position:relative;z-index:1}
+.process-drafting{position:absolute;z-index:0;inset:0;overflow:hidden;opacity:.27;pointer-events:none}
+.process-drafting svg{position:absolute;inset:0;width:100%;height:100%;fill:none;stroke:rgba(17,17,15,.34);stroke-width:1;stroke-dasharray:2 10;vector-effect:non-scaling-stroke}
+.process-drafting .drafting-arc{stroke:rgba(184,144,85,.65);stroke-dasharray:none}
+.draft-crosshair,.stage-datum{position:absolute;display:block;pointer-events:none}
+.draft-crosshair{width:3rem;height:3rem;border:1px solid rgba(17,17,15,.22);border-radius:50%}
+.draft-crosshair i{position:absolute;top:50%;left:-.5rem;width:calc(100% + 1rem);height:1px;background:rgba(17,17,15,.36)}
+.draft-crosshair i:last-child{transform:rotate(90deg)}
+.crosshair-a{top:17%;right:9%}.crosshair-b{right:17%;bottom:9%;transform:scale(.68)}
+.timeline article{position:relative}
+.timeline article>*:not(.stage-datum){position:relative;z-index:1}
+.stage-datum{z-index:0;top:0;right:0;width:clamp(4rem,7vw,6rem);height:1.5rem;border-top:1px solid rgba(17,17,15,.24);opacity:.58}
+.stage-datum i{position:absolute;top:-.3rem;width:1px;height:.6rem;background:rgba(17,17,15,.38)}
+.stage-datum i:first-child{left:10%}.stage-datum i:nth-child(2){left:50%}.stage-datum i:last-child{right:10%}
+@media(max-width:767px){.process-drafting{opacity:.18}.crosshair-b{display:none}.stage-datum{right:1rem}}
+@media(prefers-reduced-motion:reduce){.process-drafting,.draft-crosshair,.stage-datum{transform:none}}
