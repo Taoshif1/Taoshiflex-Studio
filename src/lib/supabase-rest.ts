@@ -44,11 +44,11 @@ export async function verifyStudioAdminToken(token:string|undefined){
   const adminResponse=await fetch(`${url}/rest/v1/admin_users?user_id=eq.${encodeURIComponent(user.id)}&select=user_id&limit=1`,{headers:supabaseHeaders("privileged"),cache:"no-store"});
   if(!adminResponse.ok||((await adminResponse.json())as unknown[]).length===0)return null;return user;
 }
-export async function provisionSupabaseUser(email:string){
+export async function provisionSupabaseUser(email:string,password:string){
   const {url,secretKey,legacyServiceRoleKey}=supabaseConfig(),key=secretKey||legacyServiceRoleKey;
   if(!url||!key)throw new Error("Supabase server access is not configured");
   const client=createClient(url,key,{auth:{autoRefreshToken:false,persistSession:false,detectSessionInUrl:false}});
-  const {data,error}=await client.auth.admin.createUser({email,email_confirm:true});
+  const {data,error}=await client.auth.admin.createUser({email,password,email_confirm:true});
   if(error)throw error;
   if(!data.user?.id)throw new Error("Supabase did not return the provisioned user");
   return {id:data.user.id,email:data.user.email};

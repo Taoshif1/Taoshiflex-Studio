@@ -7,7 +7,7 @@ const optionalDate=(value:unknown)=>{const clean=cleanText(value,10);return clea
 const error=()=>Response.json({error:"Client Projects require reviewed migration 006."},{status:409});
 export async function POST(request:Request){const auth=await authorizeMutation(request);if(auth.error)return auth.error;const body=await request.json().catch(()=>null) as Record<string,unknown>|null,kind=cleanText(body?.kind,30,true),projectId=body?.projectId;if(!kind||!validId(projectId))return Response.json({error:"Valid operation and project are required."},{status:400});try{
   if(kind==="member"){
-    const email=cleanText(body?.email,254,true)?.toLowerCase(),role=cleanText(body?.role,20,true);
+    const email=cleanText(body?.email,254,true)?.toLowerCase(),role=cleanText(body?.role,20,true),temporaryPassword=typeof body?.temporaryPassword==="string"?body.temporaryPassword:"";
     if(!email||!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)||!role||!['client','studio'].includes(role))return Response.json({error:"Enter a valid client email and role."},{status:400});
     const existing=await supabaseRest<Array<{id:string}>>(`client_project_members?project_id=eq.${projectId}&email=eq.${encodeURIComponent(email)}&select=id&limit=1`,{},true);
     if(existing.length)return Response.json({ok:true,status:"already_has_access",message:"Client already has access."});
@@ -15,8 +15,9 @@ export async function POST(request:Request){const auth=await authorizeMutation(r
     try{await addExisting();return Response.json({ok:true,status:"member_added",message:"Existing client added to this project."})}catch(cause){
       if(!(cause instanceof SupabaseRestError&&cause.databaseMessage==="No Supabase Auth user exists for this email"))throw cause;
     }
+    if(temporaryPassword.length<8)return Response.json({error:"Enter a temporary password of at least 8 characters for a new client."},{status:400});
     let provisioned:{id:string};
-    try{provisioned=await provisionSupabaseUser(email)}catch{
+    try{provisioned=await provisionSupabaseUser(email,temporaryPassword)}catch{
       try{await addExisting();return Response.json({ok:true,status:"member_added",message:"Existing client added to this project."})}catch{return Response.json({error:"Client access could not be created. Please retry."},{status:502})}
     }
     try{await supabaseRest("client_project_members",{method:"POST",headers:{Prefer:"resolution=merge-duplicates,return=minimal"},body:JSON.stringify({project_id:projectId,user_id:provisioned.id,email,role})},true)}catch{return Response.json({error:"Client access was created, but project assignment failed. Retry Add Client Access."},{status:409})}

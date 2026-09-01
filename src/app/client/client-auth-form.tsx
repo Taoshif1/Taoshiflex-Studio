@@ -3,160 +3,66 @@
 import { FormEvent, useRef, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 
-const genericSendError =
-  "The access code could not be sent. Please wait and try again.";
-const invalidCodeError =
-  "That code is invalid or expired. Request a new one.";
+const genericSignInError = "Email or password is incorrect.";
 
 export function ClientAuthForm() {
   const pendingRef = useRef(false);
   const [email, setEmail] = useState("");
-  const [sent, setSent] = useState(false);
-  const [code, setCode] = useState("");
+  const [password, setPassword] = useState("");
   const [pending, setPending] = useState(false);
   const [message, setMessage] = useState("");
 
-  async function requestAccess(resend = false) {
-    const normalizedEmail = email.trim().toLowerCase();
-    const supabase = createClient();
-    const { error } = await supabase.auth.signInWithOtp({
-      email: normalizedEmail,
-      options: {
-        shouldCreateUser: false,
-      },
-    });
-    if (error) throw new Error(genericSendError);
-
-    setEmail(normalizedEmail);
-    setSent(true);
-    setCode("");
-    setMessage(resend ? "A new access code was sent." : "");
-  }
-
-  async function runRequest(resend = false) {
-    if (pendingRef.current) return;
-    pendingRef.current = true;
-    setPending(true);
-    setMessage("");
-    try {
-      await requestAccess(resend);
-    } catch {
-      setMessage(
-        resend
-          ? "The access code could not be resent. Please wait and try again."
-          : genericSendError,
-      );
-    } finally {
-      pendingRef.current = false;
-      setPending(false);
-    }
-  }
-
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    if (!sent) {
-      await runRequest();
-      return;
-    }
     if (pendingRef.current) return;
     pendingRef.current = true;
     setPending(true);
     setMessage("");
     try {
       const supabase = createClient();
-      const { data, error } = await supabase.auth.verifyOtp({
-        email,
-        token: code.trim(),
-        type: "email",
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email: email.trim().toLowerCase(),
+        password,
       });
-      if (error || !data.session) throw new Error(invalidCodeError);
+      if (error || !data.session) throw new Error(genericSignInError);
       location.assign("/client");
     } catch {
-      setMessage(invalidCodeError);
+      setMessage(genericSignInError);
       pendingRef.current = false;
       setPending(false);
     }
   }
 
-  function anotherEmail() {
-    setSent(false);
-    setCode("");
-    setMessage("");
-  }
-
   return (
     <form className="client-auth-form" onSubmit={submit}>
-      {sent ? (
-        <div className="client-sent-state">
-          <p className="eyebrow">Client Access</p>
-          <h2>Check your email.</h2>
-          <p>
-            We sent a one-time access code to <strong>{email}</strong>.
-          </p>
-        </div>
-      ) : (
-        <label>
-          Email address
-          <input
-            type="email"
-            value={email}
-            onChange={(event) => setEmail(event.target.value)}
-            autoComplete="email"
-            disabled={pending}
-            required
-          />
-        </label>
-      )}
-      {sent ? (
-        <label>
-          One-time code
-          <input
-            type="text"
-            value={code}
-            onChange={(event) => setCode(event.target.value)}
-            inputMode="numeric"
-            autoComplete="one-time-code"
-            minLength={6}
-            maxLength={8}
-            disabled={pending}
-            required
-            autoFocus
-          />
-        </label>
-      ) : null}
+      <label>
+        Email address
+        <input
+          type="email"
+          value={email}
+          onChange={(event) => setEmail(event.target.value)}
+          autoComplete="email"
+          disabled={pending}
+          required
+        />
+      </label>
+      <label>
+        Password
+        <input
+          type="password"
+          value={password}
+          onChange={(event) => setPassword(event.target.value)}
+          autoComplete="current-password"
+          disabled={pending}
+          required
+        />
+      </label>
       <p className="client-form-note" aria-live="polite">
-        {message ||
-          (!sent
-            ? "Enter the email connected to your project."
-            : "Enter the one-time code we sent.")}
+        {message || "Enter the credentials connected to your project."}
       </p>
       <button className="action action-solid" disabled={pending}>
-        {pending
-          ? "Please wait..."
-          : sent
-            ? "Access project"
-            : "Send access code"}
+        {pending ? "Signing in..." : "Sign In"}
       </button>
-      {sent ? (
-        <div className="client-auth-actions">
-          <button
-            className="client-text-button"
-            type="button"
-            disabled={pending}
-            onClick={() => void runRequest(true)}
-          >
-            Resend code
-          </button>
-          <button
-            className="client-text-button"
-            type="button"
-            disabled={pending}
-            onClick={anotherEmail}
-          >
-            Use another email
-          </button>
-        </div>
-      ) : null}
     </form>
   );
 }

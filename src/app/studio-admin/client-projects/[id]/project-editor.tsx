@@ -193,6 +193,12 @@ export function ClientProjectEditor({
           className="editor-form compact-admin-form"
           onSubmit={(event) => {
             const form = formBody(event);
+            const temporaryPassword = form.get("temporaryPassword");
+            const passwordField = event.currentTarget.elements.namedItem(
+              "temporaryPassword",
+            );
+            if (passwordField instanceof HTMLInputElement)
+              passwordField.value = "";
             mutate(
               "POST",
               {
@@ -200,6 +206,7 @@ export function ClientProjectEditor({
                 projectId: project.id,
                 email: form.get("email"),
                 role: form.get("role"),
+                temporaryPassword,
               },
               "Client access created.",
             );
@@ -213,10 +220,19 @@ export function ClientProjectEditor({
               <option value="studio">Studio</option>
             </select>
           </label>
-          <button disabled={pending}>Add Client Access</button>
+          <Field
+            name="temporaryPassword"
+            label="Temporary password (only needed for a new account)"
+            type="password"
+            minLength={8}
+            autoComplete="new-password"
+            optional
+          />
+          <button disabled={pending}>Create Client Access</button>
           <small>
-            The client can sign in at /client using a one-time email code.
-            Membership—not the reference—authorizes the workspace.
+            New clients receive an Auth account using this temporary password.
+            Existing clients keep their current password. Membership—not the
+            reference—authorizes the workspace.
           </small>
         </form>
       </section>
@@ -539,6 +555,8 @@ function Field({
   type = "text",
   min,
   max,
+  minLength,
+  autoComplete,
   optional = false,
 }: {
   name: string;
@@ -547,6 +565,8 @@ function Field({
   type?: string;
   min?: string;
   max?: string;
+  minLength?: number;
+  autoComplete?: string;
   optional?: boolean;
 }) {
   return (
@@ -557,6 +577,8 @@ function Field({
         type={type}
         min={min}
         max={max}
+        minLength={minLength}
+        autoComplete={autoComplete}
         defaultValue={value ?? ""}
         required={!optional}
       />
