@@ -7,6 +7,8 @@ import {
 } from "@/lib/client-projects";
 import { supabaseRest } from "@/lib/supabase-rest";
 import { ClientAuthForm, ClientLogout } from "./client-auth-form";
+import { NotificationCenter } from "@/components/notifications/notification-center";
+import { loadNotificationInbox } from "@/lib/notifications";
 
 export default async function ClientPage() {
   const authorization = await getClientAuthorization();
@@ -29,11 +31,15 @@ export default async function ClientPage() {
       </main>
     );
   }
-  const projects = await supabaseRest<ClientProject[]>(
-    "client_projects?select=id,reference,name,client_name,summary,status,progress,current_phase,next_action,start_date,target_date,created_at,updated_at&order=updated_at.desc",
-    {},
-    { userAccessToken: authorization.token },
-  ).catch(() => null);
+  const access = { userAccessToken: authorization.token };
+  const [projects, inbox] = await Promise.all([
+    supabaseRest<ClientProject[]>(
+      "client_projects?select=id,reference,name,client_name,summary,status,progress,current_phase,next_action,start_date,target_date,created_at,updated_at&order=updated_at.desc",
+      {},
+      access,
+    ).catch(() => null),
+    loadNotificationInbox(authorization.user.id, access),
+  ]);
   if (projects === null)
     return <WorkspaceUnavailable email={authorization.user.email} />;
   const active = projects.filter(
@@ -57,10 +63,10 @@ export default async function ClientPage() {
             next.
           </p>
         </div>
-        <ClientLogout />
+        <div className="client-head-actions"><NotificationCenter inbox={inbox}/><ClientLogout /></div>
       </header>
-      <ProjectGroup title="Active projects" projects={active} />
-      <ProjectGroup title="Completed projects" projects={completed} />
+      <ProjectGroup title="Active projects" projects={active} unreadProjectCounts={inbox.unreadProjectCounts} />
+      <ProjectGroup title="Completed projects" projects={completed} unreadProjectCounts={inbox.unreadProjectCounts} />
       {!projects.length ? (
         <section className="client-empty">
           <h2>No projects assigned yet.</h2>
@@ -76,9 +82,11 @@ export default async function ClientPage() {
 function ProjectGroup({
   title,
   projects,
+  unreadProjectCounts,
 }: {
   title: string;
   projects: ClientProject[];
+  unreadProjectCounts: Record<string, number>;
 }) {
   if (!projects.length) return null;
   return (
@@ -98,7 +106,7 @@ function ProjectGroup({
               <span className={`client-status ${project.status}`}>
                 {statusLabel(project.status)}
               </span>
-              <span className="technical">{project.reference}</span>
+              <span className="client-project-signals"><span className="technical">{project.reference}</span>{unreadProjectCounts[project.id] ? <strong className="client-project-unread">{unreadProjectCounts[project.id]} new</strong> : null}</span>
             </div>
             <h3>{project.name}</h3>
             <p>{project.summary || "Project delivery workspace"}</p>

@@ -51,7 +51,7 @@ export function FeedbackAdmin({ projectId, feedback }: Props) {
   }
 
   return (
-    <section className="admin-feedback-section" aria-labelledby="client-feedback-title">
+    <section id="client-feedback" className="admin-feedback-section" aria-labelledby="client-feedback-title">
       <header>
         <div><p className="eyebrow">Client communication</p><h2 id="client-feedback-title">Client Feedback</h2></div>
         <span className={openCount ? "admin-feedback-count active" : "admin-feedback-count"}>{openCount} open feedback</span>

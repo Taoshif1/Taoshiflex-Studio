@@ -3,6 +3,8 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useRef, useState } from "react";
+import { NotificationCenter } from "@/components/notifications/notification-center";
+import type { NotificationInbox } from "@/lib/notifications";
 
 const items = [
   { label: "Dashboard", href: "/studio-admin", section: "dashboard" },
@@ -20,7 +22,7 @@ function activeSection(pathname: string) {
   return pathname === "/studio-admin" ? "dashboard" : "";
 }
 
-export function AdminNavigation({ email }: { email?: string }) {
+export function AdminNavigation({ email, inbox }: { email?: string; inbox: NotificationInbox }) {
   const pathname = usePathname();
   const current = activeSection(pathname);
   const mobileMenu = useRef<HTMLDetailsElement>(null);
@@ -36,11 +38,20 @@ export function AdminNavigation({ email }: { email?: string }) {
     }
   }
 
+  const inquiryUnread = inbox.unreadTypeCounts.new_inquiry ?? 0;
+  const clientProjectUnread =
+    (inbox.unreadTypeCounts.client_feedback ?? 0) +
+    (inbox.unreadTypeCounts.client_changes_requested ?? 0);
   const links = items.map((item) => {
     const isActive = item.section === current && (
       item.section !== "dashboard" || item.label === "Dashboard"
     );
-    return <Link key={item.label} href={item.href} aria-current={isActive ? "page" : undefined} onClick={() => mobileMenu.current?.removeAttribute("open")}>{item.label}</Link>;
+    const unread = item.section === "inquiries"
+      ? inquiryUnread
+      : item.section === "client-projects"
+        ? clientProjectUnread
+        : 0;
+    return <Link key={item.label} href={item.href} aria-current={isActive ? "page" : undefined} onClick={() => mobileMenu.current?.removeAttribute("open")}><span>{item.label}</span>{unread ? <strong className="admin-nav-count" aria-label={unread + " unread"}>{unread}</strong> : null}</Link>;
   });
 
   return <>
@@ -48,6 +59,7 @@ export function AdminNavigation({ email }: { email?: string }) {
       <div className="admin-nav-brand"><span>Taoshiflex</span><strong>Studio Admin</strong></div>
       <nav>{links}</nav>
       <div className="admin-nav-utility">
+        <NotificationCenter inbox={inbox} placement="start"/>
         <Link href="/" target="_blank" rel="noreferrer">View Public Site <span aria-hidden>↗</span></Link>
         {email ? <small title={email}>{email}</small> : null}
         <button type="button" onClick={signOut} disabled={signingOut}>{signingOut ? "Signing out…" : "Sign out"}</button>
@@ -58,6 +70,7 @@ export function AdminNavigation({ email }: { email?: string }) {
       <div>
         <nav aria-label="Studio Admin mobile navigation">{links}</nav>
         <div className="admin-nav-utility">
+          <NotificationCenter inbox={inbox}/>
           <Link href="/" target="_blank" rel="noreferrer">View Public Site <span aria-hidden>↗</span></Link>
           <button type="button" onClick={signOut} disabled={signingOut}>{signingOut ? "Signing out…" : "Sign out"}</button>
         </div>
