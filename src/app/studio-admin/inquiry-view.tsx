@@ -3,14 +3,14 @@ import { formatInquiryDate, inquiryReference, type InquiryRecord } from "@/lib/i
 
 const value = (input: string | undefined) => input?.trim() || "Not provided";
 
-export function InquiryView({ inquiry, compact = false }: { inquiry: InquiryRecord; compact?: boolean }) {
+export function InquiryView({ inquiry, compact = false, detailHref }: { inquiry: InquiryRecord; compact?: boolean; detailHref?: string }) {
   const brief = inquiry.payload;
   if (compact) return <article className="inquiry-preview">
     <div><span className={`status-badge ${inquiry.status}`}>{inquiry.status}</span><strong>{inquiryReference(inquiry)}</strong></div>
     <h3>{value(brief.name)}{brief.business ? ` / ${brief.business}` : ""}</h3>
-    <p>{brief.projectType} · {brief.budget}</p>
+    <p>{brief.projectType} &middot; {brief.budget}</p>
     <small>{formatInquiryDate(inquiry.created_at)}</small>
-    <Link className="inquiry-open" href={`/studio-admin/inquiries/${inquiry.id}`}>Open inquiry <span aria-hidden>↗</span></Link>
+    <Link className="inquiry-open" href={detailHref || `/studio-admin/inquiries/${inquiry.id}`}>Open inquiry <span aria-hidden>&#8599;</span></Link>
   </article>;
 
   return <div className="inquiry-detail-grid">
