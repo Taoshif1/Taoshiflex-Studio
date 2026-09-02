@@ -1,0 +1,223 @@
+.assistant {
+  position: fixed;
+  z-index: 60;
+  right: clamp(0.75rem, 2vw, 1.5rem);
+  bottom: clamp(0.75rem, 2vw, 1.5rem);
+  min-width: 0;
+}
+
+.assistant-trigger {
+  display: flex;
+  min-height: 3.2rem;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.65rem 1rem 0.65rem 0.65rem;
+  border: 1px solid rgba(184,144,85,.7);
+  background: rgba(17,17,15,.96);
+  color: var(--ivory);
+  box-shadow: 0 0.75rem 2.5rem rgba(0,0,0,.32);
+  cursor: pointer;
+  font-size: 0.68rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  transition: background var(--fast), color var(--fast), border-color var(--fast);
+}
+
+.assistant-trigger > span {
+  display: grid;
+  width: 1.9rem;
+  height: 1.9rem;
+  place-items: center;
+  border: 1px solid var(--gold);
+  color: var(--gold);
+  font-size: 0.62rem;
+}
+
+.assistant-panel {
+  position: fixed;
+  right: clamp(0.75rem, 2vw, 1.5rem);
+  bottom: clamp(4.65rem, 7vw, 5.4rem);
+  display: grid;
+  width: min(28rem, calc(100% - 1.5rem));
+  max-width: calc(100% - 1.5rem);
+  max-height: min(41rem, calc(100svh - 5.4rem));
+  max-height: min(41rem, calc(100dvh - 5.4rem));
+  grid-template-rows: auto minmax(0, 1fr) auto auto auto;
+  border: 1px solid rgba(184,144,85,.48);
+  background: linear-gradient(rgba(26,25,22,.97),rgba(17,17,15,.99));
+  box-shadow: 0 2rem 6rem rgba(0,0,0,.55);
+  overflow: hidden;
+}
+
+.assistant-panel,
+.assistant-panel > *,
+.assistant-panel header > div,
+.assistant-panel form div {
+  min-width: 0;
+}
+
+.assistant-geometry {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  opacity: 0.22;
+  pointer-events: none;
+}
+
+.assistant-geometry i {
+  position: absolute;
+  top: -15%;
+  left: 52%;
+  width: 1px;
+  height: 50%;
+  background: linear-gradient(transparent,var(--gold),transparent);
+  transform: rotate(48deg);
+}
+
+.assistant-geometry i + i { transform: rotate(-48deg); }
+
+.assistant-panel header {
+  position: relative;
+  display: flex;
+  align-items: start;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 1.15rem 1.2rem;
+  border-bottom: 1px solid var(--line);
+}
+
+.assistant-panel header div { display: grid; gap: 0.1rem; }
+.assistant-panel header small,
+.assistant-message small { color: var(--gold); font-size: 0.62rem; letter-spacing: 0.12em; text-transform: uppercase; }
+.assistant-panel header strong { font-family: var(--font-display); font-size: 1.65rem; font-weight: 400; overflow-wrap: anywhere; }
+.assistant-panel header span { color: var(--stone); font-size: 0.68rem; overflow-wrap: anywhere; }
+
+.assistant-panel header button {
+  min-width: 2.75rem;
+  min-height: 2.75rem;
+  border: 1px solid var(--line);
+  background: rgba(17,17,15,.65);
+  color: var(--paper);
+  cursor: pointer;
+  font-size: 1.25rem;
+}
+
+.assistant-log {
+  position: relative;
+  display: grid;
+  min-width: 0;
+  min-height: 0;
+  grid-template-columns: minmax(0,1fr);
+  align-content: start;
+  gap: 1rem;
+  padding: 1.2rem;
+  overflow-x: hidden;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-gutter: stable;
+}
+
+.assistant-message {
+  display: grid;
+  width: fit-content;
+  min-width: 0;
+  max-width: 86%;
+  gap: 0.25rem;
+  justify-self: start;
+}
+
+.assistant-message.is-user { justify-self: end; }
+.assistant-message.is-user small { color: var(--stone); text-align: right; }
+
+.assistant-message p {
+  min-width: 0;
+  max-width: 100%;
+  margin: 0;
+  padding: 0.7rem 0;
+  border-top: 1px solid var(--line);
+  background: none;
+  font-size: 0.86rem;
+  white-space: pre-line;
+  overflow-wrap: anywhere;
+  word-break: normal;
+}
+
+.assistant-message.is-user p {
+  padding: 0.7rem 0.8rem;
+  border: 1px solid rgba(184,144,85,.3);
+  background: rgba(184,144,85,.07);
+}
+
+.assistant-suggestions {
+  position: relative;
+  display: flex;
+  min-width: 0;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  padding: 0.1rem 1.2rem 1rem;
+}
+
+.assistant-suggestions button {
+  min-width: 0;
+  min-height: 2.3rem;
+  padding: 0.4rem 0.65rem;
+  border: 1px solid var(--line);
+  background: transparent;
+  color: var(--paper);
+  cursor: pointer;
+  font-size: 0.68rem;
+  white-space: normal;
+}
+
+.assistant-panel form {
+  position: relative;
+  min-width: 0;
+  padding: 1rem 1.2rem;
+  border-top: 1px solid var(--line);
+}
+
+.assistant-panel form label { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
+.assistant-panel form div { display: flex; }
+.assistant-panel input { width: 100%; min-width: 0; flex: 1 1 auto; padding: 0.8rem; border: 1px solid var(--line); background: var(--ink); color: var(--ivory); }
+.assistant-panel form button { flex: 0 0 auto; padding: 0.65rem 0.8rem; border: 1px solid var(--gold); background: var(--gold); color: var(--ink); cursor: pointer; font-weight: 700; }
+.assistant-panel form button:disabled { border-color: var(--line); background: var(--panel); color: var(--stone); cursor: not-allowed; }
+
+.assistant-panel > a {
+  position: relative;
+  display: flex;
+  min-width: 0;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0 1.2rem 1.15rem;
+  color: var(--gold);
+  font-size: 0.73rem;
+  overflow-wrap: anywhere;
+}
+
+.assistant-panel > a span { flex: 0 0 auto; }
+
+@media (hover:hover) {
+  .assistant-trigger:hover,
+  .assistant-suggestions button:hover { border-color: var(--gold); background: rgba(184,144,85,.1); color: var(--ivory); }
+  .assistant-panel form button:not(:disabled):hover { background: #d5b47e; }
+  .assistant-panel > a:hover span { transform: translate(0.15rem,-0.1rem); }
+}
+
+@media (max-width:600px) {
+  .assistant { right: 0.5rem; bottom: 0.5rem; }
+  .assistant-panel { right: 0.5rem; bottom: 4.25rem; width: calc(100% - 1rem); max-width: calc(100% - 1rem); max-height: calc(100svh - 4.75rem); max-height: calc(100dvh - 4.75rem); }
+  .assistant-trigger { min-height: 3rem; }
+  .assistant-message { max-width: 94%; }
+}
+
+@media (max-width:340px) {
+  .assistant-panel header { padding-inline: 0.9rem; }
+  .assistant-log { padding-inline: 0.9rem; }
+  .assistant-suggestions { padding-inline: 0.9rem; }
+  .assistant-panel form { padding-inline: 0.9rem; }
+  .assistant-panel > a { padding-inline: 0.9rem; }
+}
+
+@media (prefers-reduced-motion:reduce) {
+  .assistant-panel > a span { transform: none; }
+}

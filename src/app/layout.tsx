@@ -5,6 +5,7 @@ import "@/components/global/global.css";
 import "./phase1c1.css";
 import "./phase1c2.css";
 import "./phase1d1.css";
+import "@/components/assistant/studio-assistant.css";
 import { SiteHeader } from "@/components/global/site-header";
 import { SiteFooter } from "@/components/global/site-footer";
 import { StudioAssistant } from "@/components/assistant/studio-assistant";

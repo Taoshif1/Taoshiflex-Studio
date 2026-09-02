@@ -1,4 +1,4 @@
-.process{position:relative;overflow:hidden}
+.process{position:relative;overflow:clip}
 .process>.container{position:relative;z-index:1}
 .process-drafting{position:absolute;z-index:0;inset:0;overflow:hidden;opacity:.27;pointer-events:none}
 .process-drafting svg{position:absolute;inset:0;width:100%;height:100%;fill:none;stroke:rgba(17,17,15,.34);stroke-width:1;stroke-dasharray:2 10;vector-effect:non-scaling-stroke}
@@ -14,4 +14,4 @@
 .stage-datum i{position:absolute;top:-.3rem;width:1px;height:.6rem;background:rgba(17,17,15,.38)}
 .stage-datum i:first-child{left:10%}.stage-datum i:nth-child(2){left:50%}.stage-datum i:last-child{right:10%}
 @media(max-width:767px){.process-drafting{opacity:.18}.crosshair-b{display:none}.stage-datum{right:1rem}}
-@media(prefers-reduced-motion:reduce){.process-drafting,.draft-crosshair,.stage-datum{transform:none}}
+@media(prefers-reduced-motion:reduce){.process-drafting,.draft-crosshair,.stage-datum{transform:none}.timeline-line i{height:100%!important}}
