@@ -1,11 +1,105 @@
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { getClientAuthorization } from "@/lib/client-auth";
-import { formatProjectDate, statusLabel, type ClientProject, type ProjectDeliverable, type ProjectMilestone, type ProjectUpdate } from "@/lib/client-projects";
+import {
+  formatProjectDate,
+  statusLabel,
+  type ClientProject,
+  type FeedbackTargetType,
+  type ProjectDeliverable,
+  type ProjectFeedback,
+  type ProjectMilestone,
+  type ProjectUpdate,
+} from "@/lib/client-projects";
 import { supabaseRest } from "@/lib/supabase-rest";
-type Props={params:Promise<{id:string}>};const uuid=/^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
-export default async function ClientProjectPage({params}:Props){const authorization=await getClientAuthorization();if(!authorization)redirect("/client");const {id}=await params;if(!uuid.test(id))notFound();const access={userAccessToken:authorization.token};const projects=await supabaseRest<ClientProject[]>(`client_projects?id=eq.${encodeURIComponent(id)}&select=id,reference,name,client_name,summary,status,progress,current_phase,next_action,start_date,target_date,created_at,updated_at&limit=1`,{},access).catch(()=>null);if(projects===null)return <Unavailable/>;const project=projects[0];if(!project)notFound();const [milestones,updates,deliverables]=await Promise.all([supabaseRest<ProjectMilestone[]>(`project_milestones?project_id=eq.${id}&select=id,project_id,title,description,status,due_date,completed_at,sort_order,created_at,updated_at&order=sort_order.asc`,{},access).catch(()=>[]),supabaseRest<ProjectUpdate[]>(`project_updates?project_id=eq.${id}&select=id,project_id,title,body,published_at,created_at,updated_at&order=published_at.desc`,{},access).catch(()=>[]),supabaseRest<ProjectDeliverable[]>(`project_deliverables?project_id=eq.${id}&select=id,project_id,title,description,status,external_url,created_at,updated_at&order=updated_at.desc`,{},access).catch(()=>[])]);return <main className="client-shell project-workspace"><header className="workspace-head"><Link href="/client">← All projects</Link><div><p className="eyebrow">{project.reference} / Client Project</p><h1>{project.name}</h1><p>{project.summary}</p></div><span className={`client-status ${project.status}`}>{statusLabel(project.status)}</span></header><section className="project-overview" aria-labelledby="overview-title"><div><p className="eyebrow">Project overview</p><h2 id="overview-title">Clarity at a glance.</h2></div><dl><Overview label="Status" value={statusLabel(project.status)}/><Overview label="Current phase" value={project.current_phase}/><Overview label="Target date" value={formatProjectDate(project.target_date)}/><Overview label="Next action" value={project.next_action||"No action required right now."}/></dl><div className="workspace-progress"><div><span>Overall progress</span><strong>{project.progress}%</strong></div><div className="client-progress" role="progressbar" aria-label="Overall project progress" aria-valuemin={0} aria-valuemax={100} aria-valuenow={project.progress}><i style={{width:`${project.progress}%`}}/></div><small>Progress is set deliberately by the Studio; it is not an automated estimate.</small></div></section><WorkspaceSection eyebrow="Plan" title="Milestones"><div className="milestone-list">{milestones.length?milestones.map(item=><article key={item.id}><span className={`client-status ${item.status}`}>{statusLabel(item.status)}</span><div><h3>{item.title}</h3>{item.description?<p>{item.description}</p>:null}</div><dl><dt>Due</dt><dd>{formatProjectDate(item.due_date)}</dd>{item.completed_at?<><dt>Completed</dt><dd>{formatProjectDate(item.completed_at)}</dd></>:null}</dl></article>):<Empty copy="Milestones will appear here as the delivery plan is confirmed."/>}</div></WorkspaceSection><WorkspaceSection eyebrow="Studio notes" title="Updates"><div className="update-list">{updates.length?updates.map(item=><article key={item.id}><time dateTime={item.published_at}>{formatProjectDate(item.published_at)}</time><h3>{item.title}</h3><p>{item.body}</p></article>):<Empty copy="No published updates yet."/>}</div></WorkspaceSection><WorkspaceSection eyebrow="Review and handoff" title="Deliverables"><div className="deliverable-list">{deliverables.length?deliverables.map(item=><article key={item.id}><div><span className={`client-status ${item.status}`}>{statusLabel(item.status)}</span><h3>{item.title}</h3><p>{item.description}</p></div>{item.external_url?<a className="action" href={item.external_url} target="_blank" rel="noreferrer">Open deliverable ↗</a>:<span className="deliverable-pending">No file or link published</span>}</article>):<Empty copy="Deliverables will appear here when they are ready for review."/>}</div></WorkspaceSection></main>}
-function Overview({label,value}:{label:string;value:string}){return <div><dt>{label}</dt><dd>{value}</dd></div>}
-function WorkspaceSection({eyebrow,title,children}:{eyebrow:string;title:string;children:React.ReactNode}){return <section className="workspace-section"><header><p className="eyebrow">{eyebrow}</p><h2>{title}</h2></header>{children}</section>}
-function Empty({copy}:{copy:string}){return <p className="workspace-empty">{copy}</p>}
-function Unavailable(){return <main className="client-shell client-login"><section className="client-login-panel"><p className="eyebrow">Private / Client workspace</p><h1>Workspace setup pending.</h1><p>Migration 006 has not been activated. No private data was exposed.</p><Link className="action" href="/client">Return to Client access</Link></section></main>}
+import { FeedbackPanel } from "./feedback-panel";
+import "./feedback.css";
+
+type Props = { params: Promise<{ id: string }> };
+const uuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+
+export default async function ClientProjectPage({ params }: Props) {
+  const authorization = await getClientAuthorization();
+  if (!authorization) redirect("/client");
+  const { id } = await params;
+  if (!uuid.test(id)) notFound();
+
+  const access = { userAccessToken: authorization.token };
+  const projects = await supabaseRest<ClientProject[]>(
+    `client_projects?id=eq.${encodeURIComponent(id)}&select=id,reference,name,client_name,summary,status,progress,current_phase,next_action,start_date,target_date,created_at,updated_at&limit=1`,
+    {},
+    access,
+  ).catch(() => null);
+  if (projects === null) return <Unavailable/>;
+  const project = projects[0];
+  if (!project) notFound();
+
+  const [milestones, updates, deliverables, feedback] = await Promise.all([
+    supabaseRest<ProjectMilestone[]>(`project_milestones?project_id=eq.${id}&select=id,project_id,title,description,status,due_date,completed_at,sort_order,created_at,updated_at&order=sort_order.asc`, {}, access).catch(() => []),
+    supabaseRest<ProjectUpdate[]>(`project_updates?project_id=eq.${id}&select=id,project_id,title,body,published_at,created_at,updated_at&order=published_at.desc`, {}, access).catch(() => []),
+    supabaseRest<ProjectDeliverable[]>(`project_deliverables?project_id=eq.${id}&select=id,project_id,title,description,status,external_url,created_at,updated_at&order=updated_at.desc`, {}, access).catch(() => []),
+    supabaseRest<ProjectFeedback[]>(`project_feedback?project_id=eq.${id}&select=id,project_id,target_type,target_id,target_label,author_user_id,intent,message,status,studio_response,responded_by,responded_at,resolved_at,created_at,updated_at&order=created_at.asc,id.asc`, {}, access).catch(() => []),
+  ]);
+  const forTarget = (targetType: FeedbackTargetType, targetId: string | null) =>
+    feedback.filter((item) => item.target_type === targetType && item.target_id === targetId);
+
+  return (
+    <main className="client-shell project-workspace">
+      <header className="workspace-head">
+        <Link href="/client">← All projects</Link>
+        <div><p className="eyebrow">{project.reference} / Client Project</p><h1>{project.name}</h1><p>{project.summary}</p></div>
+        <span className={`client-status ${project.status}`}>{statusLabel(project.status)}</span>
+      </header>
+      <section className="project-overview" aria-labelledby="overview-title">
+        <div><p className="eyebrow">Project overview</p><h2 id="overview-title">Clarity at a glance.</h2></div>
+        <dl>
+          <Overview label="Status" value={statusLabel(project.status)}/>
+          <Overview label="Current phase" value={project.current_phase}/>
+          <Overview label="Target date" value={formatProjectDate(project.target_date)}/>
+          <Overview label="Next action" value={project.next_action || "No action required right now."}/>
+        </dl>
+        <div className="workspace-progress">
+          <div><span>Overall progress</span><strong>{project.progress}%</strong></div>
+          <div className="client-progress" role="progressbar" aria-label="Overall project progress" aria-valuemin={0} aria-valuemax={100} aria-valuenow={project.progress}><i style={{ width: `${project.progress}%` }}/></div>
+          <small>Progress is set deliberately by the Studio; it is not an automated estimate.</small>
+        </div>
+      </section>
+      <WorkspaceSection eyebrow="Plan" title="Milestones">
+        <div className="milestone-list">
+          {milestones.length ? milestones.map((item) => (
+            <article key={item.id}>
+              <span className={`client-status ${item.status}`}>{statusLabel(item.status)}</span>
+              <div><h3>{item.title}</h3>{item.description ? <p>{item.description}</p> : null}<FeedbackPanel projectId={id} targetType="milestone" targetId={item.id} feedback={forTarget("milestone", item.id)}/></div>
+              <dl><dt>Due</dt><dd>{formatProjectDate(item.due_date)}</dd>{item.completed_at ? <><dt>Completed</dt><dd>{formatProjectDate(item.completed_at)}</dd></> : null}</dl>
+            </article>
+          )) : <Empty copy="Milestones will appear here as the delivery plan is confirmed."/>}
+        </div>
+      </WorkspaceSection>
+      <WorkspaceSection eyebrow="Studio notes" title="Updates">
+        <div className="update-list">
+          {updates.length ? updates.map((item) => (
+            <article key={item.id}><time dateTime={item.published_at}>{formatProjectDate(item.published_at)}</time><h3>{item.title}</h3><p>{item.body}</p><FeedbackPanel projectId={id} targetType="update" targetId={item.id} feedback={forTarget("update", item.id)}/></article>
+          )) : <Empty copy="No published updates yet."/>}
+        </div>
+      </WorkspaceSection>
+      <WorkspaceSection eyebrow="Review and handoff" title="Deliverables">
+        <div className="deliverable-list">
+          {deliverables.length ? deliverables.map((item) => (
+            <article key={item.id}>
+              <div><span className={`client-status ${item.status}`}>{statusLabel(item.status)}</span><h3>{item.title}</h3><p>{item.description}</p><FeedbackPanel projectId={id} targetType="deliverable" targetId={item.id} feedback={forTarget("deliverable", item.id)}/></div>
+              {item.external_url ? <a className="action" href={item.external_url} target="_blank" rel="noreferrer">Open deliverable ↗</a> : <span className="deliverable-pending">No file or link published</span>}
+            </article>
+          )) : <Empty copy="Deliverables will appear here when they are ready for review."/>}
+        </div>
+      </WorkspaceSection>
+      <WorkspaceSection eyebrow="Project conversation" title="General feedback">
+        <div className="feedback-general"><p>Ask a project-level question or leave a note that is not tied to one item.</p><FeedbackPanel projectId={id} targetType="project" targetId={null} feedback={forTarget("project", null)}/></div>
+      </WorkspaceSection>
+    </main>
+  );
+}
+
+function Overview({ label, value }: { label: string; value: string }) { return <div><dt>{label}</dt><dd>{value}</dd></div>; }
+function WorkspaceSection({ eyebrow, title, children }: { eyebrow: string; title: string; children: React.ReactNode }) { return <section className="workspace-section"><header><p className="eyebrow">{eyebrow}</p><h2>{title}</h2></header>{children}</section>; }
+function Empty({ copy }: { copy: string }) { return <p className="workspace-empty">{copy}</p>; }
+function Unavailable() { return <main className="client-shell client-login"><section className="client-login-panel"><p className="eyebrow">Private / Client workspace</p><h1>Workspace setup pending.</h1><p>Migration 006 has not been activated. No private data was exposed.</p><Link className="action" href="/client">Return to Client access</Link></section></main>; }
