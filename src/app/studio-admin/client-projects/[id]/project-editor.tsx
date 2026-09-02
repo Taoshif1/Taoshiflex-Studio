@@ -1,5 +1,5 @@
 "use client";
-import { FormEvent, useRef, useState } from "react";
+import { FormEvent, useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
@@ -31,9 +31,11 @@ export function ClientProjectEditor({
   const router = useRouter(),
     pendingRef = useRef(false),
     [pending, setPending] = useState(false),
-    [message, setMessage] = useState("");
+    [message, setMessage] = useState(""),
+    [passwordMember, setPasswordMember] = useState<ClientProjectMember | null>(null);
+  const closePasswordDialog = useCallback(() => setPasswordMember(null), []);
   async function mutate(method: string, body: unknown, success: string) {
-    if (pendingRef.current) return;
+    if (pendingRef.current) return false;
     pendingRef.current = true;
     setPending(true);
     setMessage("");
@@ -50,8 +52,10 @@ export function ClientProjectEditor({
       if (!response.ok) throw new Error(result.error || "Operation failed.");
       setMessage(result.message || success);
       router.refresh();
+      return true;
     } catch (error) {
       setMessage(error instanceof Error ? error.message : "Operation failed.");
+      return false;
     } finally {
       pendingRef.current = false;
       setPending(false);
@@ -172,7 +176,9 @@ export function ClientProjectEditor({
               </div>
               <div className="member-access">
                 <span>Access assigned</span>
+                {item.role === "client" ? <button type="button" disabled={pending} onClick={() => setPasswordMember(item)}>Reset password</button> : null}
                 <button
+                  type="button"
                   className="danger"
                   disabled={pending}
                   onClick={() =>
@@ -189,6 +195,7 @@ export function ClientProjectEditor({
             </article>
           ))}
         </div>
+        <p className="member-security-copy">Removing access deletes only this project membership; it does not delete the Auth account or access to other Client Projects. A password reset changes sign-in for that Client Auth account across every assigned project.</p>
         <form
           className="editor-form compact-admin-form"
           onSubmit={(event) => {
@@ -400,8 +407,52 @@ export function ClientProjectEditor({
           are reviewed.
         </p>
       </section>
+      {passwordMember ? <PasswordResetDialog member={passwordMember} pending={pending} close={closePasswordDialog} reset={(password) => mutate("PATCH", { kind: "password-reset", projectId: project.id, id: passwordMember.id, password, confirmed: true }, "Client password reset.")}/> : null}
     </div>
   );
+}
+function PasswordResetDialog({ member, pending, close, reset }: { member: ClientProjectMember; pending: boolean; close: () => void; reset: (password: string) => Promise<boolean> }) {
+  const ref = useRef<HTMLDivElement>(null);
+  const [error, setError] = useState("");
+  useEffect(() => {
+    const previous = document.activeElement as HTMLElement | null;
+    const dialog = ref.current;
+    dialog?.querySelector<HTMLInputElement>("input")?.focus();
+    function key(event: KeyboardEvent) {
+      if (event.key === "Escape" && !dialog?.querySelector("button:disabled")) close();
+      if (event.key === "Tab" && dialog) {
+        const items = [...dialog.querySelectorAll<HTMLElement>("button,input")].filter(item => !item.hasAttribute("disabled"));
+        const first = items[0], last = items.at(-1);
+        if (event.shiftKey && document.activeElement === first) { event.preventDefault(); last?.focus(); }
+        else if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first?.focus(); }
+      }
+    }
+    document.addEventListener("keydown", key);
+    return () => { document.removeEventListener("keydown", key); previous?.focus(); };
+  }, [close]);
+  return <div className="dialog-backdrop" role="presentation" onMouseDown={event => { if (event.target === event.currentTarget && !pending) close(); }}>
+    <div ref={ref} className="confirm-dialog" role="alertdialog" aria-modal="true" aria-labelledby="password-reset-title" aria-describedby="password-reset-copy">
+      <p className="eyebrow">Account-level action</p>
+      <h2 id="password-reset-title">Reset Client password?</h2>
+      <p id="password-reset-copy">Set a new temporary password for <strong>{member.email}</strong>. This replaces their sign-in password across all Client Projects. The current password cannot be viewed.</p>
+      <form onSubmit={async event => {
+        event.preventDefault();
+        setError("");
+        const form = new FormData(event.currentTarget);
+        const password = String(form.get("password") || "");
+        const confirmation = String(form.get("confirmation") || "");
+        if (password !== confirmation) { setError("The passwords do not match."); return; }
+        if (form.get("acknowledge") !== "on") { setError("Confirm the account-level password change."); return; }
+        if (await reset(password)) close();
+      }}>
+        <label>New temporary password<input name="password" type="password" minLength={8} maxLength={128} autoComplete="new-password" required/></label>
+        <label>Confirm temporary password<input name="confirmation" type="password" minLength={8} maxLength={128} autoComplete="new-password" required/></label>
+        <label className="password-reset-confirm"><input name="acknowledge" type="checkbox" required/><span>I confirm this will replace the Client Auth account password.</span></label>
+        <p className="conversion-message" role="alert">{error}</p>
+        <div className="dialog-actions"><button type="button" onClick={close} disabled={pending}>Cancel</button><button className="solid-danger" disabled={pending}>{pending ? "Resetting..." : "Reset Client Password"}</button></div>
+      </form>
+    </div>
+  </div>;
 }
 function MilestoneForm({
   item,

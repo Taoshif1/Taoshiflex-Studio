@@ -1,5 +1,6 @@
 import { cookies } from "next/headers";
 import { createClient } from "@supabase/supabase-js";
+import { cache } from "react";
 
 type SupabaseAccess = "public"|"privileged"|{userAccessToken:string}|true;
 export type SupabaseUser={id:string;email?:string};
@@ -53,5 +54,12 @@ export async function provisionSupabaseUser(email:string,password:string){
   if(!data.user?.id)throw new Error("Supabase did not return the provisioned user");
   return {id:data.user.id,email:data.user.email};
 }
+export async function updateSupabaseUserPassword(userId:string,password:string){
+  const {url,secretKey,legacyServiceRoleKey}=supabaseConfig(),key=secretKey||legacyServiceRoleKey;
+  if(!url||!key)throw new Error("Supabase server access is not configured");
+  const client=createClient(url,key,{auth:{autoRefreshToken:false,persistSession:false,detectSessionInUrl:false}});
+  const {error}=await client.auth.admin.updateUserById(userId,{password});
+  if(error)throw error;
+}
 export async function getAdminAuthorization(){const token=(await cookies()).get("studio_access_token")?.value;const user=await verifyStudioAdminToken(token);return user&&token?{user,token}:null}
-export async function getAdminSession(){return (await getAdminAuthorization())?.user??null}
+export const getAdminSession=cache(async()=> (await getAdminAuthorization())?.user??null);

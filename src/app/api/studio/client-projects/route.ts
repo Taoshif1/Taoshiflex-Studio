@@ -1,6 +1,6 @@
 import { authorizeMutation, cleanText, cleanUrl } from "@/lib/admin-security";
 import { clientProjectStatuses, deliverableStatuses, milestoneStatuses } from "@/lib/client-projects";
-import { provisionSupabaseUser, SupabaseRestError, supabaseRest } from "@/lib/supabase-rest";
+import { provisionSupabaseUser, SupabaseRestError, supabaseRest, updateSupabaseUserPassword } from "@/lib/supabase-rest";
 const uuid=/^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i,date=/^\d{4}-\d{2}-\d{2}$/;
 const validId=(value:unknown)=>typeof value==="string"&&uuid.test(value);
 const optionalDate=(value:unknown)=>{const clean=cleanText(value,10);return clean&&date.test(clean)?clean:null};
@@ -29,6 +29,14 @@ export async function POST(request:Request){const auth=await authorizeMutation(r
   return Response.json({error:"Unsupported Client Project operation."},{status:400});
 }catch{return error()}}
 export async function PATCH(request:Request){const auth=await authorizeMutation(request);if(auth.error)return auth.error;const body=await request.json().catch(()=>null) as Record<string,unknown>|null,kind=cleanText(body?.kind,30,true),id=body?.id,projectId=body?.projectId;if(!kind||!validId(projectId))return Response.json({error:"Valid operation and project are required."},{status:400});try{
+  if(kind==="password-reset"){
+    const password=typeof body?.password==="string"?body.password:"";
+    if(!validId(id)||body?.confirmed!==true||password.length<8||password.length>128)return Response.json({error:"Confirm a new password between 8 and 128 characters."},{status:400});
+    const members=await supabaseRest<Array<{user_id:string}>>(`client_project_members?id=eq.${id}&project_id=eq.${projectId}&role=eq.client&select=user_id&limit=1`,{},"privileged");
+    if(!members[0]?.user_id)return Response.json({error:"Client membership was not found."},{status:404});
+    try{await updateSupabaseUserPassword(members[0].user_id,password)}catch{return Response.json({error:"Client password could not be reset. Please retry."},{status:502})}
+    return Response.json({ok:true,message:"Client password reset."});
+  }
   if(kind==="project"){const name=cleanText(body?.name,160,true),clientName=cleanText(body?.clientName,160,true),summary=cleanText(body?.summary,1200),status=cleanText(body?.status,30,true),progress=Math.round(Number(body?.progress)),currentPhase=cleanText(body?.currentPhase,160,true),nextAction=cleanText(body?.nextAction,500);if(!name||!clientName||!status||!clientProjectStatuses.includes(status as typeof clientProjectStatuses[number])||!Number.isInteger(progress)||progress<0||progress>100||!currentPhase)return Response.json({error:"Review the Client Project fields and progress."},{status:400});await supabaseRest(`client_projects?id=eq.${projectId}`,{method:"PATCH",headers:{Prefer:"return=minimal"},body:JSON.stringify({name,client_name:clientName,summary:summary||"",status,progress,current_phase:currentPhase,next_action:nextAction||"",start_date:optionalDate(body?.startDate),target_date:optionalDate(body?.targetDate)})},true);return Response.json({ok:true})}
   if(kind==="milestone-order"){if(!Array.isArray(body?.orderedIds)||body.orderedIds.some(item=>!validId(item)))return Response.json({error:"Invalid milestone order."},{status:400});const ids=[...new Set(body.orderedIds as string[])],rows=await supabaseRest<Array<{id:string}>>(`project_milestones?project_id=eq.${projectId}&select=id`,{},true);if(rows.length!==ids.length||rows.some(row=>!ids.includes(row.id)))return Response.json({error:"Milestones changed. Refresh and try again."},{status:409});await Promise.all(ids.map((milestoneId,sort_order)=>supabaseRest(`project_milestones?id=eq.${milestoneId}&project_id=eq.${projectId}`,{method:"PATCH",headers:{Prefer:"return=minimal"},body:JSON.stringify({sort_order})},true)));return Response.json({ok:true})}
   if(kind==="milestone"&&validId(id)){const title=cleanText(body?.title,180,true),description=cleanText(body?.description,1200),status=cleanText(body?.status,30,true);if(!title||!status||!milestoneStatuses.includes(status as typeof milestoneStatuses[number]))return Response.json({error:"Complete the milestone fields."},{status:400});await supabaseRest(`project_milestones?id=eq.${id}&project_id=eq.${projectId}`,{method:"PATCH",headers:{Prefer:"return=minimal"},body:JSON.stringify({title,description:description||"",status,due_date:optionalDate(body?.dueDate),completed_at:status==="completed"?new Date().toISOString():null})},true);return Response.json({ok:true})}
