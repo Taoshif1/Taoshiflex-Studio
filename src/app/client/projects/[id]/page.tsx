@@ -13,6 +13,8 @@ import {
 } from "@/lib/client-projects";
 import { supabaseRest } from "@/lib/supabase-rest";
 import { FeedbackPanel } from "./feedback-panel";
+import { NotificationCenter } from "@/components/notifications/notification-center";
+import { loadNotificationInbox } from "@/lib/notifications";
 import "./feedback.css";
 
 type Props = { params: Promise<{ id: string }> };
@@ -34,11 +36,12 @@ export default async function ClientProjectPage({ params }: Props) {
   const project = projects[0];
   if (!project) notFound();
 
-  const [milestones, updates, deliverables, feedback] = await Promise.all([
+  const [milestones, updates, deliverables, feedback, inbox] = await Promise.all([
     supabaseRest<ProjectMilestone[]>(`project_milestones?project_id=eq.${id}&select=id,project_id,title,description,status,due_date,completed_at,sort_order,created_at,updated_at&order=sort_order.asc`, {}, access).catch(() => []),
     supabaseRest<ProjectUpdate[]>(`project_updates?project_id=eq.${id}&select=id,project_id,title,body,published_at,created_at,updated_at&order=published_at.desc`, {}, access).catch(() => []),
     supabaseRest<ProjectDeliverable[]>(`project_deliverables?project_id=eq.${id}&select=id,project_id,title,description,status,external_url,created_at,updated_at&order=updated_at.desc`, {}, access).catch(() => []),
     supabaseRest<ProjectFeedback[]>(`project_feedback?project_id=eq.${id}&select=id,project_id,target_type,target_id,target_label,author_user_id,intent,message,status,studio_response,responded_by,responded_at,resolved_at,created_at,updated_at&order=created_at.asc,id.asc`, {}, access).catch(() => []),
+    loadNotificationInbox(authorization.user.id, access),
   ]);
   const forTarget = (targetType: FeedbackTargetType, targetId: string | null) =>
     feedback.filter((item) => item.target_type === targetType && item.target_id === targetId);
@@ -48,7 +51,7 @@ export default async function ClientProjectPage({ params }: Props) {
       <header className="workspace-head">
         <Link href="/client">← All projects</Link>
         <div><p className="eyebrow">{project.reference} / Client Project</p><h1>{project.name}</h1><p>{project.summary}</p></div>
-        <span className={`client-status ${project.status}`}>{statusLabel(project.status)}</span>
+        <div className="workspace-head-actions"><NotificationCenter inbox={inbox}/><span className={`client-status ${project.status}`}>{statusLabel(project.status)}</span></div>
       </header>
       <section className="project-overview" aria-labelledby="overview-title">
         <div><p className="eyebrow">Project overview</p><h2 id="overview-title">Clarity at a glance.</h2></div>
@@ -64,7 +67,7 @@ export default async function ClientProjectPage({ params }: Props) {
           <small>Progress is set deliberately by the Studio; it is not an automated estimate.</small>
         </div>
       </section>
-      <WorkspaceSection eyebrow="Plan" title="Milestones">
+      <WorkspaceSection id="milestones" eyebrow="Plan" title="Milestones">
         <div className="milestone-list">
           {milestones.length ? milestones.map((item) => (
             <article key={item.id}>
@@ -75,14 +78,14 @@ export default async function ClientProjectPage({ params }: Props) {
           )) : <Empty copy="Milestones will appear here as the delivery plan is confirmed."/>}
         </div>
       </WorkspaceSection>
-      <WorkspaceSection eyebrow="Studio notes" title="Updates">
+      <WorkspaceSection id="updates" eyebrow="Studio notes" title="Updates">
         <div className="update-list">
           {updates.length ? updates.map((item) => (
             <article key={item.id}><time dateTime={item.published_at}>{formatProjectDate(item.published_at)}</time><h3>{item.title}</h3><p>{item.body}</p><FeedbackPanel projectId={id} targetType="update" targetId={item.id} feedback={forTarget("update", item.id)}/></article>
           )) : <Empty copy="No published updates yet."/>}
         </div>
       </WorkspaceSection>
-      <WorkspaceSection eyebrow="Review and handoff" title="Deliverables">
+      <WorkspaceSection id="deliverables" eyebrow="Review and handoff" title="Deliverables">
         <div className="deliverable-list">
           {deliverables.length ? deliverables.map((item) => (
             <article key={item.id}>
@@ -92,7 +95,7 @@ export default async function ClientProjectPage({ params }: Props) {
           )) : <Empty copy="Deliverables will appear here when they are ready for review."/>}
         </div>
       </WorkspaceSection>
-      <WorkspaceSection eyebrow="Project conversation" title="General feedback">
+      <WorkspaceSection id="feedback" eyebrow="Project conversation" title="General feedback">
         <div className="feedback-general"><p>Ask a project-level question or leave a note that is not tied to one item.</p><FeedbackPanel projectId={id} targetType="project" targetId={null} feedback={forTarget("project", null)}/></div>
       </WorkspaceSection>
     </main>
@@ -100,6 +103,6 @@ export default async function ClientProjectPage({ params }: Props) {
 }
 
 function Overview({ label, value }: { label: string; value: string }) { return <div><dt>{label}</dt><dd>{value}</dd></div>; }
-function WorkspaceSection({ eyebrow, title, children }: { eyebrow: string; title: string; children: React.ReactNode }) { return <section className="workspace-section"><header><p className="eyebrow">{eyebrow}</p><h2>{title}</h2></header>{children}</section>; }
+function WorkspaceSection({ id, eyebrow, title, children }: { id: string; eyebrow: string; title: string; children: React.ReactNode }) { return <section id={id} className="workspace-section"><header><p className="eyebrow">{eyebrow}</p><h2>{title}</h2></header>{children}</section>; }
 function Empty({ copy }: { copy: string }) { return <p className="workspace-empty">{copy}</p>; }
 function Unavailable() { return <main className="client-shell client-login"><section className="client-login-panel"><p className="eyebrow">Private / Client workspace</p><h1>Workspace setup pending.</h1><p>Migration 006 has not been activated. No private data was exposed.</p><Link className="action" href="/client">Return to Client access</Link></section></main>; }

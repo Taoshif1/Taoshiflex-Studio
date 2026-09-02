@@ -1,0 +1,187 @@
+.notification-center {
+  position: relative;
+  min-width: 0;
+}
+.notification-trigger {
+  display: flex;
+  min-height: 2.8rem;
+  align-items: center;
+  gap: 0.55rem;
+  padding: 0.65rem 0.75rem;
+  border: 1px solid var(--line);
+  background: rgba(35, 33, 29, 0.72);
+  color: var(--paper);
+  cursor: pointer;
+  font-size: 0.72rem;
+  letter-spacing: 0.05em;
+  list-style: none;
+  text-transform: uppercase;
+}
+.notification-trigger::-webkit-details-marker {
+  display: none;
+}
+.notification-trigger strong {
+  display: inline-grid;
+  min-width: 1.55rem;
+  min-height: 1.55rem;
+  place-items: center;
+  padding: 0.15rem 0.35rem;
+  border: 1px solid rgba(184, 144, 85, 0.72);
+  border-radius: 999px;
+  color: var(--gold);
+  font-size: 0.66rem;
+}
+.notification-bell {
+  width: 1rem;
+  height: 1rem;
+  color: var(--gold);
+  fill: none;
+  stroke: currentColor;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 1.7;
+}
+.notification-panel {
+  position: absolute;
+  z-index: 90;
+  top: calc(100% + 0.55rem);
+  right: 0;
+  width: min(25rem, calc(100vw - 2rem));
+  border: 1px solid var(--line);
+  background: rgba(17, 17, 15, 0.99);
+  box-shadow: 0 1.5rem 5rem rgba(0, 0, 0, 0.45);
+  color: var(--ivory);
+}
+.placement-start .notification-panel {
+  right: auto;
+  left: 0;
+}
+.notification-panel > header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 1rem;
+  border-bottom: 1px solid var(--line);
+}
+.notification-panel h2 {
+  margin: 0.2rem 0 0;
+  font-family: var(--font-display);
+  font-size: 1.55rem;
+  font-weight: 400;
+}
+.notification-panel header button {
+  min-height: 2.6rem;
+  padding: 0.55rem 0.65rem;
+  border: 1px solid var(--line);
+  background: transparent;
+  color: var(--paper);
+  cursor: pointer;
+  font: inherit;
+  font-size: 0.7rem;
+}
+.notification-panel header button:disabled {
+  cursor: wait;
+  opacity: 0.6;
+}
+.notification-list {
+  display: grid;
+  max-height: min(32rem, 65vh);
+  margin: 0;
+  padding: 0;
+  overflow-y: auto;
+  list-style: none;
+}
+.notification-list li + li {
+  border-top: 1px solid var(--line);
+}
+.notification-list a {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  gap: 0.7rem;
+  min-height: 4.5rem;
+  align-items: start;
+  padding: 0.9rem 1rem;
+}
+.notification-list a > span:nth-child(2) {
+  display: grid;
+  min-width: 0;
+  gap: 0.2rem;
+}
+.notification-list a span span,
+.notification-list time {
+  color: var(--stone);
+  font-size: 0.72rem;
+  overflow-wrap: anywhere;
+}
+.notification-list time {
+  margin-top: 0.2rem;
+}
+.notification-list a.read {
+  opacity: 0.62;
+}
+.notification-list a.unread {
+  background: rgba(184, 144, 85, 0.055);
+}
+.notification-list a.attention {
+  box-shadow: inset 2px 0 var(--gold);
+}
+.notification-list small {
+  color: var(--gold);
+  font-size: 0.62rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+.notification-dot {
+  width: 0.45rem;
+  height: 0.45rem;
+  margin-top: 0.35rem;
+  border: 1px solid var(--stone);
+  border-radius: 50%;
+}
+.unread .notification-dot {
+  border-color: var(--gold);
+  background: var(--gold);
+}
+.notification-empty,
+.notification-notice {
+  margin: 0;
+  padding: 1rem;
+  color: var(--stone);
+  font-size: 0.76rem;
+}
+.notification-notice:empty {
+  display: none;
+}
+.notification-trigger:focus-visible,
+.notification-panel button:focus-visible,
+.notification-list a:focus-visible {
+  outline: 2px solid var(--gold);
+  outline-offset: 2px;
+}
+@media (hover: hover) {
+  .notification-trigger:hover,
+  .notification-panel header button:hover,
+  .notification-list a:hover {
+    border-color: var(--gold);
+    color: var(--gold);
+  }
+}
+@media (max-width: 480px) {
+  .notification-panel {
+    position: fixed;
+    top: 8.6rem;
+    right: 1rem;
+    left: 1rem;
+    width: auto;
+    max-height: calc(100dvh - 9.6rem);
+    overflow: hidden;
+  }
+  .notification-list {
+    max-height: calc(100dvh - 18rem);
+  }
+  .notification-panel > header {
+    align-items: stretch;
+    flex-direction: column;
+  }
+}

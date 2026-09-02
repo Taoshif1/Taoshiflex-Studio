@@ -1,10 +1,11 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { getAdminSession, supabaseRest } from "@/lib/supabase-rest";
+import { getAdminAuthorization, supabaseRest } from "@/lib/supabase-rest";
 import { clientProjectStatuses, formatProjectDate, statusLabel, type ClientProject } from "@/lib/client-projects";
 import { adminListHref, normalizeAdminSearch, parseAdminPage, postgrestSearchPattern } from "@/lib/admin-list-state";
 import { AdminBreadcrumbs } from "../admin-breadcrumbs";
+import { loadNotificationInbox } from "@/lib/notifications";
 
 export const metadata: Metadata = { title: "Client Projects / Studio Admin", robots: { index: false, follow: false } };
 const pageSize = 12;
@@ -12,7 +13,9 @@ const pathname = "/studio-admin/client-projects";
 type Props = { searchParams: Promise<{ page?: string; status?: string; q?: string }> };
 
 export default async function ClientProjectsPage({ searchParams }: Props) {
-  if (!await getAdminSession()) redirect("/studio-admin");
+  const authorization = await getAdminAuthorization();
+  if (!authorization) redirect("/studio-admin");
+  const user = authorization.user;
   const query = await searchParams;
   const page = parseAdminPage(query.page);
   const status = clientProjectStatuses.includes(query.status as typeof clientProjectStatuses[number]) ? query.status : undefined;
@@ -21,11 +24,14 @@ export default async function ClientProjectsPage({ searchParams }: Props) {
   const offset = (page - 1) * pageSize;
   const statusFilter = status ? `&status=eq.${status}` : "";
   const searchFilter = pattern ? `&or=${encodeURIComponent(`(reference.ilike.${pattern},name.ilike.${pattern},client_name.ilike.${pattern})`)}` : "";
-  const rows = await supabaseRest<ClientProject[]>(
-    `client_projects?select=*&order=updated_at.desc,id.desc${statusFilter}${searchFilter}&limit=${pageSize + 1}&offset=${offset}`,
-    {},
-    "privileged",
-  ).catch(() => null);
+  const [rows, notificationInbox] = await Promise.all([
+    supabaseRest<ClientProject[]>(
+      `client_projects?select=*&order=updated_at.desc,id.desc${statusFilter}${searchFilter}&limit=${pageSize + 1}&offset=${offset}`,
+      {},
+      "privileged",
+    ).catch(() => null),
+    loadNotificationInbox(user.id, { userAccessToken: authorization.token }, 1),
+  ]);
   const href = (nextPage: number, nextStatus = status, nextSearch = q) => adminListHref(pathname, { page: nextPage, status: nextStatus, q: nextSearch });
   const projects = rows?.slice(0, pageSize) ?? [];
   if (rows && page > 1 && projects.length === 0) redirect(href(1));
@@ -62,9 +68,11 @@ export default async function ClientProjectsPage({ searchParams }: Props) {
             <div className="client-admin-list">
               {projects.map((project) => {
                 const openCount = openCounts.get(project.id) ?? 0;
+                const unreadCount = notificationInbox.unreadProjectCounts[project.id] ?? 0;
                 return <Link href={`/studio-admin/client-projects/${project.id}?from=${encodeURIComponent(currentPath)}`} key={project.id}>
                   <div><span className={`status-badge ${project.status}`}>{statusLabel(project.status)}</span><span className="technical">{project.reference}</span></div>
                   <h3>{project.name}</h3><p>{project.client_name}</p>
+                  {unreadCount ? <p className="client-admin-unread">{unreadCount} new</p> : null}
                   {openCount ? <p className="client-admin-open-feedback">{openCount} open feedback</p> : null}
                   <dl><dt>Phase</dt><dd>{project.current_phase}</dd><dt>Progress</dt><dd>{project.progress}%</dd><dt>Target</dt><dd>{formatProjectDate(project.target_date)}</dd></dl>
                 </Link>;

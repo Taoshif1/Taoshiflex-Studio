@@ -134,6 +134,18 @@
 .client-head h1 {
   font-size: clamp(3rem, 6vw, 5rem);
 }
+.client-head-actions,
+.workspace-head-actions {
+  display: flex;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.7rem;
+  flex-wrap: wrap;
+}
+.workspace-head > .workspace-head-actions {
+  flex: 0 0 auto;
+}
 .client-project-group,
 .client-empty {
   padding-top: var(--section-compact);
@@ -169,6 +181,23 @@
   align-items: center;
   justify-content: space-between;
   gap: 1rem;
+}
+.client-project-signals {
+  display: grid;
+  justify-items: end;
+  gap: 0.35rem;
+}
+.client-project-unread {
+  display: inline-flex;
+  min-height: 1.55rem;
+  align-items: center;
+  padding: 0.2rem 0.5rem;
+  border: 1px solid rgba(184, 144, 85, 0.72);
+  border-radius: 999px;
+  color: var(--gold);
+  font-size: 0.65rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
 }
 .client-project-card h3 {
   margin: 0.25rem 0 0;
@@ -293,6 +322,7 @@
   color: var(--stone);
 }
 .workspace-section {
+  scroll-margin-top: 6rem;
   padding-block: var(--section-compact);
   border-bottom: 1px solid var(--line);
 }
@@ -404,5 +434,16 @@
   }
   .workspace-head > div {
     order: 3;
+  }
+  .workspace-head > .workspace-head-actions {
+    order: 2;
+    justify-content: flex-start;
+  }
+  .client-head-actions {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+  .client-project-signals {
+    justify-items: start;
   }
 }
