@@ -36,11 +36,16 @@ create table if not exists public.project_feedback (
   ),
   constraint project_feedback_response_metadata check (
     (studio_response is null and responded_by is null and responded_at is null)
-    or (studio_response is not null and responded_at is not null)
+    or (studio_response is not null and responded_by is not null and responded_at is not null)
   ),
   constraint project_feedback_resolution_metadata check (
     (status = 'open' and resolved_at is null)
     or (status = 'resolved' and resolved_at is not null)
+  ),
+  constraint project_feedback_change_request_resolution check (
+    intent <> 'changes_requested'
+    or status <> 'resolved'
+    or studio_response is not null
   )
 );
 
@@ -115,11 +120,54 @@ begin
 end
 $$;
 
+create or replace function public.guard_project_feedback_history()
+returns trigger
+language plpgsql
+set search_path = public
+as $$
+begin
+  if old.status = 'resolved' then
+    raise exception using errcode = '55000', message = 'Resolved feedback is immutable historical data';
+  end if;
+
+  if row(
+    new.id,
+    new.project_id,
+    new.target_type,
+    new.target_id,
+    new.target_label,
+    new.author_user_id,
+    new.intent,
+    new.message,
+    new.created_at
+  ) is distinct from row(
+    old.id,
+    old.project_id,
+    old.target_type,
+    old.target_id,
+    old.target_label,
+    old.author_user_id,
+    old.intent,
+    old.message,
+    old.created_at
+  ) then
+    raise exception using errcode = '55000', message = 'Original Client feedback fields are immutable';
+  end if;
+
+  return new;
+end
+$$;
+
 drop trigger if exists project_feedback_validate_target on public.project_feedback;
 create trigger project_feedback_validate_target
 before insert or update of project_id, target_type, target_id
 on public.project_feedback
 for each row execute function public.validate_project_feedback_target();
+
+drop trigger if exists project_feedback_guard_history on public.project_feedback;
+create trigger project_feedback_guard_history
+before update on public.project_feedback
+for each row execute function public.guard_project_feedback_history();
 
 drop trigger if exists project_feedback_updated_at on public.project_feedback;
 create trigger project_feedback_updated_at
@@ -158,6 +206,7 @@ revoke delete, truncate on table public.project_feedback from authenticated;
 grant select, insert, update on table public.project_feedback to authenticated;
 
 revoke all on function public.validate_project_feedback_target() from public, anon, authenticated;
+revoke all on function public.guard_project_feedback_history() from public, anon, authenticated;
 
 comment on table public.project_feedback is
   'Private Client Project feedback. Client entries are append-only; Studio responses and resolution remain historical.';
