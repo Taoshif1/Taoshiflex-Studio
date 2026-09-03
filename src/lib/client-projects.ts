@@ -66,6 +66,7 @@ export type ProjectDeliverable = {
   description: string;
   status: DeliverableStatus;
   external_url?: string | null;
+  storage_path?: string | null;
   created_at: string;
   updated_at: string;
 };
