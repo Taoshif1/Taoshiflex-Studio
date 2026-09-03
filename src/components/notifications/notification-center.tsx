@@ -53,7 +53,6 @@ export function NotificationCenter({
     event.preventDefault();
     if (await markRead("one", item.id)) {
       router.push(item.href);
-      router.refresh();
     }
   }
 

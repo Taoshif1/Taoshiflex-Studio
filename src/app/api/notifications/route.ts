@@ -33,15 +33,6 @@ export async function PATCH(request: Request) {
       if (!id || !uuid.test(id)) {
         return Response.json({ error: "Valid notification is required." }, { status: 400 });
       }
-      const rows = await supabaseRest<Array<{ id: string; read_at: string | null }>>(
-        "notifications?id=eq." + encodeURIComponent(id) + "&" + recipientFilter + "&select=id,read_at&limit=1",
-        {},
-        access,
-      );
-      if (!rows.length) {
-        return Response.json({ error: "Notification was not found." }, { status: 404 });
-      }
-      if (rows[0].read_at) return Response.json({ ok: true });
       await supabaseRest(
         "notifications?id=eq." + encodeURIComponent(id) + "&" + recipientFilter + "&read_at=is.null",
         {

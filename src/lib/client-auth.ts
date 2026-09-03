@@ -1,8 +1,9 @@
 import { createClient } from "./supabase/server";
+import { cache } from "react";
 
 export type ClientIdentity = { id: string; email?: string };
 
-export async function getClientAuthorization() {
+export const getClientAuthorization = cache(async function getClientAuthorization() {
   try {
     const supabase = await createClient();
     const { data, error } = await supabase.auth.getClaims();
@@ -22,7 +23,7 @@ export async function getClientAuthorization() {
   } catch {
     return null;
   }
-}
+});
 
 export async function getClientSession() {
   return (await getClientAuthorization())?.user ?? null;

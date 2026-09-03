@@ -38,6 +38,16 @@ export async function supabaseRest<T>(path:string,init:RequestInit={},access:Sup
   const text=await response.text();return(text?JSON.parse(text):null)as T;
 }
 
+export async function supabasePublicRest<T>(path:string,revalidate=60):Promise<T>{
+  const {url}=supabaseConfig();if(!url)throw new Error("Supabase URL is not configured");
+  const response=await fetch(`${url}/rest/v1/${path}`,{
+    headers:supabaseHeaders("public",{"Content-Type":"application/json"}),
+    next:{revalidate:Math.max(1,Math.floor(revalidate))},
+  });
+  if(!response.ok){const failure=await response.json().catch(()=>null) as {code?:unknown;message?:unknown}|null;throw new SupabaseRestError(response.status,typeof failure?.code==="string"?failure.code:undefined,typeof failure?.message==="string"?failure.message:undefined)}
+  const text=await response.text();return(text?JSON.parse(text):null)as T;
+}
+
 export async function verifyStudioAdminToken(token:string|undefined){
   const {url}=supabaseConfig();if(!token||!url||!isSupabasePublicConfigured()||!isSupabaseServerConfigured())return null;
   const userResponse=await fetch(`${url}/auth/v1/user`,{headers:supabaseHeaders({userAccessToken:token}),cache:"no-store"});
@@ -61,5 +71,5 @@ export async function updateSupabaseUserPassword(userId:string,password:string){
   const {error}=await client.auth.admin.updateUserById(userId,{password});
   if(error)throw error;
 }
-export async function getAdminAuthorization(){const token=(await cookies()).get("studio_access_token")?.value;const user=await verifyStudioAdminToken(token);return user&&token?{user,token}:null}
+export const getAdminAuthorization=cache(async()=>{const token=(await cookies()).get("studio_access_token")?.value;const user=await verifyStudioAdminToken(token);return user&&token?{user,token}:null});
 export const getAdminSession=cache(async()=> (await getAdminAuthorization())?.user??null);

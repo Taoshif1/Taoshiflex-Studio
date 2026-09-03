@@ -76,30 +76,32 @@ export async function POST(request: Request) {
 
   const access = { userAccessToken: authorization.token };
   try {
-    const memberships = await supabaseRest<Array<{ id: string }>>(
+    const membershipRequest = supabaseRest<Array<{ id: string }>>(
       `client_project_members?project_id=eq.${projectId}&user_id=eq.${authorization.user.id}&select=id&limit=1`,
       {},
       access,
     );
+    const targetRequest = typedTarget === "project"
+      ? supabaseRest<Array<{ id: string }>>(
+          `client_projects?id=eq.${projectId}&select=id&limit=1`,
+          {},
+          access,
+        )
+      : supabaseRest<Array<{ id: string }>>(
+          `${targetTables[typedTarget]}?id=eq.${targetId}&project_id=eq.${projectId}&select=id&limit=1`,
+          {},
+          access,
+        );
+    const [memberships, targets] = await Promise.all([membershipRequest, targetRequest]);
     if (!memberships.length) {
       return Response.json({ error: "You do not have access to this Client Project." }, { status: 403 });
     }
 
     if (typedTarget === "project") {
-      const projects = await supabaseRest<Array<{ id: string }>>(
-        `client_projects?id=eq.${projectId}&select=id&limit=1`,
-        {},
-        access,
-      );
-      if (!projects.length) {
+      if (!targets.length) {
         return Response.json({ error: "Client Project was not found." }, { status: 404 });
       }
     } else {
-      const targets = await supabaseRest<Array<{ id: string }>>(
-        `${targetTables[typedTarget]}?id=eq.${targetId}&project_id=eq.${projectId}&select=id&limit=1`,
-        {},
-        access,
-      );
       if (!targets.length) {
         return Response.json({ error: "Feedback target does not belong to this Client Project." }, { status: 400 });
       }
