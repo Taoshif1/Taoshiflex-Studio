@@ -3,7 +3,7 @@ import { formatInquiryDate, inquiryReference, type InquiryRecord } from "@/lib/i
 
 const value = (input: string | undefined) => input?.trim() || "Not provided";
 
-export function InquiryView({ inquiry, compact = false, detailHref }: { inquiry: InquiryRecord; compact?: boolean; detailHref?: string }) {
+export function InquiryView({ inquiry, compact = false, detailHref, agreedProjectValue }: { inquiry: InquiryRecord; compact?: boolean; detailHref?: string; agreedProjectValue?: string | null }) {
   const brief = inquiry.payload;
   if (compact) return <article className="inquiry-preview">
     <div><span className={`status-badge ${inquiry.status}`}>{inquiry.status}</span><strong>{inquiryReference(inquiry)}</strong></div>
@@ -15,7 +15,7 @@ export function InquiryView({ inquiry, compact = false, detailHref }: { inquiry:
 
   return <div className="inquiry-detail-grid">
     <section><p className="eyebrow">Contact</p><dl className="lead-fields"><Field label="Name" value={brief.name}/><Field label="Email" value={inquiry.email}/><Field label="Phone / WhatsApp" value={brief.phone}/><Field label="Business" value={brief.business}/></dl></section>
-    <section><p className="eyebrow">Project</p><dl className="lead-fields"><Field label="Project type" value={brief.projectType}/><Field label="Current stage" value={brief.stage}/><Field label="Goals" value={brief.goals.join(", ")}/><Field label="Investment" value={brief.budget}/><Field label="Timeline" value={brief.timeline}/></dl></section>
+    <section><p className="eyebrow">Project</p><dl className="lead-fields"><Field label="Project type" value={brief.projectType}/><Field label="Current stage" value={brief.stage}/><Field label="Goals" value={brief.goals.join(", ")}/><Field label="Client budget" value={brief.budget}/>{agreedProjectValue !== undefined ? <Field label="Agreed project value" value={agreedProjectValue ?? "Not configured yet"}/> : null}<Field label="Timeline" value={brief.timeline}/></dl></section>
     <section className="inquiry-brief"><p className="eyebrow">Full brief</p><p>{value(brief.details)}</p></section>
     <section><p className="eyebrow">Admin</p><dl className="lead-fields"><Field label="Reference" value={inquiryReference(inquiry)}/><Field label="Submitted" value={formatInquiryDate(inquiry.created_at)}/><Field label="Status" value={inquiry.status}/></dl></section>
   </div>;
