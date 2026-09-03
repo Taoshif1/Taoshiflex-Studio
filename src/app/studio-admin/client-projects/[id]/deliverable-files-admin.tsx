@@ -17,7 +17,8 @@ export function DeliverableFilesAdmin({ projectId, deliverables }: Props) {
   async function upload(event: FormEvent<HTMLFormElement>, deliverableId: string) {
     event.preventDefault();
     if (pendingId) return;
-    const form = new FormData(event.currentTarget);
+    const formElement = event.currentTarget;
+    const form = new FormData(formElement);
     const file = form.get("file");
     if (!(file instanceof File) || !file.size) {
       setMessage("Choose a file first.");
@@ -35,7 +36,7 @@ export function DeliverableFilesAdmin({ projectId, deliverables }: Props) {
       const result = (await response.json().catch(() => ({}))) as { error?: string; message?: string };
       if (!response.ok) throw new Error(result.error || "Upload failed.");
       setMessage(result.message || "Private deliverable uploaded.");
-      event.currentTarget.reset();
+      formElement.reset();
       router.refresh();
     } catch (error) {
       setMessage(error instanceof Error ? error.message : "Upload failed.");
