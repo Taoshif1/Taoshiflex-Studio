@@ -4,9 +4,12 @@ import { FormEvent, useRef, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 
 const genericSignInError = "Email or password is incorrect.";
+const genericRecoveryMessage =
+  "If an account exists for that email, a password reset link has been sent.";
 
 export function ClientAuthForm() {
   const pendingRef = useRef(false);
+  const emailInputRef = useRef<HTMLInputElement>(null);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [pending, setPending] = useState(false);
@@ -33,8 +36,34 @@ export function ClientAuthForm() {
     }
   }
 
+  async function requestPasswordReset() {
+    const normalizedEmail = email.trim().toLowerCase();
+    if (pendingRef.current) return;
+    if (!normalizedEmail) {
+      setMessage("Enter your email address first.");
+      return;
+    }
+    if (!emailInputRef.current?.reportValidity()) return;
+
+    pendingRef.current = true;
+    setPending(true);
+    setMessage("");
+
+    try {
+      const supabase = createClient();
+      const redirectTo = `${location.origin}/client/auth/callback`;
+      await supabase.auth.resetPasswordForEmail(normalizedEmail, { redirectTo });
+      setMessage(genericRecoveryMessage);
+    } catch {
+      setMessage(genericRecoveryMessage);
+    } finally {
+      pendingRef.current = false;
+      setPending(false);
+    }
+  }
+
   return (
-    <form className="client-auth-form" onSubmit={submit}>
+    <form className="client-auth-form" onSubmit={submit} aria-busy={pending}>
       <label>
         Email address
         <input
@@ -42,6 +71,7 @@ export function ClientAuthForm() {
           value={email}
           onChange={(event) => setEmail(event.target.value)}
           autoComplete="email"
+          ref={emailInputRef}
           disabled={pending}
           required
         />
@@ -61,7 +91,15 @@ export function ClientAuthForm() {
         {message || "Enter the credentials connected to your project."}
       </p>
       <button className="action action-solid" disabled={pending}>
-        {pending ? "Signing in..." : "Sign In"}
+        {pending ? "Working..." : "Sign In"}
+      </button>
+      <button
+        className="client-recovery-button"
+        type="button"
+        disabled={pending}
+        onClick={requestPasswordReset}
+      >
+        Forgot password?
       </button>
     </form>
   );
