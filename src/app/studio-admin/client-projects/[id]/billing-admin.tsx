@@ -54,7 +54,7 @@ export function BillingAdmin({ projectId, data }: { projectId: string; data: Com
         <label>Agreed project value<input name="projectValue" inputMode="decimal" required /></label>
         <label>Currency<input name="currency" defaultValue="BDT" maxLength={3} required /></label>
         <label>Currency decimals<input name="decimals" type="number" defaultValue="2" min="0" max="3" /></label>
-        <label>Initial deposit %<input name="depositPercentage" type="number" defaultValue="30" min="1" max="99" step="0.01" /></label>
+        <label>Initial deposit % (starting calculation)<input name="depositPercentage" type="number" defaultValue="30" min="1" max="99" step="0.01" /></label>
         <p className="wide">The Studio default is 30% deposit and 70% final. Change the percentage here for the agreed plan.</p>
         <button disabled={pending}>Create starting plan</button>
       </form>
@@ -134,7 +134,7 @@ export function BillingAdmin({ projectId, data }: { projectId: string; data: Com
     {archivedSchedule.length ? <details className="archived-schedule"><summary>Archived installments ({archivedSchedule.length})</summary><div className="admin-payment-list">{archivedSchedule.map((item) => <article key={item.id}><div><strong>{item.label}</strong><span>{formatMoney(item.expected_amount_minor, billing.currency, billing.currency_decimals)}</span></div><span>Archived</span><button disabled={pending} onClick={() => void mutate("PATCH", { kind: "schedule-archive", id: item.id, archive: false }, "Installment restored.")}>Restore</button></article>)}</div></details> : null}
     <SimpleForm title="Add installment" button="Add installment" pending={pending} fields={<>
       <label>Label<input name="label" required /></label><label>Amount<input name="amount" inputMode="decimal" required /></label>
-      <label>Percentage (optional)<input name="percentage" type="number" min="0.01" max="100" step="0.01" /></label><label>Due date (optional)<input name="dueDate" type="date" /></label>
+      <label>Percentage (optional reference)<input name="percentage" type="number" min="0.01" max="100" step="0.01" /></label><label>Due date (optional)<input name="dueDate" type="date" /></label>
     </>} submit={(form) => void mutate("POST", { kind: "schedule", ...Object.fromEntries(form) }, "Installment added.")} />
 
     <h3>Pending payment submissions</h3>
@@ -160,7 +160,7 @@ function ScheduleForm({ item, decimals, locked, pending, moveUp, moveDown, save,
   }}>
     <label>Label<input name="label" defaultValue={item.label} maxLength={120} required disabled={locked} /></label>
     <label>Amount<input name="amount" inputMode="decimal" defaultValue={(item.expected_amount_minor / 10 ** decimals).toFixed(decimals)} required disabled={locked} /></label>
-    <label>Percentage<input name="percentage" type="number" min="0.01" max="100" step="0.01" defaultValue={item.percentage ?? ""} disabled={locked} /></label>
+    <label>Percentage (reference)<input name="percentage" type="number" min="0.01" max="100" step="0.01" defaultValue={item.percentage ?? ""} disabled={locked} /></label>
     <label>Due date<input name="dueDate" type="date" defaultValue={item.due_date ?? ""} disabled={locked} /></label>
     {locked ? <p className="wide schedule-lock">Amount, wording and due date are locked because this installment has confirmed payment history.</p> : null}
     <div className="editor-actions wide">

@@ -47,5 +47,5 @@ export async function DELETE(request:Request){
   const body=await request.json().catch(()=>null) as Record<string,unknown>|null,id=cleanText(body?.id,40,true);
   if(!id||!uuid.test(id))return Response.json({error:"Valid draft required."},{status:400});
   try{await supabaseRest(`policy_versions?id=eq.${id}&published_at=is.null`,{method:"DELETE",headers:{Prefer:"return=minimal"}},"privileged");return Response.json({ok:true})}
-  catch{return Response.json({error:"Only unused, never-published drafts can be deleted."},{status:409})}
+  catch{return Response.json({error:"Published, acknowledged, or final policy drafts cannot be deleted. Archive the policy instead."},{status:409})}
 }

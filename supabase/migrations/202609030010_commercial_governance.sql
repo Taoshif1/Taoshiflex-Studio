@@ -81,6 +81,12 @@ begin
   ) then
     raise exception using errcode='55000', message='Published or acknowledged policy history cannot be deleted';
   end if;
+  if not exists (
+    select 1 from public.policy_versions
+    where policy_id=old.policy_id and id<>old.id
+  ) then
+    raise exception using errcode='55000', message='The final policy draft cannot be deleted; archive the policy instead';
+  end if;
   return old;
 end $$;
 
@@ -272,24 +278,45 @@ for each row execute function public.touch_client_workspace_updated_at();
 
 create or replace function public.validate_project_payment()
 returns trigger language plpgsql security definer set search_path=public as $$
-declare billing public.project_billing%rowtype; target_schedule public.project_payment_schedule%rowtype;
+declare
+  billing public.project_billing%rowtype;
+  target_schedule public.project_payment_schedule%rowtype;
+  original_payment public.project_payments%rowtype;
+  confirmed_net bigint;
 begin
   select * into billing from public.project_billing where project_id=new.project_id;
   if not found then raise exception 'Project billing is not configured'; end if;
-  if new.currency<>billing.currency then raise exception 'Payment currency must match project billing currency'; end if;
-  if not (new.payment_method=any(billing.allowed_methods)) then raise exception 'Payment method is not available for this project'; end if;
   if new.schedule_item_id is not null then
     select * into target_schedule from public.project_payment_schedule where id=new.schedule_item_id;
-    if not found or target_schedule.project_id<>new.project_id or target_schedule.archived_at is not null then
+    if not found or target_schedule.project_id<>new.project_id then
       raise exception 'Payment schedule item is not available for this project';
     end if;
   end if;
-  if new.entry_type='reversal' and (
-    new.origin<>'admin_manual' or not exists (
-      select 1 from public.project_payments p
-      where p.id=new.reversal_of and p.project_id=new.project_id and p.status='confirmed' and p.entry_type='payment'
-    )
-  ) then raise exception 'A reversal must reference a confirmed project payment'; end if;
+  if new.entry_type='reversal' then
+    select * into original_payment from public.project_payments where id=new.reversal_of;
+    if new.origin<>'admin_manual' or not found
+      or original_payment.project_id<>new.project_id
+      or original_payment.status<>'confirmed'
+      or original_payment.entry_type<>'payment'
+      or original_payment.schedule_item_id is distinct from new.schedule_item_id
+      or original_payment.amount_minor<>new.amount_minor
+      or original_payment.currency<>new.currency
+      or original_payment.payment_method<>new.payment_method then
+      raise exception 'A reversal must exactly reference a confirmed project payment from the same project';
+    end if;
+  else
+    if new.currency<>billing.currency then raise exception 'Payment currency must match project billing currency'; end if;
+    if not (new.payment_method=any(billing.allowed_methods)) then raise exception 'Payment method is not available for this project'; end if;
+    if new.schedule_item_id is not null and target_schedule.archived_at is not null then
+      raise exception 'New payments may only reference an active payment schedule item';
+    end if;
+    select coalesce(sum(case when entry_type='payment' then amount_minor else -amount_minor end),0)::bigint
+      into confirmed_net from public.project_payments
+      where project_id=new.project_id and status='confirmed';
+    if confirmed_net+new.amount_minor>billing.agreed_value_minor then
+      raise exception 'Payment amount exceeds the remaining project balance';
+    end if;
+  end if;
   return new;
 end $$;
 
@@ -420,32 +447,54 @@ end $$;
 
 create or replace function public.decide_project_payment(target_payment_id uuid, decision text, reason text default '')
 returns void language plpgsql security definer set search_path=public as $$
+declare
+  target public.project_payments%rowtype;
+  billing public.project_billing%rowtype;
+  confirmed_net bigint;
 begin
   if not public.is_studio_admin() then raise exception 'Studio Admin authorization required'; end if;
   if decision not in ('confirmed','rejected') then raise exception 'Invalid payment decision'; end if;
+  select * into target from public.project_payments where id=target_payment_id and status='pending' for update;
+  if not found then raise exception 'Pending payment not found'; end if;
   if decision='confirmed' then
+    select * into billing from public.project_billing where project_id=target.project_id for update;
+    if not found then raise exception 'Project billing is not configured'; end if;
+    select coalesce(sum(case when entry_type='payment' then amount_minor else -amount_minor end),0)::bigint
+      into confirmed_net from public.project_payments
+      where project_id=target.project_id and status='confirmed';
+    if confirmed_net+target.amount_minor>billing.agreed_value_minor then
+      raise exception 'Confirming this payment would exceed the agreed project value';
+    end if;
     update public.project_payments set status='confirmed',confirmed_by=auth.uid(),confirmed_at=now(),rejection_reason=''
-    where id=target_payment_id and status='pending';
+    where id=target.id;
   else
     update public.project_payments set status='rejected',rejected_by=auth.uid(),rejected_at=now(),rejection_reason=left(coalesce(reason,''),500)
-    where id=target_payment_id and status='pending';
+    where id=target.id;
   end if;
-  if not found then raise exception 'Pending payment not found'; end if;
 end $$;
 
 create or replace function public.record_manual_project_payment(
   target_project_id uuid, target_schedule_item_id uuid, payment_amount_minor bigint,
   method text, transaction_reference text default '', payment_note text default ''
 ) returns uuid language plpgsql security definer set search_path=public as $$
-declare created_id uuid; billing_currency text;
+declare
+  created_id uuid;
+  billing public.project_billing%rowtype;
+  confirmed_net bigint;
 begin
   if not public.is_studio_admin() then raise exception 'Studio Admin authorization required'; end if;
-  select currency into billing_currency from public.project_billing where project_id=target_project_id;
+  select * into billing from public.project_billing where project_id=target_project_id for update;
   if not found then raise exception 'Project billing is not configured'; end if;
+  select coalesce(sum(case when entry_type='payment' then amount_minor else -amount_minor end),0)::bigint
+    into confirmed_net from public.project_payments
+    where project_id=target_project_id and status='confirmed';
+  if confirmed_net+payment_amount_minor>billing.agreed_value_minor then
+    raise exception 'Recording this payment would exceed the agreed project value';
+  end if;
   insert into public.project_payments(project_id,schedule_item_id,submitted_by,origin,entry_type,amount_minor,
     currency,payment_method,reference_id,note,status,confirmed_by,confirmed_at)
   values(target_project_id,target_schedule_item_id,auth.uid(),'admin_manual','payment',payment_amount_minor,
-    billing_currency,method,coalesce(transaction_reference,''),coalesce(payment_note,''),'confirmed',auth.uid(),now())
+    billing.currency,method,coalesce(transaction_reference,''),coalesce(payment_note,''),'confirmed',auth.uid(),now())
   returning id into created_id;
   return created_id;
 end $$;
@@ -615,4 +664,6 @@ comment on table public.policy_acknowledgements is 'Future-ready immutable polic
 comment on table public.project_billing is 'Private agreed project value and Client-visible payment instructions. Public package pricing is unrelated.';
 comment on table public.project_payments is 'Append-oriented payment ledger. Confirmed corrections use reversal entries instead of silent edits.';
 comment on column public.project_billing.agreed_value_minor is 'Exact monetary amount in the currency minor unit; never a floating-point value.';
+comment on column public.project_payment_schedule.expected_amount_minor is 'Authoritative expected installment amount in the project currency minor unit.';
+comment on column public.project_payment_schedule.percentage is 'Descriptive planning metadata; expected_amount_minor remains authoritative and may reflect agreed rounding.';
 comment on column public.project_milestones.archived_at is 'Removes a planning item from the active list without deleting its Client-visible history.';
