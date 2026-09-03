@@ -63,7 +63,7 @@ export default async function ClientPage() {
             next.
           </p>
         </div>
-        <div className="client-head-actions"><NotificationCenter inbox={inbox}/><ClientLogout /></div>
+        <div className="client-head-actions"><Link className="action" href="/client/policies">Policies</Link><NotificationCenter inbox={inbox}/><ClientLogout /></div>
       </header>
       <ProjectGroup title="Active projects" projects={active} unreadProjectCounts={inbox.unreadProjectCounts} />
       <ProjectGroup title="Completed projects" projects={completed} unreadProjectCounts={inbox.unreadProjectCounts} />

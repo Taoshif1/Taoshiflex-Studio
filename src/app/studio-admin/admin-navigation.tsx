@@ -11,6 +11,7 @@ const items = [
   { label: "Projects", href: "/studio-admin#projects", section: "dashboard" },
   { label: "Inquiries", href: "/studio-admin/inquiries", section: "inquiries" },
   { label: "Client Projects", href: "/studio-admin/client-projects", section: "client-projects" },
+  { label: "Policies", href: "/studio-admin/policies", section: "policies" },
   { label: "Pricing", href: "/studio-admin#pricing-admin", section: "dashboard" },
   { label: "GitHub", href: "/studio-admin#github", section: "dashboard" },
   { label: "Assistant", href: "/studio-admin#assistant-admin", section: "dashboard" },
@@ -19,6 +20,7 @@ const items = [
 function activeDestination(pathname: string, hash: string) {
   if (pathname.startsWith("/studio-admin/inquiries")) return "/studio-admin/inquiries";
   if (pathname.startsWith("/studio-admin/client-projects")) return "/studio-admin/client-projects";
+  if (pathname.startsWith("/studio-admin/policies")) return "/studio-admin/policies";
   if (pathname !== "/studio-admin") return "";
   const hashDestination = items.find((item) => item.href === "/studio-admin" + hash);
   return hashDestination?.href ?? "/studio-admin";
@@ -55,7 +57,8 @@ export function AdminNavigation({ email, inbox }: { email?: string; inbox: Notif
   const inquiryUnread = inbox.unreadTypeCounts.new_inquiry ?? 0;
   const clientProjectUnread =
     (inbox.unreadTypeCounts.client_feedback ?? 0) +
-    (inbox.unreadTypeCounts.client_changes_requested ?? 0);
+    (inbox.unreadTypeCounts.client_changes_requested ?? 0) +
+    (inbox.unreadTypeCounts.payment_submitted ?? 0);
   const links = items.map((item) => {
     const isActive = item.href === current;
     const unread = item.section === "inquiries"

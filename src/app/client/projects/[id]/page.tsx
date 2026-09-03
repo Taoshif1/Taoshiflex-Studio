@@ -16,6 +16,8 @@ import { FeedbackPanel } from "./feedback-panel";
 import { NotificationCenter } from "@/components/notifications/notification-center";
 import { loadNotificationInbox } from "@/lib/notifications";
 import "./feedback.css";
+import { BillingPanel } from "./billing-panel";
+import type { BillingSummary, PaymentScheduleItem, ProjectBilling, ProjectPayment } from "@/lib/commercial";
 
 type Props = { params: Promise<{ id: string }> };
 const uuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
@@ -36,15 +38,26 @@ export default async function ClientProjectPage({ params }: Props) {
   const project = projects[0];
   if (!project) notFound();
 
-  const [milestones, updates, deliverables, feedback, inbox] = await Promise.all([
-    supabaseRest<ProjectMilestone[]>(`project_milestones?project_id=eq.${id}&select=id,project_id,title,description,status,due_date,completed_at,sort_order,created_at,updated_at&order=sort_order.asc`, {}, access).catch(() => []),
+  const [milestones, updates, deliverables, feedback, inbox, billingRows, summaryRows, schedule, payments] = await Promise.all([
+    supabaseRest<ProjectMilestone[]>(`project_milestones?project_id=eq.${id}&select=*&order=sort_order.asc`, {}, access).catch(() => []),
     supabaseRest<ProjectUpdate[]>(`project_updates?project_id=eq.${id}&select=id,project_id,title,body,published_at,created_at,updated_at&order=published_at.desc`, {}, access).catch(() => []),
     supabaseRest<ProjectDeliverable[]>(`project_deliverables?project_id=eq.${id}&select=id,project_id,title,description,status,external_url,created_at,updated_at&order=updated_at.desc`, {}, access).catch(() => []),
     supabaseRest<ProjectFeedback[]>(`project_feedback?project_id=eq.${id}&select=id,project_id,target_type,target_id,target_label,author_user_id,intent,message,status,studio_response,responded_by,responded_at,resolved_at,created_at,updated_at&order=created_at.asc,id.asc`, {}, access).catch(() => []),
     loadNotificationInbox(authorization.user.id, access),
+    supabaseRest<ProjectBilling[]>(`project_billing?project_id=eq.${id}&select=*&limit=1`,{},access).catch(()=>[]),
+    supabaseRest<BillingSummary[]>(`project_billing_summaries?project_id=eq.${id}&select=*&limit=1`,{},access).catch(()=>[]),
+    supabaseRest<PaymentScheduleItem[]>(`project_payment_schedule?project_id=eq.${id}&select=*&order=sort_order.asc,created_at.asc`,{},access).catch(()=>[]),
+    supabaseRest<ProjectPayment[]>(`project_payments?project_id=eq.${id}&select=*&order=submitted_at.desc,id.desc`,{},access).catch(()=>[]),
   ]);
   const forTarget = (targetType: FeedbackTargetType, targetId: string | null) =>
     feedback.filter((item) => item.target_type === targetType && item.target_id === targetId);
+  const currentMilestones=milestones.filter(item=>item.status!=="completed"&&!item.archived_at);
+  const previousMilestones=milestones.filter(item=>item.status==="completed"||Boolean(item.archived_at));
+  const milestoneCard=(item:ProjectMilestone)=><article key={item.id}>
+    <span className={`client-status ${item.status}`}>{statusLabel(item.status)}</span>
+    <div><h3>{item.title}</h3>{item.description ? <p>{item.description}</p> : null}<FeedbackPanel projectId={id} targetType="milestone" targetId={item.id} feedback={forTarget("milestone", item.id)}/></div>
+    <dl><dt>Due</dt><dd>{formatProjectDate(item.due_date)}</dd>{item.completed_at ? <><dt>Completed</dt><dd>{formatProjectDate(item.completed_at)}</dd></> : null}</dl>
+  </article>;
 
   return (
     <main className="client-shell project-workspace">
@@ -68,15 +81,8 @@ export default async function ClientProjectPage({ params }: Props) {
         </div>
       </section>
       <WorkspaceSection id="milestones" eyebrow="Plan" title="Milestones">
-        <div className="milestone-list">
-          {milestones.length ? milestones.map((item) => (
-            <article key={item.id}>
-              <span className={`client-status ${item.status}`}>{statusLabel(item.status)}</span>
-              <div><h3>{item.title}</h3>{item.description ? <p>{item.description}</p> : null}<FeedbackPanel projectId={id} targetType="milestone" targetId={item.id} feedback={forTarget("milestone", item.id)}/></div>
-              <dl><dt>Due</dt><dd>{formatProjectDate(item.due_date)}</dd>{item.completed_at ? <><dt>Completed</dt><dd>{formatProjectDate(item.completed_at)}</dd></> : null}</dl>
-            </article>
-          )) : <Empty copy="Milestones will appear here as the delivery plan is confirmed."/>}
-        </div>
+        <h3 className="milestone-group-title">Current milestones</h3><div className="milestone-list">{currentMilestones.length?currentMilestones.map(milestoneCard):<Empty copy="No current milestones."/>}</div>
+        {previousMilestones.length?<details className="milestone-history" open><summary>Completed / Previous milestones ({previousMilestones.length})</summary><div className="milestone-list">{previousMilestones.map(milestoneCard)}</div></details>:null}
       </WorkspaceSection>
       <WorkspaceSection id="updates" eyebrow="Studio notes" title="Updates">
         <div className="update-list">
@@ -94,6 +100,9 @@ export default async function ClientProjectPage({ params }: Props) {
             </article>
           )) : <Empty copy="Deliverables will appear here when they are ready for review."/>}
         </div>
+      </WorkspaceSection>
+      <WorkspaceSection id="billing" eyebrow="Commercial summary" title="Billing / Payments">
+        <BillingPanel projectId={id} data={{billing:billingRows[0]??null,summary:summaryRows[0]??null,schedule,payments}}/>
       </WorkspaceSection>
       <WorkspaceSection id="feedback" eyebrow="Project conversation" title="General feedback">
         <div className="feedback-general"><p>Ask a project-level question or leave a note that is not tied to one item.</p><FeedbackPanel projectId={id} targetType="project" targetId={null} feedback={forTarget("project", null)}/></div>
