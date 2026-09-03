@@ -1,17 +1,41 @@
 "use client";
 
 import { FormEvent, useRef, useState } from "react";
+import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
 
 const minimumPasswordLength = 8;
+type RecoveryState = "invalid" | "expired";
 
-export function ResetPasswordForm() {
+export function ResetPasswordForm({
+  hasSession,
+  recoveryState,
+}: {
+  hasSession: boolean;
+  recoveryState?: RecoveryState;
+}) {
   const pendingRef = useRef(false);
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [pending, setPending] = useState(false);
   const [message, setMessage] = useState("");
   const [complete, setComplete] = useState(false);
+
+  if (recoveryState || !hasSession) {
+    return (
+      <div className="client-sent-state" role="alert">
+        <p className="eyebrow">Recovery link unavailable</p>
+        <h2>Request a new link.</h2>
+        <p>
+          This recovery link is{" "}
+          {recoveryState === "expired" ? "expired" : "missing or invalid"}.
+        </p>
+        <Link className="action action-solid" href="/client">
+          Return to Client Access
+        </Link>
+      </div>
+    );
+  }
 
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -62,15 +86,15 @@ export function ResetPasswordForm() {
         <p className="eyebrow">Password updated</p>
         <h2>Access restored.</h2>
         <p>{message}</p>
-        <a className="action action-solid" href="/client">
+        <Link className="action action-solid" href="/client">
           Return to Client Workspace
-        </a>
+        </Link>
       </div>
     );
   }
 
   return (
-    <form className="client-auth-form" onSubmit={submit}>
+    <form className="client-auth-form" onSubmit={submit} aria-busy={pending}>
       <label>
         New password
         <input

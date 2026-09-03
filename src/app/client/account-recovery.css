@@ -15,6 +15,10 @@
   cursor: wait;
   opacity: 0.6;
 }
+.client-recovery-button:focus-visible {
+  outline: 2px solid currentColor;
+  outline-offset: 0.3rem;
+}
 .client-login-panel aside a {
   color: var(--gold);
   text-decoration: underline;

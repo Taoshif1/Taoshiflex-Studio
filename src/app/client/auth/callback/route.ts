@@ -4,27 +4,53 @@ import { createClient } from "@/lib/supabase/server";
 function resetRedirect(requestUrl: URL, state?: "invalid" | "expired") {
   const target = new URL("/client/reset-password", requestUrl.origin);
   if (state) target.searchParams.set("recovery", state);
-  return target;
+  const response = NextResponse.redirect(target);
+  response.headers.set(
+    "Cache-Control",
+    "private, no-cache, no-store, must-revalidate, max-age=0",
+  );
+  return response;
 }
 
 export async function GET(request: Request) {
   const requestUrl = new URL(request.url);
   const code = requestUrl.searchParams.get("code");
+  const flowId = requestUrl.searchParams.get("sb_flow_id");
 
   if (!code) {
-    return NextResponse.redirect(resetRedirect(requestUrl, "invalid"));
+    return resetRedirect(requestUrl, "invalid");
   }
 
   try {
     const supabase = await createClient();
-    const { error } = await supabase.auth.exchangeCodeForSession(code);
+    let recoveryConfirmed = false;
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((event) => {
+      if (event === "PASSWORD_RECOVERY") recoveryConfirmed = true;
+    });
+    let exchangeError = false;
 
-    if (error) {
-      return NextResponse.redirect(resetRedirect(requestUrl, "expired"));
+    try {
+      const { error } = await supabase.auth.exchangeCodeForSession(
+        code,
+        flowId ? { flowId } : undefined,
+      );
+      exchangeError = Boolean(error);
+    } finally {
+      subscription.unsubscribe();
     }
 
-    return NextResponse.redirect(resetRedirect(requestUrl));
+    if (exchangeError || !recoveryConfirmed) {
+      if (!exchangeError) await supabase.auth.signOut({ scope: "local" });
+      return resetRedirect(
+        requestUrl,
+        exchangeError ? "expired" : "invalid",
+      );
+    }
+
+    return resetRedirect(requestUrl);
   } catch {
-    return NextResponse.redirect(resetRedirect(requestUrl, "expired"));
+    return resetRedirect(requestUrl, "expired");
   }
 }

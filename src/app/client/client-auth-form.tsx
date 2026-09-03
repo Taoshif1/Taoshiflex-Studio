@@ -9,6 +9,7 @@ const genericRecoveryMessage =
 
 export function ClientAuthForm() {
   const pendingRef = useRef(false);
+  const emailInputRef = useRef<HTMLInputElement>(null);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [pending, setPending] = useState(false);
@@ -37,10 +38,12 @@ export function ClientAuthForm() {
 
   async function requestPasswordReset() {
     const normalizedEmail = email.trim().toLowerCase();
-    if (!normalizedEmail || pendingRef.current) {
+    if (pendingRef.current) return;
+    if (!normalizedEmail) {
       setMessage("Enter your email address first.");
       return;
     }
+    if (!emailInputRef.current?.reportValidity()) return;
 
     pendingRef.current = true;
     setPending(true);
@@ -60,7 +63,7 @@ export function ClientAuthForm() {
   }
 
   return (
-    <form className="client-auth-form" onSubmit={submit}>
+    <form className="client-auth-form" onSubmit={submit} aria-busy={pending}>
       <label>
         Email address
         <input
@@ -68,6 +71,7 @@ export function ClientAuthForm() {
           value={email}
           onChange={(event) => setEmail(event.target.value)}
           autoComplete="email"
+          ref={emailInputRef}
           disabled={pending}
           required
         />
