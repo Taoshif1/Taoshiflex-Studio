@@ -17,6 +17,7 @@ import { ClientProjectEditor } from "./project-editor";
 import { FeedbackAdmin } from "./feedback-admin";
 import "./feedback.css";
 import "./billing-admin.css";
+import "./deliverable-files-admin.css";
 import { BillingAdmin } from "./billing-admin";
 import { DeliverableFilesAdmin } from "./deliverable-files-admin";
 import type { BillingSummary, PaymentScheduleItem, ProjectBilling, ProjectPayment } from "@/lib/commercial";
