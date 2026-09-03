@@ -17,6 +17,7 @@ import { NotificationCenter } from "@/components/notifications/notification-cent
 import { loadNotificationInbox } from "@/lib/notifications";
 import "./feedback.css";
 import { BillingPanel } from "./billing-panel";
+import { DeliverableActions } from "./deliverable-actions";
 import type { BillingSummary, PaymentScheduleItem, ProjectBilling, ProjectPayment } from "@/lib/commercial";
 
 type Props = { params: Promise<{ id: string }> };
@@ -41,7 +42,7 @@ export default async function ClientProjectPage({ params }: Props) {
   const [milestones, updates, deliverables, feedback, inbox, billingRows, summaryRows, schedule, payments] = await Promise.all([
     supabaseRest<ProjectMilestone[]>(`project_milestones?project_id=eq.${id}&select=*&order=sort_order.asc`, {}, access).catch(() => []),
     supabaseRest<ProjectUpdate[]>(`project_updates?project_id=eq.${id}&select=id,project_id,title,body,published_at,created_at,updated_at&order=published_at.desc`, {}, access).catch(() => []),
-    supabaseRest<ProjectDeliverable[]>(`project_deliverables?project_id=eq.${id}&select=id,project_id,title,description,status,external_url,created_at,updated_at&order=updated_at.desc`, {}, access).catch(() => []),
+    supabaseRest<ProjectDeliverable[]>(`project_deliverables?project_id=eq.${id}&select=id,project_id,title,description,status,external_url,storage_path,created_at,updated_at&order=updated_at.desc`, {}, access).catch(() => []),
     supabaseRest<ProjectFeedback[]>(`project_feedback?project_id=eq.${id}&select=id,project_id,target_type,target_id,target_label,author_user_id,intent,message,status,studio_response,responded_by,responded_at,resolved_at,created_at,updated_at&order=created_at.asc,id.asc`, {}, access).catch(() => []),
     loadNotificationInbox(authorization.user.id, access),
     supabaseRest<ProjectBilling[]>(`project_billing?project_id=eq.${id}&select=*&limit=1`,{},access).catch(()=>[]),
@@ -96,7 +97,7 @@ export default async function ClientProjectPage({ params }: Props) {
           {deliverables.length ? deliverables.map((item) => (
             <article key={item.id}>
               <div><span className={`client-status ${item.status}`}>{statusLabel(item.status)}</span><h3>{item.title}</h3><p>{item.description}</p><FeedbackPanel projectId={id} targetType="deliverable" targetId={item.id} feedback={forTarget("deliverable", item.id)}/></div>
-              {item.external_url ? <a className="action" href={item.external_url} target="_blank" rel="noreferrer">Open deliverable ↗</a> : <span className="deliverable-pending">No file or link published</span>}
+              <DeliverableActions deliverable={item}/>
             </article>
           )) : <Empty copy="Deliverables will appear here when they are ready for review."/>}
         </div>
