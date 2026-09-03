@@ -48,7 +48,7 @@ export function ClientAuthForm() {
 
     try {
       const supabase = createClient();
-      const redirectTo = `${location.origin}/client/reset-password`;
+      const redirectTo = `${location.origin}/client/auth/callback`;
       await supabase.auth.resetPasswordForEmail(normalizedEmail, { redirectTo });
       setMessage(genericRecoveryMessage);
     } catch {
