@@ -4,6 +4,8 @@ import { FormEvent, useRef, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 
 const genericSignInError = "Email or password is incorrect.";
+const genericRecoveryMessage =
+  "If an account exists for that email, a password reset link has been sent.";
 
 export function ClientAuthForm() {
   const pendingRef = useRef(false);
@@ -28,6 +30,30 @@ export function ClientAuthForm() {
       location.assign("/client");
     } catch {
       setMessage(genericSignInError);
+      pendingRef.current = false;
+      setPending(false);
+    }
+  }
+
+  async function requestPasswordReset() {
+    const normalizedEmail = email.trim().toLowerCase();
+    if (!normalizedEmail || pendingRef.current) {
+      setMessage("Enter your email address first.");
+      return;
+    }
+
+    pendingRef.current = true;
+    setPending(true);
+    setMessage("");
+
+    try {
+      const supabase = createClient();
+      const redirectTo = `${location.origin}/client/reset-password`;
+      await supabase.auth.resetPasswordForEmail(normalizedEmail, { redirectTo });
+      setMessage(genericRecoveryMessage);
+    } catch {
+      setMessage(genericRecoveryMessage);
+    } finally {
       pendingRef.current = false;
       setPending(false);
     }
@@ -61,7 +87,15 @@ export function ClientAuthForm() {
         {message || "Enter the credentials connected to your project."}
       </p>
       <button className="action action-solid" disabled={pending}>
-        {pending ? "Signing in..." : "Sign In"}
+        {pending ? "Working..." : "Sign In"}
+      </button>
+      <button
+        className="client-recovery-button"
+        type="button"
+        disabled={pending}
+        onClick={requestPasswordReset}
+      >
+        Forgot password?
       </button>
     </form>
   );
