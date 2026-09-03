@@ -1,22 +1,17 @@
-.admin-billing{margin-bottom:2rem;border:1px solid var(--admin-line);background:var(--admin-panel);padding:clamp(20px,3vw,34px)}
-.admin-billing>header{margin-bottom:20px}
-.admin-billing-summary{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:1px;background:var(--admin-line);border:1px solid var(--admin-line);margin-bottom:24px}
-.admin-billing-summary span{display:grid;gap:8px;background:var(--admin-panel);padding:18px;color:var(--admin-muted);font-size:.72rem;text-transform:uppercase;letter-spacing:.08em}
+.admin-billing{margin-bottom:2rem;padding:clamp(20px,3vw,34px);border:1px solid var(--admin-line);background:var(--admin-panel)}
+.admin-billing>header{display:grid;gap:6px;margin-bottom:20px}.admin-billing>header p{margin:0}.admin-billing>header p:last-child{color:var(--admin-muted)}
+.admin-billing-summary{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:1px;margin-bottom:14px;border:1px solid var(--admin-line);background:var(--admin-line)}
+.admin-billing-summary span{display:grid;gap:8px;padding:18px;background:var(--admin-panel);color:var(--admin-muted);font-size:.72rem;letter-spacing:.08em;text-transform:uppercase}
 .admin-billing-summary strong{color:var(--admin-text);font-size:1.2rem;letter-spacing:0;text-transform:none}
-.admin-billing-settings,.admin-billing-form{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;margin:20px 0;padding:20px;border:1px solid var(--admin-line)}
-.admin-billing-settings .wide,.admin-billing-form .wide{grid-column:1/-1}
-.admin-billing-settings fieldset{display:flex;flex-wrap:wrap;gap:12px;padding:10px;border:1px solid var(--admin-line)}
-.admin-billing-settings fieldset label{display:flex;flex-direction:row;align-items:center;gap:6px}
-.admin-billing-settings fieldset input{width:auto}
-.admin-payment-list{display:grid;gap:10px;margin:14px 0 28px}
-.admin-payment-list article{display:grid;grid-template-columns:minmax(0,1fr) auto auto;align-items:center;gap:14px;padding:14px;border:1px solid var(--admin-line)}
-.admin-payment-list article>div:first-child{display:grid;gap:4px}
-.admin-payment-list span,.admin-payment-list small,.schedule-lock,.admin-billing .admin-empty{color:var(--admin-muted)}
-.admin-schedule-list{display:grid;gap:12px;margin:14px 0 28px}
-.admin-schedule-form{display:grid;grid-template-columns:2fr 1fr 1fr 1fr;gap:12px;padding:18px;border:1px solid var(--admin-line)}
-.admin-schedule-form .wide{grid-column:1/-1}
-.archived-schedule{margin:0 0 24px;padding:16px;border:1px dashed var(--admin-line)}
-.archived-schedule>summary{cursor:pointer;font-weight:700}
-.payment-actions{display:flex!important;grid-auto-flow:column;gap:8px!important}
+.admin-payment-progress{display:grid;gap:8px;margin-bottom:30px}.admin-payment-progress>div{height:7px;background:rgba(242,238,229,.1);overflow:hidden}.admin-payment-progress i{display:block;height:100%;background:var(--gold)}.admin-payment-progress small{color:var(--admin-muted)}
+.admin-billing-primary{padding:28px 0;border-top:1px solid var(--admin-line)}.admin-billing-primary>header{display:flex;align-items:end;justify-content:space-between;gap:18px;margin-bottom:14px}.admin-billing-primary>header h3{margin-top:4px;font-size:1.35rem}.admin-billing-primary>header>strong{display:grid;min-width:2.4rem;min-height:2.4rem;place-items:center;border:1px solid var(--gold);color:var(--gold)}.admin-billing-primary>header>span{color:var(--admin-muted);font-size:.78rem}
+.admin-payment-list,.admin-schedule-overview,.admin-schedule-list{display:grid;gap:10px}.admin-payment-list article{display:grid;grid-template-columns:minmax(0,1fr) auto auto;align-items:center;gap:14px;padding:14px;border:1px solid var(--admin-line)}.admin-payment-list article>div:first-child{display:grid;gap:4px}.admin-payment-list span,.admin-payment-list small,.schedule-lock,.admin-billing .admin-empty{color:var(--admin-muted)}
+.admin-schedule-overview article{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;gap:14px;padding:16px;border:1px solid var(--admin-line)}.admin-schedule-overview article>div{display:grid;gap:4px}.admin-schedule-overview article span,.admin-schedule-overview article small{color:var(--admin-muted)}
+.admin-billing-advanced{display:grid;gap:12px;margin-top:16px;padding-top:28px;border-top:1px solid var(--admin-line)}.admin-billing-advanced>details{border:1px solid var(--admin-line);background:rgba(17,17,15,.28)}.admin-billing-advanced>details>summary{display:grid;gap:4px;padding:16px;color:var(--admin-text);font-weight:700;cursor:pointer}.admin-billing-advanced>details>summary small{color:var(--admin-muted);font-weight:400}.admin-billing-advanced>details[open]>summary{border-bottom:1px solid var(--admin-line)}
+.admin-billing-settings,.admin-billing-form{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;margin:0;padding:20px;border-top:0}.admin-billing-settings .wide,.admin-billing-form .wide{grid-column:1/-1}.admin-billing-settings fieldset{display:flex;flex-wrap:wrap;gap:12px;padding:10px;border:1px solid var(--admin-line)}.admin-billing-settings fieldset label{display:flex;flex-direction:row;align-items:center;gap:6px}.admin-billing-settings fieldset input{width:auto}
+.admin-schedule-list{padding:20px 20px 0}.admin-schedule-form{display:grid;grid-template-columns:2fr 1fr 1fr 1fr;gap:12px;padding:18px;border:1px solid var(--admin-line)}.admin-schedule-form .wide{grid-column:1/-1}.archived-schedule{margin:0 20px 20px;padding:16px;border:1px dashed var(--admin-line)}.archived-schedule>summary{cursor:pointer;font-weight:700}
+.payment-actions{display:flex!important;grid-auto-flow:column;gap:8px!important}.payment-reversal{min-width:9rem}.payment-reversal>summary{color:var(--admin-muted);font-size:.72rem;cursor:pointer}.payment-reversal button{width:100%;margin-top:8px}
+.admin-billing select,.admin-billing select option{background:#11110f;color:#f2eee5;color-scheme:dark}.admin-billing select:focus-visible{border-color:var(--gold);outline:2px solid var(--gold);outline-offset:2px}
 @media(max-width:900px){.admin-schedule-form{grid-template-columns:repeat(2,minmax(0,1fr))}}
-@media(max-width:760px){.admin-billing-summary{grid-template-columns:repeat(2,minmax(0,1fr))}.admin-billing-settings,.admin-billing-form,.admin-payment-list article,.admin-schedule-form{grid-template-columns:1fr}.admin-billing-settings .wide,.admin-billing-form .wide,.admin-schedule-form .wide{grid-column:auto}.payment-actions{grid-auto-flow:row}}
+@media(max-width:760px){.admin-billing-summary{grid-template-columns:repeat(2,minmax(0,1fr))}.admin-billing-primary>header{align-items:start}.admin-billing-settings,.admin-billing-form,.admin-payment-list article,.admin-schedule-form{grid-template-columns:1fr}.admin-billing-settings .wide,.admin-billing-form .wide,.admin-schedule-form .wide{grid-column:auto}.payment-actions{grid-auto-flow:row}.admin-schedule-list{padding:14px 14px 0}.archived-schedule{margin:0 14px 14px}}
+@media(max-width:480px){.admin-billing-summary{grid-template-columns:1fr}.admin-billing-primary>header{align-items:start;flex-direction:column}.admin-schedule-overview article{grid-template-columns:1fr}.admin-billing-advanced>details>summary{padding:14px}}

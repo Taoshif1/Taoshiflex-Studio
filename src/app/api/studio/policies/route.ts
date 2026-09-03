@@ -1,4 +1,5 @@
 import { authorizeMutation, cleanText } from "@/lib/admin-security";
+import { starterPolicies } from "@/lib/policy-starters";
 import { supabaseRest } from "@/lib/supabase-rest";
 
 const uuid=/^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
@@ -6,9 +7,37 @@ const slugPattern=/^[a-z0-9]+(?:-[a-z0-9]+)*$/;
 const audiences=["public","client","both"];
 const validDate=(value:unknown)=>typeof value==="string"&&/^\d{4}-\d{2}-\d{2}$/.test(value)?value:null;
 
+async function createStarterDrafts(token:string){
+  const existing=await supabaseRest<Array<{slug:string}>>("policies?select=slug",{},"privileged");
+  const existingSlugs=new Set(existing.map(policy=>policy.slug));
+  const missing=starterPolicies.filter(policy=>!existingSlugs.has(policy.slug));
+
+  await Promise.allSettled(missing.map(policy=>supabaseRest("rpc/create_policy_draft",{
+    method:"POST",
+    body:JSON.stringify({
+      policy_slug:policy.slug,
+      policy_title:policy.title,
+      policy_summary:policy.summary,
+      policy_content:policy.content,
+      policy_audience:policy.audience,
+      policy_effective_date:null,
+      policy_sort_order:policy.sortOrder,
+    }),
+  },{userAccessToken:token})));
+
+  const finalRows=await supabaseRest<Array<{slug:string}>>("policies?select=slug",{},"privileged");
+  const finalSlugs=new Set(finalRows.map(policy=>policy.slug));
+  if(starterPolicies.some(policy=>!finalSlugs.has(policy.slug)))throw new Error("Starter drafts are incomplete");
+  return missing.length;
+}
+
 export async function POST(request:Request){
   const auth=await authorizeMutation(request); if(auth.error)return auth.error;
   const body=await request.json().catch(()=>null) as Record<string,unknown>|null;
+  if(body?.kind==="starter-drafts"){
+    try{const created=await createStarterDrafts(auth.token);return Response.json({ok:true,created})}
+    catch{return Response.json({error:"Starter policy drafts could not be completed."},{status:409})}
+  }
   const slug=cleanText(body?.slug,80,true),title=cleanText(body?.title,160,true),audience=cleanText(body?.audience,12,true),summary=cleanText(body?.summary,500),content=cleanText(body?.content,100000),sortOrder=Number(body?.sortOrder)||0;
   if(!slug||!slugPattern.test(slug)||!title||!audience||!audiences.includes(audience)||summary===null||content===null)return Response.json({error:"Review the policy draft fields."},{status:400});
   try{await supabaseRest("rpc/create_policy_draft",{method:"POST",body:JSON.stringify({policy_slug:slug,policy_title:title,policy_summary:summary,policy_content:content,policy_audience:audience,policy_effective_date:validDate(body?.effectiveDate),policy_sort_order:sortOrder})},{userAccessToken:auth.token});return Response.json({ok:true})}
