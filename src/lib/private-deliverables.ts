@@ -75,5 +75,7 @@ export async function createDeliverableSignedUrl(path: string, expiresIn = 90) {
   const result = (await response.json()) as { signedURL?: string; signedUrl?: string };
   const signed = result.signedURL || result.signedUrl;
   if (!signed) throw new Error("Private deliverable link could not be created.");
-  return signed.startsWith("http") ? signed : `${url}/storage/v1${signed}`;
+  if (signed.startsWith("http://") || signed.startsWith("https://")) return signed;
+  if (signed.startsWith("/storage/v1/")) return `${url}${signed}`;
+  return `${url}/storage/v1${signed.startsWith("/") ? signed : `/${signed}`}`;
 }
