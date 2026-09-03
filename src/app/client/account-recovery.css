@@ -1,0 +1,22 @@
+.client-recovery-button {
+  width: fit-content;
+  min-height: auto;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--gold);
+  cursor: pointer;
+  font: inherit;
+  font-size: 0.8rem;
+  text-decoration: underline;
+  text-underline-offset: 0.25rem;
+}
+.client-recovery-button:disabled {
+  cursor: wait;
+  opacity: 0.6;
+}
+.client-login-panel aside a {
+  color: var(--gold);
+  text-decoration: underline;
+  text-underline-offset: 0.2rem;
+}
