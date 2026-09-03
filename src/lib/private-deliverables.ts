@@ -1,4 +1,8 @@
+import { createHmac, timingSafeEqual } from "node:crypto";
+import { createClient } from "@supabase/supabase-js";
+
 const bucket = "client-deliverables";
+const uploadTicketLifetimeMs = 15 * 60 * 1000;
 export const maxDeliverableBytes = 25 * 1024 * 1024;
 
 export const allowedDeliverableTypes = new Set([
@@ -15,20 +19,56 @@ export const allowedDeliverableTypes = new Set([
   "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
 ]);
 
-function config() {
+type DeliverableUploadAuthorization = {
+  projectId: string;
+  deliverableId: string;
+  path: string;
+  previousPath: string | null;
+  fileSize: number;
+  fileType: string;
+};
+
+export type DeliverableUploadTicket = DeliverableUploadAuthorization & {
+  expiresAt: number;
+  version: 1;
+};
+
+function storageConfig() {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL?.replace(/\/$/, "");
   const key = process.env.SUPABASE_SECRET_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY;
   if (!url || !key) throw new Error("Private deliverable storage is not configured.");
-  return { url, key };
+  return { key, url };
 }
 
-function headers(contentType?: string) {
-  const { key } = config();
-  return {
-    apikey: key,
-    Authorization: `Bearer ${key}`,
-    ...(contentType ? { "Content-Type": contentType } : {}),
-  };
+function storage() {
+  const { key, url } = storageConfig();
+  return createClient(url, key, {
+    auth: {
+      autoRefreshToken: false,
+      persistSession: false,
+      detectSessionInUrl: false,
+    },
+  }).storage.from(bucket);
+}
+
+function signUploadTicket(payload: string) {
+  return createHmac("sha256", storageConfig().key).update(payload).digest("base64url");
+}
+
+function isUploadTicket(value: unknown): value is DeliverableUploadTicket {
+  if (!value || typeof value !== "object") return false;
+  const ticket = value as Record<string, unknown>;
+  return (
+    ticket.version === 1 &&
+    typeof ticket.projectId === "string" &&
+    typeof ticket.deliverableId === "string" &&
+    typeof ticket.path === "string" &&
+    (ticket.previousPath === null || typeof ticket.previousPath === "string") &&
+    Number.isSafeInteger(ticket.fileSize) &&
+    typeof ticket.fileType === "string" &&
+    typeof ticket.expiresAt === "number" &&
+    Number.isSafeInteger(ticket.expiresAt)
+  );
 }
 
 export function safeDeliverableFilename(name: string) {
@@ -41,41 +81,74 @@ export function safeDeliverableFilename(name: string) {
   return normalized || "deliverable";
 }
 
-export async function uploadDeliverableObject(path: string, file: File) {
-  const { url } = config();
-  const response = await fetch(`${url}/storage/v1/object/${bucket}/${encodeURI(path)}`, {
-    method: "POST",
-    headers: { ...headers(file.type || "application/octet-stream"), "x-upsert": "false" },
-    body: file,
-    cache: "no-store",
+export async function createDeliverableSignedUpload(
+  authorization: DeliverableUploadAuthorization,
+) {
+  const { data, error } = await storage().createSignedUploadUrl(authorization.path, {
+    upsert: false,
   });
-  if (!response.ok) throw new Error("Private deliverable upload failed.");
+  if (error || !data?.token) {
+    throw new Error("Private deliverable upload could not be authorized.", {
+      cause: error,
+    });
+  }
+  const ticket: DeliverableUploadTicket = {
+    ...authorization,
+    expiresAt: Date.now() + uploadTicketLifetimeMs,
+    version: 1,
+  };
+  const payload = Buffer.from(JSON.stringify(ticket)).toString("base64url");
+  return {
+    finalizeToken: `${payload}.${signUploadTicket(payload)}`,
+    path: authorization.path,
+    token: data.token,
+  };
+}
+
+export function verifyDeliverableUploadTicket(value: unknown) {
+  if (typeof value !== "string" || value.length > 2_000) return null;
+  const [payload, signature, extra] = value.split(".");
+  if (!payload || !signature || extra) return null;
+
+  const expected = Buffer.from(signUploadTicket(payload));
+  const actual = Buffer.from(signature);
+  if (actual.length !== expected.length || !timingSafeEqual(actual, expected)) return null;
+
+  try {
+    const ticket = JSON.parse(Buffer.from(payload, "base64url").toString("utf8")) as unknown;
+    if (!isUploadTicket(ticket) || ticket.expiresAt < Date.now()) return null;
+    return ticket;
+  } catch {
+    return null;
+  }
+}
+
+export async function getDeliverableObjectInfo(path: string) {
+  const { data, error } = await storage().info(path);
+  if (error || !data) {
+    throw new Error("Private deliverable upload could not be verified.", {
+      cause: error,
+    });
+  }
+  return {
+    size: Number.isFinite(data.size) ? Number(data.size) : 0,
+    contentType: typeof data.contentType === "string" ? data.contentType : "",
+  };
 }
 
 export async function removeDeliverableObject(path: string) {
-  const { url } = config();
-  const response = await fetch(`${url}/storage/v1/object/${bucket}`, {
-    method: "DELETE",
-    headers: headers("application/json"),
-    body: JSON.stringify({ prefixes: [path] }),
-    cache: "no-store",
-  });
-  if (!response.ok && response.status !== 404) throw new Error("Private deliverable removal failed.");
+  const { error } = await storage().remove([path]);
+  if (error) throw new Error("Private deliverable removal failed.", { cause: error });
 }
 
 export async function createDeliverableSignedUrl(path: string, expiresIn = 90) {
-  const { url } = config();
-  const response = await fetch(`${url}/storage/v1/object/sign/${bucket}/${encodeURI(path)}`, {
-    method: "POST",
-    headers: headers("application/json"),
-    body: JSON.stringify({ expiresIn }),
-    cache: "no-store",
+  const { data, error } = await storage().createSignedUrl(path, expiresIn, {
+    download: true,
   });
-  if (!response.ok) throw new Error("Private deliverable link could not be created.");
-  const result = (await response.json()) as { signedURL?: string; signedUrl?: string };
-  const signed = result.signedURL || result.signedUrl;
-  if (!signed) throw new Error("Private deliverable link could not be created.");
-  if (signed.startsWith("http://") || signed.startsWith("https://")) return signed;
-  if (signed.startsWith("/storage/v1/")) return `${url}${signed}`;
-  return `${url}/storage/v1${signed.startsWith("/") ? signed : `/${signed}`}`;
+  if (error || !data?.signedUrl) {
+    throw new Error("Private deliverable link could not be created.", {
+      cause: error,
+    });
+  }
+  return data.signedUrl;
 }

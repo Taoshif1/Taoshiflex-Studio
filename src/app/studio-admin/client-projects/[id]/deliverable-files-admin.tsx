@@ -3,6 +3,10 @@
 import { FormEvent, useState } from "react";
 import { useRouter } from "next/navigation";
 import type { ProjectDeliverable } from "@/lib/client-projects";
+import { createClient } from "@/lib/supabase/client";
+
+const bucket = "client-deliverables";
+const maxDeliverableBytes = 25 * 1024 * 1024;
 
 type Props = {
   projectId: string;
@@ -24,17 +28,53 @@ export function DeliverableFilesAdmin({ projectId, deliverables }: Props) {
       setMessage("Choose a file first.");
       return;
     }
-    form.set("projectId", projectId);
-    form.set("deliverableId", deliverableId);
+    if (file.size > maxDeliverableBytes) {
+      setMessage("Deliverable files cannot exceed 25 MB.");
+      return;
+    }
     setPendingId(deliverableId);
     setMessage("");
     try {
-      const response = await fetch("/api/studio/deliverable-files", {
+      const ticketResponse = await fetch("/api/studio/deliverable-files", {
         method: "POST",
-        body: form,
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          projectId,
+          deliverableId,
+          fileName: file.name,
+          fileSize: file.size,
+          fileType: file.type,
+        }),
       });
-      const result = (await response.json().catch(() => ({}))) as { error?: string; message?: string };
-      if (!response.ok) throw new Error(result.error || "Upload failed.");
+      const ticket = (await ticketResponse.json().catch(() => ({}))) as {
+        error?: string;
+        finalizeToken?: string;
+        path?: string;
+        token?: string;
+      };
+      if (!ticketResponse.ok || !ticket.finalizeToken || !ticket.path || !ticket.token) {
+        throw new Error(ticket.error || "Upload could not be authorized.");
+      }
+
+      const supabase = createClient();
+      const { error: uploadError } = await supabase.storage
+        .from(bucket)
+        .uploadToSignedUrl(ticket.path, ticket.token, file, {
+          cacheControl: "0",
+          contentType: file.type,
+        });
+      if (uploadError) throw new Error("Upload to private storage failed.");
+
+      const finalizeResponse = await fetch("/api/studio/deliverable-files", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ finalizeToken: ticket.finalizeToken }),
+      });
+      const result = (await finalizeResponse.json().catch(() => ({}))) as {
+        error?: string;
+        message?: string;
+      };
+      if (!finalizeResponse.ok) throw new Error(result.error || "Upload could not be finalized.");
       setMessage(result.message || "Private deliverable uploaded.");
       formElement.reset();
       router.refresh();
@@ -81,8 +121,14 @@ export function DeliverableFilesAdmin({ projectId, deliverables }: Props) {
               <strong>{item.title}</strong>
               <p>{item.storage_path ? "Private file attached" : "No private file attached"}</p>
             </div>
-            <form className="deliverable-upload-form" onSubmit={(event) => upload(event, item.id)}>
+            <form
+              className="deliverable-upload-form"
+              onSubmit={(event) => upload(event, item.id)}
+              aria-label={`Private file for ${item.title}`}
+              aria-busy={pendingId === item.id}
+            >
               <input
+                aria-label={`Choose a private file for ${item.title}`}
                 name="file"
                 type="file"
                 accept=".pdf,.zip,.png,.jpg,.jpeg,.webp,.txt,.doc,.docx,.xls,.xlsx"

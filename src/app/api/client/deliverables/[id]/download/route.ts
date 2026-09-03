@@ -15,11 +15,19 @@ export async function GET(_request: Request, { params }: Props) {
   if (!uuid.test(id)) return Response.json({ error: "Deliverable not found." }, { status: 404 });
 
   const access = { userAccessToken: authorization.token };
-  const rows = await supabaseRest<DeliverableRow[]>(
-    `project_deliverables?id=eq.${id}&select=id,storage_path&limit=1`,
-    {},
-    access,
-  ).catch(() => []);
+  let rows: DeliverableRow[];
+  try {
+    rows = await supabaseRest<DeliverableRow[]>(
+      `project_deliverables?id=eq.${id}&select=id,storage_path&limit=1`,
+      {},
+      access,
+    );
+  } catch {
+    return Response.json(
+      { error: "Private file authorization could not be checked." },
+      { status: 503 },
+    );
+  }
   const deliverable = rows[0];
   if (!deliverable?.storage_path) return Response.json({ error: "Private file not available." }, { status: 404 });
 
