@@ -34,6 +34,8 @@ export function ClientProjectEditor({
     [message, setMessage] = useState(""),
     [passwordMember, setPasswordMember] = useState<ClientProjectMember | null>(null);
   const closePasswordDialog = useCallback(() => setPasswordMember(null), []);
+  const activeMilestones=milestones.filter(item=>item.status!=="completed"&&!item.archived_at);
+  const previousMilestones=milestones.filter(item=>item.status==="completed"||Boolean(item.archived_at));
   async function mutate(method: string, body: unknown, success: string) {
     if (pendingRef.current) return false;
     pendingRef.current = true;
@@ -249,7 +251,7 @@ export function ClientProjectEditor({
           <h2>Milestones</h2>
         </header>
         <div className="admin-item-list">
-          {milestones.map((item, index) => (
+          {activeMilestones.map((item, index) => (
             <MilestoneForm
               key={item.id}
               item={item}
@@ -266,15 +268,18 @@ export function ClientProjectEditor({
                   "Milestone saved.",
                 )
               }
-              remove={() =>
+              archive={() =>
+                mutate("PATCH",{kind:"milestone-archive",projectId:project.id,id:item.id,archive:true},"Milestone archived.")
+              }
+              remove={item.status==="pending"?() =>
                 mutate(
                   "DELETE",
                   { kind: "milestone", projectId: project.id, id: item.id },
-                  "Milestone removed.",
+                  "Unused milestone draft deleted.",
                 )
-              }
+              :undefined}
               move={(direction) => {
-                const ids = milestones.map((value) => value.id),
+                const ids = activeMilestones.map((value) => value.id),
                   target = index + direction;
                 if (target < 0 || target >= ids.length) return;
                 [ids[index], ids[target]] = [ids[target], ids[index]];
@@ -300,13 +305,14 @@ export function ClientProjectEditor({
               {
                 kind: "milestone",
                 projectId: project.id,
-                sortOrder: milestones.length,
+                sortOrder: activeMilestones.length,
                 ...body,
               },
               "Milestone created.",
             )
           }
         />
+        {previousMilestones.length?<div className="milestone-admin-history"><h3>Completed / Previous milestones</h3>{previousMilestones.map(item=><article className="admin-record" key={item.id}><div><strong>{item.title}</strong><p>{statusLabel(item.status)}{item.archived_at?" / Archived":""}{item.completed_at?` / Completed ${new Date(item.completed_at).toLocaleDateString("en-BD")}`:""}</p></div>{item.archived_at&&item.status!=="completed"?<button type="button" disabled={pending} onClick={()=>mutate("PATCH",{kind:"milestone-archive",projectId:project.id,id:item.id,archive:false},"Milestone restored.")}>Restore to active</button>:null}</article>)}</div>:null}
       </section>
       <section>
         <header>
@@ -460,6 +466,7 @@ function MilestoneForm({
   create = false,
   save,
   remove,
+  archive,
   move,
 }: {
   item?: ProjectMilestone;
@@ -467,6 +474,7 @@ function MilestoneForm({
   create?: boolean;
   save: (body: Record<string, unknown>) => void;
   remove?: () => void;
+  archive?: () => void;
   move?: (direction: number) => void;
 }) {
   return (
@@ -523,11 +531,12 @@ function MilestoneForm({
             type="button"
             className="danger"
             disabled={pending}
-            onClick={remove}
+            onClick={() => confirm("Permanently delete this unused pending milestone draft?") && remove()}
           >
-            Delete
+            Delete unused draft
           </button>
         ) : null}
+        {archive ? <button type="button" disabled={pending} onClick={archive}>Archive milestone</button> : null}
       </div>
     </form>
   );

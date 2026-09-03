@@ -1,0 +1,4 @@
+.policy-shell {
+  --muted: var(--stone);
+  --accent: var(--gold);
+}

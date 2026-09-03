@@ -10,6 +10,9 @@ export const notificationTypes = [
   "client_feedback",
   "client_changes_requested",
   "new_inquiry",
+  "payment_submitted",
+  "payment_confirmed",
+  "payment_rejected",
 ] as const;
 
 export type NotificationType = typeof notificationTypes[number];

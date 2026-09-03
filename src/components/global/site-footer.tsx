@@ -1,6 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { site } from "@/content/site";
+import { currentVersion, getPublicPolicies } from "@/lib/policies";
 
 const explore = [
   { href: "/work", label: "Work" },
@@ -10,7 +11,8 @@ const explore = [
   { href: "/#studio", label: "Studio" },
 ];
 
-export function SiteFooter() {
+export async function SiteFooter() {
+  const policies = await getPublicPolicies();
   return (
     <footer className="footer">
       <div className="container">
@@ -49,6 +51,8 @@ export function SiteFooter() {
             <Link href="/client">
               Client Access<span aria-hidden>&#8599;</span>
             </Link>
+            <Link href="/policies">Policies<span aria-hidden>&#8599;</span></Link>
+            {policies.map((policy) => <Link href={`/policies/${policy.slug}`} key={policy.id}>{currentVersion(policy).title}<span aria-hidden>&#8599;</span></Link>)}
           </nav>
           <div className="footer-column footer-details">
             <div>

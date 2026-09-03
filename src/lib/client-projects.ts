@@ -44,6 +44,8 @@ export type ProjectMilestone = {
   status: MilestoneStatus;
   due_date?: string | null;
   completed_at?: string | null;
+  archived_at?: string | null;
+  archived_by?: string | null;
   sort_order: number;
   created_at: string;
   updated_at: string;
