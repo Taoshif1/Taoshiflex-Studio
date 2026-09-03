@@ -1,4 +1,5 @@
 import { supabaseRest } from "./supabase-rest";
+import { cache } from "react";
 
 export const notificationTypes = [
   "project_update",
@@ -40,9 +41,18 @@ export type NotificationInbox = {
 };
 
 type NotificationAccess = { userAccessToken: string };
+export type NotificationCounts = Omit<NotificationInbox, "items">;
 const uuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 const select = "id,recipient_user_id,audience,project_id,type,priority,source_type,source_id,title,message,href,read_at,created_at";
 const unreadLimit = 250;
+const loadUnreadRows = cache(async (userId: string, token: string) => {
+  const filter = "recipient_user_id=eq." + encodeURIComponent(userId);
+  return supabaseRest<Array<Pick<AppNotification, "id" | "project_id" | "type">>>(
+    "notifications?" + filter + "&read_at=is.null&select=id,project_id,type&order=created_at.desc,id.desc&limit=" + (unreadLimit + 1),
+    {},
+    { userAccessToken: token },
+  );
+});
 
 export const emptyNotificationInbox = (): NotificationInbox => ({
   items: [],
@@ -52,27 +62,15 @@ export const emptyNotificationInbox = (): NotificationInbox => ({
   capped: false,
 });
 
-export async function loadNotificationInbox(
+export async function loadNotificationCounts(
   userId: string,
   access: NotificationAccess,
-  limit = 12,
-): Promise<NotificationInbox> {
-  if (!uuid.test(userId)) return emptyNotificationInbox();
-  const safeLimit = Math.max(1, Math.min(30, Math.floor(limit)));
-  const filter = "recipient_user_id=eq." + encodeURIComponent(userId);
+): Promise<NotificationCounts> {
+  if (!uuid.test(userId)) {
+    return { unreadCount: 0, unreadProjectCounts: {}, unreadTypeCounts: {}, capped: false };
+  }
   try {
-    const [items, unread] = await Promise.all([
-      supabaseRest<AppNotification[]>(
-        "notifications?" + filter + "&select=" + select + "&order=created_at.desc,id.desc&limit=" + safeLimit,
-        {},
-        access,
-      ),
-      supabaseRest<Array<Pick<AppNotification, "id" | "project_id" | "type">>>(
-        "notifications?" + filter + "&read_at=is.null&select=id,project_id,type&order=created_at.desc,id.desc&limit=" + (unreadLimit + 1),
-        {},
-        access,
-      ),
-    ]);
+    const unread = await loadUnreadRows(userId, access.userAccessToken);
     const counted = unread.slice(0, unreadLimit);
     const unreadProjectCounts: Record<string, number> = {};
     const unreadTypeCounts: Partial<Record<NotificationType, number>> = {};
@@ -83,11 +81,36 @@ export async function loadNotificationInbox(
       unreadTypeCounts[item.type] = (unreadTypeCounts[item.type] ?? 0) + 1;
     }
     return {
-      items,
       unreadCount: counted.length,
       unreadProjectCounts,
       unreadTypeCounts,
       capped: unread.length > unreadLimit,
+    };
+  } catch {
+    return { unreadCount: 0, unreadProjectCounts: {}, unreadTypeCounts: {}, capped: false };
+  }
+}
+
+export async function loadNotificationInbox(
+  userId: string,
+  access: NotificationAccess,
+  limit = 12,
+): Promise<NotificationInbox> {
+  if (!uuid.test(userId)) return emptyNotificationInbox();
+  const safeLimit = Math.max(1, Math.min(30, Math.floor(limit)));
+  const filter = "recipient_user_id=eq." + encodeURIComponent(userId);
+  try {
+    const [items, counts] = await Promise.all([
+      supabaseRest<AppNotification[]>(
+        "notifications?" + filter + "&select=" + select + "&order=created_at.desc,id.desc&limit=" + safeLimit,
+        {},
+        access,
+      ),
+      loadNotificationCounts(userId, access),
+    ]);
+    return {
+      items,
+      ...counts,
     };
   } catch {
     return emptyNotificationInbox();

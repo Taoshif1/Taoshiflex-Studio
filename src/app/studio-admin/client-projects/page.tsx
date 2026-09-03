@@ -5,7 +5,7 @@ import { getAdminAuthorization, supabaseRest } from "@/lib/supabase-rest";
 import { clientProjectStatuses, formatProjectDate, statusLabel, type ClientProject } from "@/lib/client-projects";
 import { adminListHref, normalizeAdminSearch, parseAdminPage, postgrestSearchPattern } from "@/lib/admin-list-state";
 import { AdminBreadcrumbs } from "../admin-breadcrumbs";
-import { loadNotificationInbox } from "@/lib/notifications";
+import { loadNotificationCounts } from "@/lib/notifications";
 
 export const metadata: Metadata = { title: "Client Projects / Studio Admin", robots: { index: false, follow: false } };
 const pageSize = 12;
@@ -24,13 +24,13 @@ export default async function ClientProjectsPage({ searchParams }: Props) {
   const offset = (page - 1) * pageSize;
   const statusFilter = status ? `&status=eq.${status}` : "";
   const searchFilter = pattern ? `&or=${encodeURIComponent(`(reference.ilike.${pattern},name.ilike.${pattern},client_name.ilike.${pattern})`)}` : "";
-  const [rows, notificationInbox] = await Promise.all([
+  const [rows, notificationCounts] = await Promise.all([
     supabaseRest<ClientProject[]>(
       `client_projects?select=*&order=updated_at.desc,id.desc${statusFilter}${searchFilter}&limit=${pageSize + 1}&offset=${offset}`,
       {},
       "privileged",
     ).catch(() => null),
-    loadNotificationInbox(user.id, { userAccessToken: authorization.token }, 1),
+    loadNotificationCounts(user.id, { userAccessToken: authorization.token }),
   ]);
   const href = (nextPage: number, nextStatus = status, nextSearch = q) => adminListHref(pathname, { page: nextPage, status: nextStatus, q: nextSearch });
   const projects = rows?.slice(0, pageSize) ?? [];
@@ -68,7 +68,7 @@ export default async function ClientProjectsPage({ searchParams }: Props) {
             <div className="client-admin-list">
               {projects.map((project) => {
                 const openCount = openCounts.get(project.id) ?? 0;
-                const unreadCount = notificationInbox.unreadProjectCounts[project.id] ?? 0;
+                const unreadCount = notificationCounts.unreadProjectCounts[project.id] ?? 0;
                 return <Link href={`/studio-admin/client-projects/${project.id}?from=${encodeURIComponent(currentPath)}`} key={project.id}>
                   <div><span className={`status-badge ${project.status}`}>{statusLabel(project.status)}</span><span className="technical">{project.reference}</span></div>
                   <h3>{project.name}</h3><p>{project.client_name}</p>
