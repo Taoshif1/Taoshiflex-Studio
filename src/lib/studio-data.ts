@@ -5,6 +5,11 @@ import type { AssistantSettings, Project, ServicePackage } from "@/types/content
 import { projectMediaPublicUrl } from "./project-media-url";
 import { isSupabasePublicConfigured, supabasePublicRest } from "./supabase-rest";
 import { publicProjectStatus } from "./public-project-status";
+import {
+  normalizeStudioPresence,
+  studioPresenceDefaults,
+  type StudioPresence,
+} from "./studio-presence";
 
 export const getPublishedProjects = cache(async function getPublishedProjects(): Promise<Project[]> {
   if (!isSupabasePublicConfigured()) return localProjects.filter((project) => project.slug !== "redflint");
@@ -34,6 +39,16 @@ const assistantDefaults:AssistantSettings={enabled:true,name:"Studio Assistant",
 export const getAssistantSettings=cache(async function getAssistantSettings():Promise<AssistantSettings>{
   if(!isSupabasePublicConfigured())return assistantDefaults;
   try{const rows=await supabasePublicRest<Array<{value?:Partial<AssistantSettings>}>>("site_settings?key=eq.assistant&public=eq.true&select=value&limit=1");return rows[0]?.value?{...assistantDefaults,...rows[0].value}:{...assistantDefaults,enabled:false}}catch{return assistantDefaults}
+});
+
+export const getStudioPresence=cache(async function getStudioPresence():Promise<StudioPresence>{
+  if(!isSupabasePublicConfigured())return {...studioPresenceDefaults,socialLinks:[]};
+  try{
+    const rows=await supabasePublicRest<Array<{value?:unknown}>>("site_settings?key=eq.studio_presence&public=eq.true&select=value&limit=1");
+    return normalizeStudioPresence(rows[0]?.value);
+  }catch{
+    return {...studioPresenceDefaults,socialLinks:[]};
+  }
 });
 
 function mapProject(row:Record<string,unknown>):Project {

@@ -19,6 +19,7 @@ export async function updateClientSession(request: NextRequest) {
       "Cache-Control",
       "private, no-cache, no-store, must-revalidate, max-age=0",
     );
+    response.headers.set("Referrer-Policy", "no-referrer");
     return response;
   }
 
@@ -58,5 +59,6 @@ export async function updateClientSession(request: NextRequest) {
     "Cache-Control",
     "private, no-cache, no-store, must-revalidate, max-age=0",
   );
+  response.headers.set("Referrer-Policy", "no-referrer");
   return response;
 }

@@ -2,6 +2,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { site } from "@/content/site";
 import { currentVersion, getPublicPolicies } from "@/lib/policies";
+import { getStudioPresence } from "@/lib/studio-data";
 
 const explore = [
   { href: "/work", label: "Work" },
@@ -12,7 +13,11 @@ const explore = [
 ];
 
 export async function SiteFooter() {
-  const policies = await getPublicPolicies();
+  const [policies, presence] = await Promise.all([
+    getPublicPolicies(),
+    getStudioPresence(),
+  ]);
+  const socialLinks = presence.socialLinks.filter((link) => link.enabled);
   return (
     <footer className="footer">
       <div className="container">
@@ -48,6 +53,15 @@ export async function SiteFooter() {
             <Link href="/start-a-project">
               Start a Project<span aria-hidden>&#8599;</span>
             </Link>
+            {presence.bookingEnabled && presence.bookingUrl ? (
+              <a
+                href={presence.bookingUrl}
+                target="_blank"
+                rel="noreferrer"
+              >
+                Book a Call<span aria-hidden>&#8599;</span>
+              </a>
+            ) : null}
             <Link href="/client">
               Client Access<span aria-hidden>&#8599;</span>
             </Link>
@@ -58,18 +72,36 @@ export async function SiteFooter() {
             <div>
               <p className="footer-label">Location / Availability</p>
               <p>
-                Dhaka, Bangladesh
+                {presence.location}
                 <br />
-                <span>Available for remote collaboration</span>
+                <span>{presence.availability}</span>
               </p>
             </div>
             <div>
               <p className="footer-label">Contact</p>
-              <a href={`mailto:${site.email}`}>
-                {site.email}
+              <a href={`mailto:${presence.email}`}>
+                {presence.email}
                 <span aria-hidden>&#8599;</span>
               </a>
             </div>
+            {socialLinks.length ? (
+              <div>
+                <p className="footer-label">Connect</p>
+                <div className="footer-socials">
+                  {socialLinks.map((link) => (
+                    <a
+                      href={link.url}
+                      target="_blank"
+                      rel="noreferrer"
+                      key={link.id}
+                    >
+                      {link.label}
+                      <span aria-hidden>&#8599;</span>
+                    </a>
+                  ))}
+                </div>
+              </div>
+            ) : null}
           </div>
         </div>
         <div className="footer-bottom">

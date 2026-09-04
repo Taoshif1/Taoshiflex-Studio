@@ -1,48 +1,33 @@
 "use client";
 
-import { FormEvent, useRef, useState } from "react";
 import Link from "next/link";
-import { createClient } from "@/lib/supabase/client";
+import { FormEvent, useRef, useState } from "react";
+
+import { RecoveryRequestForm } from "./recovery-request-form";
 
 const minimumPasswordLength = 8;
-type RecoveryState = "invalid" | "expired";
+const maximumPasswordLength = 128;
 
-export function ResetPasswordForm({
-  hasSession,
-  recoveryState,
-}: {
-  hasSession: boolean;
-  recoveryState?: RecoveryState;
-}) {
+export function ResetPasswordForm() {
   const pendingRef = useRef(false);
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [pending, setPending] = useState(false);
   const [message, setMessage] = useState("");
   const [complete, setComplete] = useState(false);
-
-  if (recoveryState || !hasSession) {
-    return (
-      <div className="client-sent-state" role="alert">
-        <p className="eyebrow">Recovery link unavailable</p>
-        <h2>Request a new link.</h2>
-        <p>
-          This recovery link is{" "}
-          {recoveryState === "expired" ? "expired" : "missing or invalid"}.
-        </p>
-        <Link className="action action-solid" href="/client">
-          Return to Client Access
-        </Link>
-      </div>
-    );
-  }
+  const [unavailable, setUnavailable] = useState(false);
 
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     if (pendingRef.current) return;
 
-    if (password.length < minimumPasswordLength) {
-      setMessage(`Use at least ${minimumPasswordLength} characters.`);
+    if (
+      password.length < minimumPasswordLength ||
+      password.length > maximumPasswordLength
+    ) {
+      setMessage(
+        `Use a password between ${minimumPasswordLength} and ${maximumPasswordLength} characters.`,
+      );
       return;
     }
     if (password !== confirmPassword) {
@@ -55,14 +40,24 @@ export function ResetPasswordForm({
     setMessage("");
 
     try {
-      const supabase = createClient();
-      const { data } = await supabase.auth.getSession();
-      if (!data.session) {
-        throw new Error("This recovery link is missing, invalid, or expired. Request a new one from Client Access.");
-      }
+      const response = await fetch("/client/auth/recovery", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ password }),
+      });
+      const result = (await response.json().catch(() => ({}))) as {
+        error?: string;
+      };
 
-      const { error } = await supabase.auth.updateUser({ password });
-      if (error) throw error;
+      if (response.status === 401) {
+        setUnavailable(true);
+        return;
+      }
+      if (!response.ok) {
+        throw new Error(
+          result.error ?? "We couldn't update your password. Please try again.",
+        );
+      }
 
       setComplete(true);
       setMessage("Password updated. You can now return to your workspace.");
@@ -72,12 +67,21 @@ export function ResetPasswordForm({
       setMessage(
         error instanceof Error
           ? error.message
-          : "Password could not be updated. Request a new recovery link and try again.",
+          : "We couldn't update your password. Please try again.",
       );
     } finally {
       pendingRef.current = false;
       setPending(false);
     }
+  }
+
+  if (unavailable) {
+    return (
+      <div className="client-sent-state" role="alert">
+        <h2>This recovery link is no longer available.</h2>
+        <RecoveryRequestForm />
+      </div>
+    );
   }
 
   if (complete) {
@@ -103,6 +107,7 @@ export function ResetPasswordForm({
           onChange={(event) => setPassword(event.target.value)}
           autoComplete="new-password"
           minLength={minimumPasswordLength}
+          maxLength={maximumPasswordLength}
           disabled={pending}
           required
         />
@@ -115,12 +120,14 @@ export function ResetPasswordForm({
           onChange={(event) => setConfirmPassword(event.target.value)}
           autoComplete="new-password"
           minLength={minimumPasswordLength}
+          maxLength={maximumPasswordLength}
           disabled={pending}
           required
         />
       </label>
       <p className="client-form-note" aria-live="polite">
-        {message || `Use at least ${minimumPasswordLength} characters.`}
+        {message ||
+          `Use ${minimumPasswordLength} to ${maximumPasswordLength} characters.`}
       </p>
       <button className="action action-solid" disabled={pending}>
         {pending ? "Updating..." : "Update Password"}

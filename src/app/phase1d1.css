@@ -128,6 +128,10 @@
 .footer-details > div > p span {
   color: var(--stone);
 }
+.footer-socials {
+  display: grid;
+  gap: 0.35rem;
+}
 .footer-bottom {
   display: flex;
   min-height: 4.25rem;
@@ -161,7 +165,7 @@
   }
   .footer-details {
     grid-column: 1/-1;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-columns: repeat(3, minmax(0, 1fr));
     padding-top: 2rem;
     border-top: 1px solid var(--line);
   }
@@ -200,5 +204,10 @@
   }
   .footer-bottom .technical {
     letter-spacing: 0.09em;
+  }
+}
+@media (max-width: 600px) {
+  .footer-grid {
+    grid-template-columns: 1fr;
   }
 }
