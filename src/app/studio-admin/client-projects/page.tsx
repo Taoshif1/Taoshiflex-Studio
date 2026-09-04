@@ -52,7 +52,7 @@ export default async function ClientProjectsPage({ searchParams }: Props) {
       <AdminBreadcrumbs items={[{ label: "Studio Admin", href: "/studio-admin" }, { label: "Client Projects" }]}/>
       <header className="admin-head"><div><p className="eyebrow">Private / Delivery desk</p><h1>Client Projects.</h1><p>Accepted work, operational progress and client-visible delivery information.</p></div></header>
       {rows === null ? (
-        <section className="migration-notice"><p className="eyebrow">Setup required</p><h2>Migration 006 is not active.</h2><p>Review and manually apply the Phase 1D migration before creating Client Projects. The existing Studio remains operational.</p></section>
+        <section className="migration-notice"><p className="eyebrow">Setup required</p><h2>Client Project setup is unavailable.</h2><p>The required Client Workspace tables are not available. Existing Studio tools remain operational.</p></section>
       ) : (
         <>
           <form className="admin-list-search" action={pathname}>
