@@ -8,6 +8,7 @@ import { ToastRegion, useToasts } from "@/components/ui/toast";
 import { type InquiryRecord } from "@/lib/inquiries";
 import { InquiryView } from "./inquiry-view";
 import { StudioPresenceForm } from "./studio-presence-form";
+import { InquiryAlertSettings } from "./inquiry-alert-settings";
 
 type Row=Record<string,unknown>;
 type Repo={id:number;name:string;description:string|null;private:boolean;language:string|null};
@@ -22,10 +23,10 @@ const visibilityOf=(project:Row):Visibility=>project.published?(project.featured
 
 async function request(url:string,init?:RequestInit){const response=await fetch(url,init);const value=await response.json().catch(()=>({})) as {error?:string};if(!response.ok)throw new Error(value.error||"Request failed.");return value}
 
-export function StudioConsole(props:{configured:boolean;email?:string;projects:Row[];inquiries:InquiryRecord[];packages:Row[];settings:Row[];attention:AttentionItem[]}){
+export function StudioConsole(props:{configured:boolean;email?:string;projects:Row[];inquiries:InquiryRecord[];packages:Row[];settings:Row[];attention:AttentionItem[];alertReadiness:{email:boolean}}){
   const router=useRouter(),pendingRef=useRef(new Set<string>()),[pending,setPending]=useState<Set<string>>(()=>new Set()),[repos,setRepos]=useState<Repo[]>([]);
   const {toasts,toast,dismiss}=useToasts();
-  const {configured,email,projects,inquiries,packages,settings,attention}=props;
+  const {configured,email,projects,inquiries,packages,settings,attention,alertReadiness}=props;
   async function mutate(key:string,url:string,method:string,body:unknown,message:string,formData=false){if(pendingRef.current.has(key))return false;pendingRef.current.add(key);setPending(current=>new Set(current).add(key));try{await request(url,{method,headers:formData?undefined:jsonHeaders,body:formData?body as FormData:JSON.stringify(body)});toast("success",message);router.refresh();return true}catch(error){toast("error",error instanceof Error?error.message:"The operation failed.");return false}finally{pendingRef.current.delete(key);setPending(current=>{const next=new Set(current);next.delete(key);return next})}}
   async function login(form:FormData){await mutate("login","/api/studio/auth","POST",{email:form.get("email"),password:form.get("password")},"Signed in")}
   async function loadRepos(){if(pendingRef.current.has("github"))return;pendingRef.current.add("github");setPending(current=>new Set(current).add("github"));try{const value=await request("/api/studio/github") as {repositories?:Repo[]};setRepos(value.repositories??[]);toast("info","Repositories refreshed")}catch(error){toast("error",error instanceof Error?error.message:"GitHub could not be loaded.")}finally{pendingRef.current.delete("github");setPending(current=>{const next=new Set(current);next.delete("github");return next})}}
@@ -33,12 +34,14 @@ export function StudioConsole(props:{configured:boolean;email?:string;projects:R
   if(!email)return <main className="admin-shell admin-login"><section className="admin-login-panel"><p className="eyebrow">Private / Studio Admin</p><h1>Sign in.</h1><p>Use your private Studio credentials to continue.</p><form action={login}><Field name="email" label="Email" type="email"/><Field name="password" label="Password" type="password"/><button disabled={pending.has("login")}>{pending.has("login")?"Checking…":"Enter Studio Admin"}</button></form></section><ToastRegion toasts={toasts} dismiss={dismiss}/></main>;
   const assistant=(settings.find(item=>item.key==="assistant")?.value??{}) as Row;
   const presence=settings.find(item=>item.key==="studio_presence")?.value;
+  const alerts=settings.find(item=>item.key==="studio_alerts")?.value;
   return <main className="admin-shell"><header className="admin-head"><div><p className="eyebrow">Private / Studio Admin</p><h1>Studio workspace</h1><p>Content, visibility, media and commercial settings.</p></div></header><div className="admin-workspace">
     <NeedsAttention items={attention}/>
     <section id="projects"><SectionTitle eyebrow="Editorial control" title="Projects" meta={`${projects.length} records`}/><div className="editor-stack">{projects.map(project=><ProjectEditor key={String(project.id)} project={project} pending={pending} mutate={mutate}/>)}</div></section>
     <section id="github"><SectionTitle eyebrow="Source to private draft" title="GitHub curation" meta="Admin only"/><p className="section-intro">Imports always begin as Draft with repository visibility hidden. Editorial review remains deliberate.</p><button disabled={pending.has("github")} onClick={loadRepos}>{pending.has("github")?"Loading…":"Load repositories"}</button><div className="repo-grid">{repos.map(repo=><article key={repo.id}><small>{repo.private?"Private":"Public"} / {repo.language||"Unspecified"}</small><h3>{repo.name}</h3><p>{repo.description||"No repository description."}</p><button disabled={pending.has(`repo:${repo.id}`)} onClick={()=>mutate(`repo:${repo.id}`,"/api/studio/github","POST",{id:repo.id},`${repo.name} added as a Draft`)}>Curate as draft</button></article>)}</div></section>
     <PricingPanel packages={packages} pending={pending} mutate={mutate}/>
     <section id="inquiries"><SectionTitle eyebrow="Qualified leads" title="Recent inquiries" meta={String(inquiries.length)+" latest"}/><div className="inquiry-preview-list">{inquiries.length?inquiries.map(item=><InquiryView key={item.id} inquiry={item} compact/>):<p className="inquiry-empty">No persisted inquiries yet.</p>}</div><Link className="admin-list-link" href="/studio-admin/inquiries">View all inquiries</Link></section>
+    <section id="inquiry-alerts"><SectionTitle eyebrow="Operational delivery" title="Inquiry Alerts" meta="Private settings"/><p className="section-intro">Get notified when a new project inquiry arrives.</p><InquiryAlertSettings value={alerts} readiness={alertReadiness} pending={pending} save={value=>mutate("studio-alerts","/api/studio/settings","PATCH",{key:"studio_alerts",value},"Inquiry alert settings saved")} test={channel=>mutate(`alert-test:${channel}`,"/api/studio/inquiry-alerts","POST",{channel},"Test email sent")}/></section>
     <section id="studio-presence-admin"><SectionTitle eyebrow="Public contact system" title="Studio Presence" meta="Public footer"/><StudioPresenceForm value={presence} pending={pending.has("studio-presence")} submit={value=>mutate("studio-presence","/api/studio/settings","PATCH",{key:"studio_presence",value},"Studio Presence saved")}/></section>
     <section id="assistant-admin"><SectionTitle eyebrow="Rule-based foundation" title="Studio Assistant" meta={assistant.enabled?"Enabled":"Disabled"}/><AssistantForm value={assistant} pending={pending.has("assistant")} submit={value=>mutate("assistant","/api/studio/settings","PATCH",{key:"assistant",value},"Assistant settings saved")}/></section>
   </div><ToastRegion toasts={toasts} dismiss={dismiss}/></main>;
