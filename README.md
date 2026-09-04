@@ -12,7 +12,7 @@ The commercial website and project platform for Taoshiflex Studio — a founder-
 - Supabase Storage for project media
 - Row Level Security for public/private content separation
 
-Phase 1B keeps curated typed content as a resilient public fallback and adds an optional Supabase-backed operating layer. Published and Featured flags control public project visibility, inquiries persist through a validated server route, and authenticated admins can curate GitHub repositories into private drafts.
+Curated typed content remains a resilient public fallback while Supabase provides the production operating layer. Published and Featured flags control public project visibility, inquiries persist through a validated server route, and authenticated admins can curate GitHub repositories into private drafts.
 
 ## Local setup
 
@@ -20,7 +20,9 @@ Phase 1B keeps curated typed content as a resilient public fallback and adds an 
 2. Copy `.env.example` to `.env.local`
 3. Run `npm run dev`
 
-Apply all migrations in `supabase/migrations` in timestamp order, then configure the variables shown in `.env.example`. The public site still renders safely without credentials; persistence, authentication, and GitHub curation clearly report that configuration is unavailable.
+Apply all migrations in `supabase/migrations` in timestamp order, then configure the variables shown in `.env.example`. The public site still renders safe local fallbacks without credentials; persistence, authentication, and GitHub curation clearly report that configuration is unavailable.
+
+Required production variables are `NEXT_PUBLIC_SITE_URL`, `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`, and server-only `SUPABASE_SECRET_KEY`. `GITHUB_CURATOR_TOKEN` is optional. Never commit real keys. The legacy `SUPABASE_SERVICE_ROLE_KEY` remains accepted by server code only as a transitional fallback, but new environments should use `SUPABASE_SECRET_KEY`.
 
 ## Useful scripts
 
@@ -45,7 +47,7 @@ The Studio Assistant is a deliberately constrained foundation: its browser-side 
 
 ## Client Workspace
 
-`/client` uses Supabase Auth email/password access and migration `202608310006_client_workspace_foundation.sql`. Apply migration 006 manually after review; the application intentionally degrades to a setup notice before it exists.
+`/client` uses Supabase Auth email/password access and the project-scoped policies introduced in migration `202608310006_client_workspace_foundation.sql`. The authenticated Workspace includes projects, milestones, updates, feedback, billing, payments, notifications, policies, timeline events, and private or external deliverables.
 
 Client access uses `signInWithPassword` with the existing `@supabase/ssr` cookie session. A successful browser sign-in writes the same Supabase SSR cookies used by server authorization and the Next.js 16 session-refresh proxy. Normal Client login has no OTP, Magic Link, callback, custom token POST, or application-managed access/refresh cookie.
 
@@ -53,9 +55,17 @@ Studio Admin's **Create Client Access** action first attempts to assign an exist
 
 Client passwords are sent only to Supabase Auth for sign-in or initial server-side account creation. They are not stored in Client Project records, application database tables, browser storage, analytics, logs, or API responses. Project membership and RLS—not email, password, reference, or project ID alone—determine access.
 
-Production follow-up: configure custom SMTP and add a Forgot Password flow. Password reset email is deliberately outside this hotfix and does not block password-based Client access.
+Forgot Password uses a TokenHash recovery flow that does not depend on the browser which requested the email. The recovery email opens an intermediate confirmation page; a deliberate POST verifies the one-time token, establishes the Supabase SSR session, and creates a short-lived signed recovery-only intent before password replacement is allowed. An ordinary signed-in Client session alone cannot replace a password through this route.
 
-Clients can read only Client Projects where `client_project_members.user_id = auth.uid()`. The human-facing `TS-XXXXXXXX` reference is an identifier, never a password or authorization token. Deliverable file uploads are deliberately deferred; Phase 1D supports membership-protected records and optional external HTTPS links, while `storage_path` reserves the boundary for a future private bucket and signed-URL implementation.
+In Supabase Authentication settings, set the production Site URL to `https://taoshiflexstudio.netlify.app` and configure custom SMTP. In **Authentication -> Email Templates -> Reset Password**, the recovery link must use this exact href (surrounding email copy may be branded):
+
+```html
+<a href="https://taoshiflexstudio.netlify.app/client/recovery?token_hash={{ .TokenHash }}&amp;type=recovery">Reset password</a>
+```
+
+Do not use `{{ .ConfirmationURL }}` for the production recovery link because that recreates the same-browser PKCE verifier dependency. Do not place SMTP credentials in this repository.
+
+Clients can read only Client Projects where `client_project_members.user_id = auth.uid()`. The human-facing `TS-XXXXXXXX` reference is an identifier, never a password or authorization token. External deliverables use validated HTTPS links. Private deliverables use the non-public `client-deliverables` bucket: Studio uploads receive a short-lived path-scoped upload authorization, the server validates the completed object before compare-and-set attachment, and Clients receive short-lived signed downloads only after project membership is checked.
 
 ## Product direction
 

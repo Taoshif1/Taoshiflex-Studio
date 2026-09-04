@@ -8,6 +8,7 @@ export const studioPresencePlatforms = [
   "x",
   "youtube",
   "dribbble",
+  "discord",
   "custom",
 ] as const;
 
@@ -45,6 +46,7 @@ export const studioPresencePlatformLabels: Record<
   x: "X / Twitter",
   youtube: "YouTube",
   dribbble: "Dribbble",
+  discord: "Discord",
   custom: "Custom",
 };
 
@@ -66,6 +68,7 @@ const whatsappHosts = new Set([
   "chat.whatsapp.com",
   "www.whatsapp.com",
 ]);
+const discordHosts = new Set(["discord.gg", "discord.com", "www.discord.com"]);
 
 function plainText(value: unknown, maximum: number) {
   if (typeof value !== "string") return null;
@@ -91,6 +94,12 @@ function safeHttpsUrl(value: unknown, platform?: StudioPresencePlatform) {
     if (
       platform === "whatsapp" &&
       !whatsappHosts.has(url.hostname.toLowerCase())
+    ) {
+      return null;
+    }
+    if (
+      platform === "discord" &&
+      !discordHosts.has(url.hostname.toLowerCase())
     ) {
       return null;
     }

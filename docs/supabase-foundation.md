@@ -34,15 +34,28 @@ The bucket contains intentionally public marketing assets. It accepts JPEG, PNG,
 
 Storage paths are generated as `projects/<project-id>/<uuid>.<ext>`; raw filenames are not trusted. Public URLs are derived from `storage_path`, not persisted redundantly. Project deletion removes Storage objects before deleting the project row; the existing foreign-key cascade then removes `project_media` records. Media routes return a migration-required error when the bucket/role schema is unavailable, while public pages keep their designed placeholder fallback until media exists.
 
-## Phase 1D client authentication
+## Client authentication and recovery
 
-Migration `202608310006_client_workspace_foundation.sql` creates the private Client Project workspace and project-scoped membership policies. Configure these exact Supabase Auth Redirect URLs:
+Migration `202608310006_client_workspace_foundation.sql` creates the private Client Project workspace and project-scoped membership policies. Clients sign in with email and password through Supabase Auth. The browser and server share the standard `@supabase/ssr` cookie session, refreshed by the application proxy. Project membership and RLS determine access; project IDs, references, and email addresses are never authorization credentials.
 
-- Local: `http://localhost:3000/client/auth/callback`
-- Production: `https://<domain>/client/auth/callback`
+Studio Admin membership mutations are same-origin protected and repeat Admin authorization. Existing Auth users are assigned through the Admin-authorized database function. Unknown users are provisioned with a temporary password through the server-only Auth Admin API, then assigned membership. Supabase secrets, Auth sessions, temporary passwords, and unrelated Auth users are never returned from persistence or exposed as public configuration.
 
-If the requested callback is not allowlisted, Supabase may ignore it and fall back to the Auth Site URL. The application includes a narrow root-fragment recovery for `magiclink` and `invite` responses: it transfers the URL fragment directly to `/client/auth/callback` without storing it, logging it, or converting it to query parameters. Correct redirect configuration remains the primary solution.
+Password recovery deliberately uses a TokenHash application URL rather than a PKCE `ConfirmationURL`. The email opens `/client/recovery`, a confirmation POST calls `verifyOtp({ token_hash, type: "recovery" })`, and successful verification creates both the SSR session and a 15-minute signed, HttpOnly recovery-only intent. `/client/auth/recovery` requires that intent for `updateUser({ password })`; a normal Client session cannot bypass it. Responses are private/no-store and the TokenHash is removed from the URL after verification.
 
-The Client UI is Magic-Link-first. “Email secure access” requests the sign-in email, and the sent state directs the client to choose the link. A secondary “I received a code instead” action reveals OTP verification only when needed. This supports either email-template behavior without claiming that both a link and a code are sent simultaneously.
+Production Authentication configuration:
 
-Studio Admin membership mutations are same-origin protected and repeat Admin authorization. Existing Auth users are assigned membership through the Admin-authorized database function. Unknown emails are invited through the server-only Supabase Auth Admin API with the same callback, then assigned project membership using backend-only credentials. Supabase secrets, Auth sessions, and unrelated Auth users are never returned to the browser.
+- Site URL: `https://taoshiflexstudio.netlify.app`
+- Custom SMTP: configured in Supabase; never document its password here.
+- Reset Password template href:
+
+```html
+<a href="https://taoshiflexstudio.netlify.app/client/recovery?token_hash={{ .TokenHash }}&amp;type=recovery">Reset password</a>
+```
+
+Normal sign-in does not require an Auth callback route. Local recovery testing can use the same TokenHash path on the local application origin by temporarily changing only the dashboard template in a non-production Supabase project.
+
+## Private Client deliverables
+
+Migration `202609030011_private_client_deliverables.sql` creates the private `client-deliverables` bucket. Studio upload initialization requires same-origin Admin authorization and returns only a short-lived, path-scoped signed upload token. Finalization verifies the signed application ticket, expected path, MIME type, byte size, and current database value before attaching the object. Replacement uses compare-and-set semantics.
+
+Client downloads first query `project_deliverables` with the Client access token, so RLS verifies project membership before server-only code creates a 90-second signed URL. The bucket and raw Storage path are never public.

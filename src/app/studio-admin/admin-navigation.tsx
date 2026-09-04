@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { NotificationCenter } from "@/components/notifications/notification-center";
 import type { NotificationInbox } from "@/lib/notifications";
@@ -28,6 +28,7 @@ function activeDestination(pathname: string, hash: string) {
 
 export function AdminNavigation({ email, inbox }: { email?: string; inbox: NotificationInbox }) {
   const pathname = usePathname();
+  const router = useRouter();
   const [hash, setHash] = useState("");
   const current = activeDestination(pathname, hash);
   const mobileMenu = useRef<HTMLDetailsElement>(null);
@@ -50,7 +51,8 @@ export function AdminNavigation({ email, inbox }: { email?: string; inbox: Notif
     try {
       await fetch("/api/studio/auth", { method: "DELETE" });
     } finally {
-      window.location.assign("/studio-admin");
+      router.replace("/studio-admin");
+      router.refresh();
     }
   }
 

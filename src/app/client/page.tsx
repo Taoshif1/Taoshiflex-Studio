@@ -63,8 +63,9 @@ export default async function ClientPage() {
             next.
           </p>
         </div>
-        <div className="client-head-actions"><Link className="action" href="/client/policies">Policies</Link><NotificationCenter inbox={inbox}/><ClientLogout /></div>
+        <div className="client-head-actions"><Link className="action" href="/client/help">Workspace Guide</Link><Link className="action" href="/client/policies">Policies</Link><NotificationCenter inbox={inbox}/><ClientLogout /></div>
       </header>
+      <section className="client-guide-card" aria-labelledby="client-guide-title"><div><p className="eyebrow">New to the Client Workspace?</p><h2 id="client-guide-title">Know what to expect.</h2><p>Learn how progress, reviews, files, feedback and payments work.</p></div><Link className="action action-solid" href="/client/help">View Workspace Guide</Link></section>
       <ProjectGroup title="Active projects" projects={active} unreadProjectCounts={inbox.unreadProjectCounts} />
       <ProjectGroup title="Completed projects" projects={completed} unreadProjectCounts={inbox.unreadProjectCounts} />
       {!projects.length ? (
