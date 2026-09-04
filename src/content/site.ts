@@ -1,6 +1,6 @@
 import type { Capability, ProcessStage, SiteSettings } from "@/types/content";
 
-export const site: SiteSettings = { name: "Taoshiflex Studio", description: "Strategy, design and engineering for ambitious businesses.", url: process.env.NEXT_PUBLIC_SITE_URL ?? "https://taoshiflex.com", location: "Dhaka, Bangladesh", email: "hello@taoshiflex.com" };
+export const site: SiteSettings = { name: "Taoshiflex Studio", description: "Strategy, design and engineering for ambitious businesses.", url: process.env.NEXT_PUBLIC_SITE_URL ?? "https://taoshiflex.com", location: "Dhaka, Bangladesh", email: "taoshif2@gmail.com" };
 
 export const capabilities: Capability[] = [
   { id: "websites", number: "01", title: "Business Websites", value: "Build a credible digital presence that turns attention into action.", description: "Positioning, content structure and conversion-focused experiences for businesses ready to be taken seriously.", nodes: ["Brand", "Content", "Trust", "Conversion"] },

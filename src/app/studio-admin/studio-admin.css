@@ -14,3 +14,16 @@
 @media(max-width:600px){.admin-shell{padding-inline:1rem}.admin-head,.section-title,.form-group>header,.danger-zone{align-items:start;flex-direction:column}.admin-session{justify-items:start}.visibility-control{grid-template-columns:1fr}.field-grid,.repo-grid,.inquiry-list article{grid-template-columns:1fr}.admin-editor>summary{align-items:start;flex-direction:column}.summary-state{justify-content:flex-start}.editor-form{padding:.75rem}.gallery-list article{grid-template-columns:5rem minmax(0,1fr)}.gallery-list article button{grid-column:1/-1}.save-bar{margin-inline:-.75rem;padding:.85rem}.switch-control{align-items:start;flex-direction:column}.toast-region{right:1rem}}
 @media(prefers-reduced-motion:reduce){.admin-shell button,.visibility-control span{transition:none}.toast{animation:none}}
 .editor-form input:focus-visible,.editor-form textarea:focus-visible,.editor-form select:focus-visible,.admin-login input:focus-visible,.inquiry-list select:focus-visible{border-color:var(--gold);outline:2px solid var(--gold);outline-offset:2px}
+.presence-form{border:1px solid var(--line);background:rgba(35,33,29,.45)}
+.presence-form>.form-group>header>div{display:grid;gap:.3rem}
+.presence-form>.form-group>header p{margin:0;color:var(--stone);font-size:.8rem}
+.presence-links{display:grid;gap:.75rem}
+.presence-link{display:grid;gap:1rem;padding:1rem;border:1px solid var(--line);background:rgba(17,17,15,.5)}
+.presence-link-fields{display:grid;grid-template-columns:minmax(9rem,.6fr) minmax(12rem,1fr) minmax(15rem,1.5fr);gap:1rem}
+.presence-link-actions{display:flex;align-items:center;justify-content:flex-end;gap:.55rem;flex-wrap:wrap}
+.presence-link-actions button{min-height:2.5rem;padding:.45rem .7rem;font-size:.72rem}
+.editor-form .presence-enabled{display:flex;min-height:2.75rem;align-items:center;gap:.65rem;color:var(--paper)}
+.editor-form .presence-enabled input{width:1.15rem;min-height:1.15rem;accent-color:var(--gold)}
+.presence-empty{margin:0;padding:1rem;border:1px dashed var(--line);color:var(--stone)}
+@media(max-width:900px){.presence-link-fields{grid-template-columns:1fr 1fr}.presence-link-fields label:last-child{grid-column:1/-1}}
+@media(max-width:600px){.presence-link-fields{grid-template-columns:1fr}.presence-link-fields label:last-child{grid-column:auto}.presence-link-actions{align-items:stretch;justify-content:flex-start}.presence-link-actions .presence-enabled{width:100%}.presence-link-actions button{flex:1}}
