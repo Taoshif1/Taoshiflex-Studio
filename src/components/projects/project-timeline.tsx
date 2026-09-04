@@ -49,7 +49,7 @@ export function ProjectTimeline({ events }: { events: ProjectTimelineEvent[] }) 
   }
 
   return (
-    <section className="project-timeline" aria-labelledby="timeline-title">
+    <section id="activity" className="project-timeline" aria-labelledby="timeline-title">
       <header className="project-timeline-head">
         <div>
           <p className="eyebrow">Project history</p>
