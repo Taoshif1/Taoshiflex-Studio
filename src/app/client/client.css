@@ -302,6 +302,11 @@
   padding-block: var(--section-compact);
   border-bottom: 1px solid var(--line);
 }
+.client-next-action{display:flex;align-items:center;justify-content:space-between;gap:2rem;padding:clamp(1.25rem,3vw,2rem);border:1px solid var(--line);border-left:3px solid rgba(184,144,85,.4);background:linear-gradient(110deg,rgba(184,144,85,.07),rgba(35,33,29,.56));margin-top:var(--section-compact)}
+.client-next-action.required{border-left-color:var(--gold)}
+.client-next-action>div{display:grid;gap:.45rem}.client-next-action .eyebrow,.client-next-action h2,.client-next-action p{margin:0}.client-next-action h2{font-family:var(--font-display);font-size:clamp(1.8rem,3vw,2.7rem);font-weight:400;line-height:1}.client-next-action p:last-child{max-width:46rem;color:var(--stone)}
+.client-next-action .action{display:inline-flex;min-height:3rem;flex:0 0 auto;align-items:center;gap:.6rem;padding:.75rem 1rem}.next-action-neutral{flex:0 0 auto;color:var(--stone);font-size:.7rem;letter-spacing:.08em;text-transform:uppercase}
+.project-jump-links{display:flex;align-items:center;gap:.45rem;flex-wrap:wrap;padding:1rem 0;border-bottom:1px solid var(--line);scroll-margin-top:6rem}.project-jump-links>span{margin-right:.35rem;color:var(--gold);font-size:.67rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase}.project-jump-links a{display:inline-flex;min-height:2.4rem;align-items:center;padding:.45rem .7rem;border:1px solid var(--line);color:var(--paper);font-size:.7rem;letter-spacing:.05em;transition:border-color var(--fast),color var(--fast),transform var(--fast)}
 .project-overview > dl {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -405,6 +410,7 @@
     border-color: rgba(184, 144, 85, 0.7);
     transform: translateY(-2px);
   }
+  .project-jump-links a:hover{border-color:rgba(184,144,85,.65);color:var(--gold);transform:translateY(-1px)}
 }
 @media (max-width: 767px) {
   .client-shell {
@@ -415,6 +421,7 @@
     align-items: start;
     flex-direction: column;
   }
+  .client-next-action{align-items:flex-start;flex-direction:column}.client-next-action .action{width:100%;justify-content:center}.next-action-neutral{align-self:flex-start}.project-jump-links{flex-wrap:nowrap;padding-bottom:1.25rem;overflow-x:auto}.project-jump-links>*{flex:0 0 auto}
   .client-project-grid,
   .project-overview,
   .update-list {

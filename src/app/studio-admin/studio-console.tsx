@@ -13,6 +13,7 @@ type Row=Record<string,unknown>;
 type Repo={id:number;name:string;description:string|null;private:boolean;language:string|null};
 type Visibility="draft"|"published"|"featured";
 type MediaRow={id:string;storage_path:string;alt:string;role?:"cover"|"gallery";sort_order:number;metadata?:Row};
+type AttentionItem={id:string;title:string;message:string;href:string;createdAt:string;type:string};
 const jsonHeaders={"Content-Type":"application/json"};
 const lines=(value:FormDataEntryValue|null)=>String(value??"").split("\n").map(item=>item.trim()).filter(Boolean);
 const field=(form:FormData,name:string)=>String(form.get(name)??"").trim();
@@ -21,10 +22,10 @@ const visibilityOf=(project:Row):Visibility=>project.published?(project.featured
 
 async function request(url:string,init?:RequestInit){const response=await fetch(url,init);const value=await response.json().catch(()=>({})) as {error?:string};if(!response.ok)throw new Error(value.error||"Request failed.");return value}
 
-export function StudioConsole(props:{configured:boolean;email?:string;projects:Row[];inquiries:InquiryRecord[];packages:Row[];settings:Row[]}){
+export function StudioConsole(props:{configured:boolean;email?:string;projects:Row[];inquiries:InquiryRecord[];packages:Row[];settings:Row[];attention:AttentionItem[]}){
   const router=useRouter(),pendingRef=useRef(new Set<string>()),[pending,setPending]=useState<Set<string>>(()=>new Set()),[repos,setRepos]=useState<Repo[]>([]);
   const {toasts,toast,dismiss}=useToasts();
-  const {configured,email,projects,inquiries,packages,settings}=props;
+  const {configured,email,projects,inquiries,packages,settings,attention}=props;
   async function mutate(key:string,url:string,method:string,body:unknown,message:string,formData=false){if(pendingRef.current.has(key))return false;pendingRef.current.add(key);setPending(current=>new Set(current).add(key));try{await request(url,{method,headers:formData?undefined:jsonHeaders,body:formData?body as FormData:JSON.stringify(body)});toast("success",message);router.refresh();return true}catch(error){toast("error",error instanceof Error?error.message:"The operation failed.");return false}finally{pendingRef.current.delete(key);setPending(current=>{const next=new Set(current);next.delete(key);return next})}}
   async function login(form:FormData){await mutate("login","/api/studio/auth","POST",{email:form.get("email"),password:form.get("password")},"Signed in")}
   async function loadRepos(){if(pendingRef.current.has("github"))return;pendingRef.current.add("github");setPending(current=>new Set(current).add("github"));try{const value=await request("/api/studio/github") as {repositories?:Repo[]};setRepos(value.repositories??[]);toast("info","Repositories refreshed")}catch(error){toast("error",error instanceof Error?error.message:"GitHub could not be loaded.")}finally{pendingRef.current.delete("github");setPending(current=>{const next=new Set(current);next.delete("github");return next})}}
@@ -33,6 +34,7 @@ export function StudioConsole(props:{configured:boolean;email?:string;projects:R
   const assistant=(settings.find(item=>item.key==="assistant")?.value??{}) as Row;
   const presence=settings.find(item=>item.key==="studio_presence")?.value;
   return <main className="admin-shell"><header className="admin-head"><div><p className="eyebrow">Private / Studio Admin</p><h1>Studio workspace</h1><p>Content, visibility, media and commercial settings.</p></div></header><div className="admin-workspace">
+    <NeedsAttention items={attention}/>
     <section id="projects"><SectionTitle eyebrow="Editorial control" title="Projects" meta={`${projects.length} records`}/><div className="editor-stack">{projects.map(project=><ProjectEditor key={String(project.id)} project={project} pending={pending} mutate={mutate}/>)}</div></section>
     <section id="github"><SectionTitle eyebrow="Source to private draft" title="GitHub curation" meta="Admin only"/><p className="section-intro">Imports always begin as Draft with repository visibility hidden. Editorial review remains deliberate.</p><button disabled={pending.has("github")} onClick={loadRepos}>{pending.has("github")?"Loading…":"Load repositories"}</button><div className="repo-grid">{repos.map(repo=><article key={repo.id}><small>{repo.private?"Private":"Public"} / {repo.language||"Unspecified"}</small><h3>{repo.name}</h3><p>{repo.description||"No repository description."}</p><button disabled={pending.has(`repo:${repo.id}`)} onClick={()=>mutate(`repo:${repo.id}`,"/api/studio/github","POST",{id:repo.id},`${repo.name} added as a Draft`)}>Curate as draft</button></article>)}</div></section>
     <PricingPanel packages={packages} pending={pending} mutate={mutate}/>
@@ -40,6 +42,10 @@ export function StudioConsole(props:{configured:boolean;email?:string;projects:R
     <section id="studio-presence-admin"><SectionTitle eyebrow="Public contact system" title="Studio Presence" meta="Public footer"/><StudioPresenceForm value={presence} pending={pending.has("studio-presence")} submit={value=>mutate("studio-presence","/api/studio/settings","PATCH",{key:"studio_presence",value},"Studio Presence saved")}/></section>
     <section id="assistant-admin"><SectionTitle eyebrow="Rule-based foundation" title="Studio Assistant" meta={assistant.enabled?"Enabled":"Disabled"}/><AssistantForm value={assistant} pending={pending.has("assistant")} submit={value=>mutate("assistant","/api/studio/settings","PATCH",{key:"assistant",value},"Assistant settings saved")}/></section>
   </div><ToastRegion toasts={toasts} dismiss={dismiss}/></main>;
+}
+
+function NeedsAttention({items}:{items:AttentionItem[]}){
+  return <section id="needs-attention" className="needs-attention"><SectionTitle eyebrow="Workflow focus" title="Needs Attention" meta={items.length?`${items.length} open signal${items.length===1?"":"s"}`:"Current"}/>{items.length?<div className="attention-list">{items.map(item=><Link href={item.href} key={item.id}><span className="attention-mark" aria-hidden/><div><small>{item.type.replaceAll("_"," ")}</small><strong>{item.title}</strong><p>{item.message}</p></div><time dateTime={item.createdAt}>{new Intl.DateTimeFormat("en-BD",{month:"short",day:"2-digit",hour:"numeric",minute:"2-digit",timeZone:"Asia/Dhaka"}).format(new Date(item.createdAt))}</time><span aria-hidden>↘</span></Link>)}</div>:<p className="attention-empty">You&apos;re all caught up.</p>}</section>;
 }
 
 function ProjectEditor({project,pending,mutate}:{project:Row;pending:Set<string>;mutate:(key:string,url:string,method:string,body:unknown,message:string,formData?:boolean)=>Promise<boolean>}){

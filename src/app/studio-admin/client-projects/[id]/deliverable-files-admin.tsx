@@ -107,7 +107,7 @@ export function DeliverableFilesAdmin({ projectId, deliverables }: Props) {
   }
 
   return (
-    <section className="deliverable-files-admin">
+    <section id="deliverable-files" className="deliverable-files-admin">
       <header>
         <p className="eyebrow">Private files</p>
         <h2>Deliverable storage</h2>

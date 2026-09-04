@@ -119,3 +119,30 @@ export async function loadNotificationInbox(
     return emptyNotificationInbox();
   }
 }
+
+export async function loadAttentionNotifications(
+  userId: string,
+  access: NotificationAccess,
+  limit = 6,
+) {
+  if (!uuid.test(userId)) return [];
+  const safeLimit = Math.max(1, Math.min(12, Math.floor(limit)));
+  const filter =
+    "recipient_user_id=eq." +
+    encodeURIComponent(userId) +
+    "&audience=eq.studio&priority=eq.attention&read_at=is.null";
+  try {
+    return await supabaseRest<AppNotification[]>(
+      "notifications?" +
+        filter +
+        "&select=" +
+        select +
+        "&order=created_at.desc,id.desc&limit=" +
+        safeLimit,
+      {},
+      access,
+    );
+  } catch {
+    return [];
+  }
+}

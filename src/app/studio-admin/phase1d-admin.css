@@ -164,6 +164,10 @@
 .client-project-detail {
   display: block;
 }
+.project-quick-actions{display:flex;align-items:center;gap:.5rem;flex-wrap:wrap;padding:1rem 0;border-bottom:1px solid var(--line)}
+.project-quick-actions p{margin:0 .4rem 0 0;color:var(--gold);font-size:.67rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase}
+.project-quick-actions a{display:inline-flex;min-height:2.45rem;align-items:center;padding:.5rem .7rem;border:1px solid var(--line);color:var(--paper);font-size:.7rem;letter-spacing:.05em;transition:border-color var(--fast),color var(--fast),transform var(--fast)}
+@media(hover:hover){.project-quick-actions a:hover{border-color:rgba(184,144,85,.65);color:var(--gold);transform:translateY(-1px)}}
 .migration-notice {
   margin-top: 3rem;
   padding: clamp(1.25rem, 3vw, 2.5rem);

@@ -2,6 +2,7 @@
 
 import { FormEvent, useState } from "react";
 
+import { SocialPlatformIcon } from "@/components/global/social-platform-icon";
 import {
   normalizeStudioPresence,
   studioPresencePlatformLabels,
@@ -154,7 +155,7 @@ export function StudioPresenceForm({
           <div>
             <h3>Social links</h3>
             <p>
-              Add up to 12 restrained text links. The same platform may appear
+              Add up to 12 social accounts. The same platform may appear
               more than once when labels identify each account.
             </p>
           </div>
@@ -171,6 +172,14 @@ export function StudioPresenceForm({
           <div className="presence-links">
             {links.map((link, index) => (
               <article className="presence-link" key={link.id}>
+                <div className="presence-platform-preview">
+                  <span aria-hidden="true">
+                    <SocialPlatformIcon platform={link.platform} />
+                  </span>
+                  <p>
+                    Platform: <strong>{studioPresencePlatformLabels[link.platform]}</strong>
+                  </p>
+                </div>
                 <div className="presence-link-fields">
                   <label>
                     Platform
