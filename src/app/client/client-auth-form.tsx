@@ -1,6 +1,7 @@
 "use client";
 
 import { FormEvent, useRef, useState } from "react";
+import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 
 const genericSignInError = "Email or password is incorrect.";
@@ -8,6 +9,7 @@ const genericRecoveryMessage =
   "If an account exists for that email, a password reset link has been sent.";
 
 export function ClientAuthForm() {
+  const router = useRouter();
   const pendingRef = useRef(false);
   const emailInputRef = useRef<HTMLInputElement>(null);
   const [email, setEmail] = useState("");
@@ -28,7 +30,8 @@ export function ClientAuthForm() {
         password,
       });
       if (error || !data.session) throw new Error(genericSignInError);
-      location.assign("/client");
+      router.replace("/client");
+      router.refresh();
     } catch {
       setMessage(genericSignInError);
       pendingRef.current = false;
@@ -106,6 +109,7 @@ export function ClientAuthForm() {
 }
 
 export function ClientLogout() {
+  const router = useRouter();
   const [pending, setPending] = useState(false);
   const [message, setMessage] = useState("");
 
@@ -122,7 +126,8 @@ export function ClientLogout() {
         throw new Error(
           result.error || "Sign-out could not be confirmed. Please retry.",
         );
-      location.assign("/client");
+      router.replace("/client");
+      router.refresh();
     } catch (error) {
       setMessage(
         error instanceof Error
