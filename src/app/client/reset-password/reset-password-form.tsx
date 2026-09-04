@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { FormEvent, useRef, useState } from "react";
 
+import { PasswordField } from "@/components/ui/password-field";
 import { RecoveryRequestForm } from "./recovery-request-form";
 
 const minimumPasswordLength = 8;
@@ -99,32 +100,26 @@ export function ResetPasswordForm() {
 
   return (
     <form className="client-auth-form" onSubmit={submit} aria-busy={pending}>
-      <label>
-        New password
-        <input
-          type="password"
-          value={password}
-          onChange={(event) => setPassword(event.target.value)}
-          autoComplete="new-password"
-          minLength={minimumPasswordLength}
-          maxLength={maximumPasswordLength}
-          disabled={pending}
-          required
-        />
-      </label>
-      <label>
-        Confirm new password
-        <input
-          type="password"
-          value={confirmPassword}
-          onChange={(event) => setConfirmPassword(event.target.value)}
-          autoComplete="new-password"
-          minLength={minimumPasswordLength}
-          maxLength={maximumPasswordLength}
-          disabled={pending}
-          required
-        />
-      </label>
+      <PasswordField
+        label="New password"
+        value={password}
+        onChange={(event) => setPassword(event.target.value)}
+        autoComplete="new-password"
+        minLength={minimumPasswordLength}
+        maxLength={maximumPasswordLength}
+        disabled={pending}
+        required
+      />
+      <PasswordField
+        label="Confirm new password"
+        value={confirmPassword}
+        onChange={(event) => setConfirmPassword(event.target.value)}
+        autoComplete="new-password"
+        minLength={minimumPasswordLength}
+        maxLength={maximumPasswordLength}
+        disabled={pending}
+        required
+      />
       <p className="client-form-note" aria-live="polite">
         {message ||
           `Use ${minimumPasswordLength} to ${maximumPasswordLength} characters.`}

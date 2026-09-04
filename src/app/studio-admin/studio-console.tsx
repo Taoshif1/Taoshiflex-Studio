@@ -5,6 +5,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { projectMediaPublicUrl } from "@/lib/project-media-url";
 import { ToastRegion, useToasts } from "@/components/ui/toast";
+import { PasswordField } from "@/components/ui/password-field";
 import { type InquiryRecord } from "@/lib/inquiries";
 import { InquiryView } from "./inquiry-view";
 import { StudioPresenceForm } from "./studio-presence-form";
@@ -31,7 +32,7 @@ export function StudioConsole(props:{configured:boolean;email?:string;projects:R
   async function login(form:FormData){await mutate("login","/api/studio/auth","POST",{email:form.get("email"),password:form.get("password")},"Signed in")}
   async function loadRepos(){if(pendingRef.current.has("github"))return;pendingRef.current.add("github");setPending(current=>new Set(current).add("github"));try{const value=await request("/api/studio/github") as {repositories?:Repo[]};setRepos(value.repositories??[]);toast("info","Repositories refreshed")}catch(error){toast("error",error instanceof Error?error.message:"GitHub could not be loaded.")}finally{pendingRef.current.delete("github");setPending(current=>{const next=new Set(current);next.delete("github");return next})}}
   if(!configured)return <main className="admin-shell admin-login"><section className="admin-login-panel"><p className="eyebrow">Private / Studio Admin</p><h1>Connect Supabase to activate Studio Admin.</h1><p>Configure the existing Supabase environment and apply reviewed migrations. No credentials belong in this interface.</p></section></main>;
-  if(!email)return <main className="admin-shell admin-login"><section className="admin-login-panel"><p className="eyebrow">Private / Studio Admin</p><h1>Sign in.</h1><p>Use your private Studio credentials to continue.</p><form action={login}><Field name="email" label="Email" type="email"/><Field name="password" label="Password" type="password"/><button disabled={pending.has("login")}>{pending.has("login")?"Checking…":"Enter Studio Admin"}</button></form></section><ToastRegion toasts={toasts} dismiss={dismiss}/></main>;
+  if(!email)return <main className="admin-shell admin-login"><section className="admin-login-panel"><p className="eyebrow">Private / Studio Admin</p><h1>Sign in.</h1><p>Use your private Studio credentials to continue.</p><form action={login}><Field name="email" label="Email" type="email"/><PasswordField name="password" label="Password" autoComplete="current-password" required/><button disabled={pending.has("login")}>{pending.has("login")?"Checking…":"Enter Studio Admin"}</button></form></section><ToastRegion toasts={toasts} dismiss={dismiss}/></main>;
   const assistant=(settings.find(item=>item.key==="assistant")?.value??{}) as Row;
   const presence=settings.find(item=>item.key==="studio_presence")?.value;
   const alerts=settings.find(item=>item.key==="studio_alerts")?.value;

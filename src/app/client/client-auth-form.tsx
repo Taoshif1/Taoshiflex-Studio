@@ -2,6 +2,7 @@
 
 import { FormEvent, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
+import { PasswordField } from "@/components/ui/password-field";
 import { createClient } from "@/lib/supabase/client";
 
 const genericSignInError = "Email or password is incorrect.";
@@ -79,17 +80,14 @@ export function ClientAuthForm() {
           required
         />
       </label>
-      <label>
-        Password
-        <input
-          type="password"
-          value={password}
-          onChange={(event) => setPassword(event.target.value)}
-          autoComplete="current-password"
-          disabled={pending}
-          required
-        />
-      </label>
+      <PasswordField
+        label="Password"
+        value={password}
+        onChange={(event) => setPassword(event.target.value)}
+        autoComplete="current-password"
+        disabled={pending}
+        required
+      />
       <p className="client-form-note" aria-live="polite">
         {message || "Enter the credentials connected to your project."}
       </p>
