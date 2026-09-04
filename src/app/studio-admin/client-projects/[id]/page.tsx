@@ -61,12 +61,16 @@ export default async function ClientProjectDetailPage({ params, searchParams }: 
     billing: billingRows[0] ?? null,
     feedbackAuthorLabels: memberEmail,
   });
+  const adminTimeline = timeline.map((event) =>
+    event.type === "feedback" ? { ...event, href: "#client-feedback" } : event,
+  );
 
   return (
     <main className="admin-shell client-project-detail">
       <AdminBreadcrumbs items={[{ label: "Studio Admin", href: "/studio-admin" }, { label: "Client Projects", href: returnPath }, { label: `${project.reference} / ${project.name}` }]}/>
       <header className="admin-head"><div><p className="eyebrow">Private / {project.reference}</p><h1>{project.name}</h1><p>Source inquiry, membership and client-visible delivery controls.</p></div><Link className="admin-back" href={returnPath}>← Back to Client Projects</Link></header>
-      <ProjectTimeline events={timeline}/>
+      <nav className="project-quick-actions" aria-label="Client Project quick actions"><p>Quick Actions</p><Link href="#updates">Add Update</Link><Link href="#milestones">Add Milestone</Link><Link href="#deliverable-files">Upload Deliverable</Link><Link href="#client-feedback">View Feedback</Link><Link href="#billing">Billing</Link><Link href="#members">Manage Client</Link></nav>
+      <ProjectTimeline events={adminTimeline}/>
       <BillingAdmin projectId={project.id} data={{billing:billingRows[0]??null,summary:summaryRows[0]??null,schedule,payments}}/>
       <FeedbackAdmin projectId={project.id} feedback={feedback}/>
       <DeliverableFilesAdmin projectId={project.id} deliverables={deliverables}/>

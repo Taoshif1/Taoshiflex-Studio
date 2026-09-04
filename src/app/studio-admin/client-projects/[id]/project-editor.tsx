@@ -72,7 +72,7 @@ export function ClientProjectEditor({
       <p className="admin-live-message" aria-live="polite">
         {pending ? "Saving…" : message}
       </p>
-      <section>
+      <section id="overview-admin">
         <header>
           <p className="eyebrow">Overview</p>
           <h2>Project controls</h2>
@@ -164,7 +164,7 @@ export function ClientProjectEditor({
           </Link>
         ) : null}
       </section>
-      <section>
+      <section id="members">
         <header>
           <p className="eyebrow">Access</p>
           <h2>Members</h2>
@@ -245,7 +245,7 @@ export function ClientProjectEditor({
           </small>
         </form>
       </section>
-      <section>
+      <section id="milestones">
         <header>
           <p className="eyebrow">Plan</p>
           <h2>Milestones</h2>
@@ -314,7 +314,7 @@ export function ClientProjectEditor({
         />
         {previousMilestones.length?<div className="milestone-admin-history"><h3>Completed / Previous milestones</h3>{previousMilestones.map(item=><article className="admin-record" key={item.id}><div><strong>{item.title}</strong><p>{statusLabel(item.status)}{item.archived_at?" / Archived":""}{item.completed_at?` / Completed ${new Date(item.completed_at).toLocaleDateString("en-BD")}`:""}</p></div>{item.archived_at&&item.status!=="completed"?<button type="button" disabled={pending} onClick={()=>mutate("PATCH",{kind:"milestone-archive",projectId:project.id,id:item.id,archive:false},"Milestone restored.")}>Restore to active</button>:null}</article>)}</div>:null}
       </section>
-      <section>
+      <section id="updates">
         <header>
           <p className="eyebrow">Client communication</p>
           <h2>Updates</h2>
@@ -363,7 +363,7 @@ export function ClientProjectEditor({
           ))}
         </div>
       </section>
-      <section>
+      <section id="deliverables">
         <header>
           <p className="eyebrow">Review and handoff</p>
           <h2>Deliverables</h2>
