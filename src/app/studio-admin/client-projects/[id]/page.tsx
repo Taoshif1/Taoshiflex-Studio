@@ -21,6 +21,8 @@ import "./deliverable-files-admin.css";
 import { BillingAdmin } from "./billing-admin";
 import { DeliverableFilesAdmin } from "./deliverable-files-admin";
 import type { BillingSummary, PaymentScheduleItem, ProjectBilling, ProjectPayment } from "@/lib/commercial";
+import { buildProjectTimeline } from "@/lib/project-timeline";
+import { ProjectTimeline } from "@/components/projects/project-timeline";
 
 export const metadata: Metadata = { title: "Client Project / Studio Admin", robots: { index: false, follow: false } };
 type Props = { params: Promise<{ id: string }>; searchParams: Promise<{ from?: string }> };
@@ -50,11 +52,21 @@ export default async function ClientProjectDetailPage({ params, searchParams }: 
     ...item,
     author_label: memberEmail.get(item.author_user_id) ?? "Client member",
   }));
+  const timeline = buildProjectTimeline({
+    milestones,
+    updates,
+    deliverables,
+    feedback,
+    payments,
+    billing: billingRows[0] ?? null,
+    feedbackAuthorLabels: memberEmail,
+  });
 
   return (
     <main className="admin-shell client-project-detail">
       <AdminBreadcrumbs items={[{ label: "Studio Admin", href: "/studio-admin" }, { label: "Client Projects", href: returnPath }, { label: `${project.reference} / ${project.name}` }]}/>
       <header className="admin-head"><div><p className="eyebrow">Private / {project.reference}</p><h1>{project.name}</h1><p>Source inquiry, membership and client-visible delivery controls.</p></div><Link className="admin-back" href={returnPath}>← Back to Client Projects</Link></header>
+      <ProjectTimeline events={timeline}/>
       <BillingAdmin projectId={project.id} data={{billing:billingRows[0]??null,summary:summaryRows[0]??null,schedule,payments}}/>
       <FeedbackAdmin projectId={project.id} feedback={feedback}/>
       <DeliverableFilesAdmin projectId={project.id} deliverables={deliverables}/>

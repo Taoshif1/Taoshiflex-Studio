@@ -19,6 +19,8 @@ import "./feedback.css";
 import { BillingPanel } from "./billing-panel";
 import { DeliverableActions } from "./deliverable-actions";
 import type { BillingSummary, PaymentScheduleItem, ProjectBilling, ProjectPayment } from "@/lib/commercial";
+import { buildProjectTimeline } from "@/lib/project-timeline";
+import { ProjectTimeline } from "@/components/projects/project-timeline";
 
 type Props = { params: Promise<{ id: string }> };
 const uuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
@@ -54,6 +56,7 @@ export default async function ClientProjectPage({ params }: Props) {
     feedback.filter((item) => item.target_type === targetType && item.target_id === targetId);
   const currentMilestones=milestones.filter(item=>item.status!=="completed"&&!item.archived_at);
   const previousMilestones=milestones.filter(item=>item.status==="completed"||Boolean(item.archived_at));
+  const timeline = buildProjectTimeline({ milestones, updates, deliverables, feedback, payments, billing: billingRows[0] ?? null });
   const milestoneCard=(item:ProjectMilestone)=><article key={item.id}>
     <span className={`client-status ${item.status}`}>{statusLabel(item.status)}</span>
     <div><h3>{item.title}</h3>{item.description ? <p>{item.description}</p> : null}<FeedbackPanel projectId={id} targetType="milestone" targetId={item.id} feedback={forTarget("milestone", item.id)}/></div>
@@ -67,7 +70,7 @@ export default async function ClientProjectPage({ params }: Props) {
         <div><p className="eyebrow">{project.reference} / Client Project</p><h1>{project.name}</h1><p>{project.summary}</p></div>
         <div className="workspace-head-actions"><NotificationCenter inbox={inbox}/><span className={`client-status ${project.status}`}>{statusLabel(project.status)}</span></div>
       </header>
-      <section className="project-overview" aria-labelledby="overview-title">
+      <section id="overview" className="project-overview" aria-labelledby="overview-title">
         <div><p className="eyebrow">Project overview</p><h2 id="overview-title">Clarity at a glance.</h2></div>
         <dl>
           <Overview label="Status" value={statusLabel(project.status)}/>
@@ -81,6 +84,7 @@ export default async function ClientProjectPage({ params }: Props) {
           <small>Progress is set deliberately by the Studio; it is not an automated estimate.</small>
         </div>
       </section>
+      <ProjectTimeline events={timeline}/>
       <WorkspaceSection id="milestones" eyebrow="Plan" title="Milestones">
         <h3 className="milestone-group-title">Current milestones</h3><div className="milestone-list">{currentMilestones.length?currentMilestones.map(milestoneCard):<Empty copy="No current milestones."/>}</div>
         {previousMilestones.length?<details className="milestone-history" open><summary>Completed / Previous milestones ({previousMilestones.length})</summary><div className="milestone-list">{previousMilestones.map(milestoneCard)}</div></details>:null}
