@@ -4,7 +4,7 @@ import { provisionSupabaseUser, SupabaseRestError, supabaseRest, updateSupabaseU
 const uuid=/^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i,date=/^\d{4}-\d{2}-\d{2}$/;
 const validId=(value:unknown)=>typeof value==="string"&&uuid.test(value);
 const optionalDate=(value:unknown)=>{const clean=cleanText(value,10);return clean&&date.test(clean)?clean:null};
-const error=()=>Response.json({error:"Client Projects require reviewed migration 006."},{status:409});
+const error=()=>Response.json({error:"Client Project setup is unavailable."},{status:409});
 export async function POST(request:Request){const auth=await authorizeMutation(request);if(auth.error)return auth.error;const body=await request.json().catch(()=>null) as Record<string,unknown>|null,kind=cleanText(body?.kind,30,true),projectId=body?.projectId;if(!kind||!validId(projectId))return Response.json({error:"Valid operation and project are required."},{status:400});try{
   if(kind==="member"){
     const email=cleanText(body?.email,254,true)?.toLowerCase(),role=cleanText(body?.role,20,true),temporaryPassword=typeof body?.temporaryPassword==="string"?body.temporaryPassword:"";

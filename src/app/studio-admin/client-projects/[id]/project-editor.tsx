@@ -408,9 +408,8 @@ export function ClientProjectEditor({
           }
         />
         <p className="storage-boundary">
-          Phase 1D publishes authorized external links only. Private file
-          uploads remain deferred until the private bucket and signed-URL flow
-          are reviewed.
+          Use an authorized external link when delivery lives elsewhere. Private
+          files are managed through the secure upload controls below.
         </p>
       </section>
       {passwordMember ? <PasswordResetDialog member={passwordMember} pending={pending} close={closePasswordDialog} reset={(password) => mutate("PATCH", { kind: "password-reset", projectId: project.id, id: passwordMember.id, password, confirmed: true }, "Client password reset.")}/> : null}

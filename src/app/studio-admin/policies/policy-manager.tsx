@@ -11,6 +11,13 @@ const filters: Array<{ label: string; value: "all" | PolicyAudience }> = [
   { label: "Client", value: "client" },
   { label: "Both", value: "both" },
 ];
+const placeholderPolicyPattern = /\b(review before publishing|starter (?:wording|guidance|expectations|overview|process|terms)|this starter|lorem ipsum|todo|your-domain|placeholder)\b/i;
+
+function isFarFuture(value: string) {
+  if (!value) return false;
+  const effective = new Date(`${value}T00:00:00Z`).getTime();
+  return Number.isFinite(effective) && effective - Date.now() > 366 * 24 * 60 * 60 * 1000;
+}
 
 export function PolicyManager({ policies }: { policies: Policy[] }) {
   const router = useRouter();
@@ -20,7 +27,7 @@ export function PolicyManager({ policies }: { policies: Policy[] }) {
   const [filter, setFilter] = useState<"all" | PolicyAudience>("all");
 
   async function mutate(method: string, body: unknown, success: string) {
-    if (busy.current) return;
+    if (busy.current) return false;
     busy.current = true;
     setPending(true);
     setMessage("");
@@ -34,8 +41,10 @@ export function PolicyManager({ policies }: { policies: Policy[] }) {
       if (!response.ok) throw new Error(result.error || "Policy action failed.");
       setMessage(success);
       router.refresh();
+      return true;
     } catch (error) {
       setMessage(error instanceof Error ? error.message : "Policy action failed.");
+      return false;
     } finally {
       busy.current = false;
       setPending(false);
@@ -101,8 +110,8 @@ export function PolicyManager({ policies }: { policies: Policy[] }) {
           <summary>Document settings</summary>
           <PolicyIdentity policy={policy} pending={pending} save={(body) => void mutate("PATCH", body, "Policy settings saved.")} />
         </details>
-        {editable ? <VersionForm version={editable} canDelete={versions.length > 1} pending={pending} mutate={mutate} /> : <p className="policy-lock">Published versions remain historical and locked. Create a new version to revise the wording.</p>}
-        <div className="policy-history"><strong>Version history</strong>{versions.map((version) => <span key={version.id}>v{version.version} / {version.is_published ? "Published" : version.published_at ? "Unpublished history" : "Draft"} / {version.audience}</span>)}</div>
+        {editable ? <VersionForm key={editable.id} version={editable} canDelete={versions.length > 1} pending={pending} mutate={mutate} /> : <p className="policy-lock">Published versions remain historical and locked. Create a new version to revise the wording.</p>}
+        <div className="policy-history"><strong>Version history</strong>{versions.map((version) => <span key={version.id}>v{version.version} / {version.is_published ? "Published / Current version" : version.published_at ? "Historical version" : "Draft"} / {version.audience} / Effective {version.effective_date || "Not set"}</span>)}</div>
       </section>) : <p className="policy-filter-empty">No policies match this audience filter.</p>}
     </>}
   </div>;
@@ -147,22 +156,45 @@ function VersionForm({ version, canDelete, pending, mutate }: {
   version: PolicyVersion;
   canDelete: boolean;
   pending: boolean;
-  mutate: (method: string, body: unknown, success: string) => Promise<void>;
+  mutate: (method: string, body: unknown, success: string) => Promise<boolean>;
 }) {
-  return <form className="editor-form policy-version" onSubmit={(event: FormEvent<HTMLFormElement>) => {
+  const [title, setTitle] = useState(version.title);
+  const [audience, setAudience] = useState(version.audience);
+  const [effectiveDate, setEffectiveDate] = useState(version.effective_date || "");
+  const [summary, setSummary] = useState(version.summary);
+  const [content, setContent] = useState(version.content);
+  const [dirty, setDirty] = useState(false);
+  const placeholderWarning = placeholderPolicyPattern.test(`${summary}\n${content}`);
+  const futureWarning = isFarFuture(effectiveDate);
+  const guidanceId = `policy-publish-guidance-${version.id}`;
+
+  function publish() {
+    const dateLabel = effectiveDate || "no effective date";
+    const confirmed = confirm(`Publish "${title}" v${version.version} for the ${audience} audience with ${dateLabel} as its effective date? Published wording remains in version history.`);
+    if (confirmed) void mutate("PATCH", { kind: "publish", id: version.id, publish: true }, "Policy published.");
+  }
+
+  return <form className="editor-form policy-version" onChange={() => setDirty(true)} onSubmit={async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     const form = new FormData(event.currentTarget);
-    void mutate("PATCH", { kind: "version", id: version.id, ...Object.fromEntries(form) }, "Draft saved.");
+    const saved = await mutate("PATCH", { kind: "version", id: version.id, ...Object.fromEntries(form) }, "Draft saved.");
+    if (saved) setDirty(false);
   }}>
     <div className="wide policy-version-heading"><h3>Editable draft / Version {version.version}</h3><p>Published versions remain historical and locked; create a new version to revise wording.</p></div>
-    <label>Title<input name="title" defaultValue={version.title} required /></label>
-    <label>Audience<select name="audience" defaultValue={version.audience}><option value="public">Public</option><option value="client">Client</option><option value="both">Both</option></select><AudienceHelp /></label>
-    <label>Effective date<input name="effectiveDate" type="date" defaultValue={version.effective_date || ""} /><small>Date the policy is intended to take effect.</small></label>
-    <label className="wide">Summary<textarea name="summary" rows={2} defaultValue={version.summary} /></label>
-    <label className="wide">Content<textarea name="content" rows={12} defaultValue={version.content} required /></label>
+    <label>Title<input name="title" value={title} onChange={(event) => setTitle(event.target.value)} required /></label>
+    <label>Audience<select name="audience" value={audience} onChange={(event) => setAudience(event.target.value as PolicyAudience)}><option value="public">Public</option><option value="client">Client</option><option value="both">Both</option></select><AudienceHelp /></label>
+    <label>Effective date<input name="effectiveDate" type="date" value={effectiveDate} onChange={(event) => setEffectiveDate(event.target.value)} /><small>Date the policy is intended to take effect.</small></label>
+    <label className="wide">Summary<textarea name="summary" rows={2} value={summary} onChange={(event) => setSummary(event.target.value)} /></label>
+    <label className="wide">Content<textarea name="content" rows={12} value={content} onChange={(event) => setContent(event.target.value)} required /></label>
+    <div className="policy-safety wide" aria-live="polite">
+      <p id={guidanceId}><strong>Before publishing:</strong> review the wording, audience, version, and effective date. Publishing locks this version into history.</p>
+      {dirty ? <p>Save the current draft changes before publishing.</p> : null}
+      {futureWarning ? <p>This effective date is more than one year away. Confirm that the future date is intentional.</p> : null}
+      {placeholderWarning ? <p>Placeholder or starter language may remain. Review and replace it before publishing.</p> : null}
+    </div>
     <div className="editor-actions wide">
       <button disabled={pending}>Save draft</button>
-      <button type="button" disabled={pending} onClick={() => void mutate("PATCH", { kind: "publish", id: version.id, publish: true }, "Policy published.")}>Publish reviewed version</button>
+      <button type="button" disabled={pending || dirty} aria-describedby={guidanceId} onClick={publish}>Publish reviewed version</button>
       {canDelete ? <button type="button" className="danger" disabled={pending} onClick={() => confirm("Delete this never-published draft?") && void mutate("DELETE", { id: version.id }, "Draft deleted.")}>Delete draft</button> : <span>To remove this only draft from active use, archive the policy above.</span>}
     </div>
   </form>;

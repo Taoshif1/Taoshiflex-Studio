@@ -14,7 +14,7 @@ export const starterPolicies: StarterPolicy[] = [
     slug: "terms-of-service",
     title: "Terms of Service",
     audience: "both",
-    summary: "Starter terms for using Taoshiflex Studio services and client-facing systems.",
+    summary: "Terms governing Studio services, Client responsibilities, project agreements, and acceptable use.",
     content: `## Purpose
 
 These terms outline the general working relationship between Taoshiflex Studio and its clients. Project-specific proposals, scopes, and signed agreements remain authoritative for each engagement.
@@ -23,16 +23,16 @@ These terms outline the general working relationship between Taoshiflex Studio a
 
 Both parties should provide accurate information, communicate material changes promptly, and use Studio services lawfully. Timelines depend on timely access, feedback, approvals, and payments.
 
-## Review before publishing
+## Application
 
-This is editable starter wording, not legal advice. Review it for the Studio's actual services, jurisdiction, and contracting process before publication.`,
+These terms apply to Studio services and use of the Client Workspace. A project-specific proposal, scope, or signed agreement takes priority where its terms differ.`,
     sortOrder: 10,
   },
   {
     slug: "pricing-payment-policy",
     title: "Pricing & Payment Policy",
     audience: "both",
-    summary: "Starter guidance for quotes, payment schedules, and payment verification.",
+    summary: "How project pricing, payment schedules, and payment verification are managed.",
     content: `## Project pricing
 
 Each project's agreed value, currency, and payment schedule are confirmed in its proposal or Client Workspace. Public package prices are starting references unless explicitly accepted in writing.
@@ -50,7 +50,7 @@ Approved scope changes may affect pricing or schedule only after they are docume
     slug: "scope-revision-policy",
     title: "Scope & Revision Policy",
     audience: "client",
-    summary: "Starter expectations for agreed scope, feedback rounds, and change requests.",
+    summary: "How agreed scope, feedback rounds, revisions, and change requests are handled.",
     content: `## Agreed scope
 
 The approved proposal and project record define the deliverables, milestones, and included work.
@@ -68,7 +68,7 @@ The Studio will document material scope changes for Client approval before start
     slug: "cancellation-refund-policy",
     title: "Cancellation & Refund Policy",
     audience: "both",
-    summary: "Starter process for pausing, cancelling, and reviewing refund requests.",
+    summary: "The process for pausing or cancelling work and reviewing refund requests.",
     content: `## Cancellation requests
 
 Requests to pause or cancel a project should be made in writing. The Studio will confirm the effective date and current project status.
@@ -86,7 +86,7 @@ Any signed proposal or agreement may set different cancellation terms and should
     slug: "privacy-policy",
     title: "Privacy Policy",
     audience: "public",
-    summary: "Starter overview of information handling across Studio enquiries and services.",
+    summary: "How the Studio collects, uses, shares, retains, and protects personal information.",
     content: `## Information collected
 
 The Studio may collect contact details, project requirements, communications, account records, and service activity needed to respond to enquiries and deliver work.
@@ -95,16 +95,16 @@ The Studio may collect contact details, project requirements, communications, ac
 
 Information is used to communicate, manage projects, provide requested services, maintain security, and meet applicable operational obligations.
 
-## Review before publishing
+## Questions and requests
 
-Add the Studio's actual retention periods, service providers, lawful bases, rights process, and privacy contact before publication. This starter is not legal advice.`,
+Clients may contact the Studio with reasonable questions or requests about their personal information. Requests are handled in line with applicable obligations and legitimate record-keeping needs.`,
     sortOrder: 50,
   },
   {
     slug: "project-delivery-policy",
     title: "Project Delivery Policy",
     audience: "client",
-    summary: "Starter expectations for reviews, approvals, and final deliverable handoff.",
+    summary: "How reviews, approvals, acceptance, and final deliverable handoff are managed.",
     content: `## Delivery process
 
 Deliverables are shared through the agreed channel or Client Workspace. Clients should review each delivery within the response period stated for the project.
@@ -122,7 +122,7 @@ Final files, access, and documentation are provided according to the project agr
     slug: "support-maintenance-policy",
     title: "Support & Maintenance Policy",
     audience: "both",
-    summary: "Starter distinction between project delivery support and ongoing maintenance.",
+    summary: "The distinction between included delivery support and ongoing maintenance services.",
     content: `## Included support
 
 Any post-delivery support included with a project is limited to the period and scope stated in the proposal or Client Workspace.
@@ -140,7 +140,7 @@ Support requests should include the affected service, expected behavior, actual 
     slug: "intellectual-property-source-code-policy",
     title: "Intellectual Property & Source Code Policy",
     audience: "client",
-    summary: "Starter wording for ownership, source delivery, and third-party materials.",
+    summary: "How ownership, licences, source delivery, and third-party materials are handled.",
     content: `## Project ownership
 
 Ownership and licence terms are defined by the applicable proposal or agreement. Any agreed transfer may depend on full payment and completion of stated obligations.
@@ -158,7 +158,7 @@ Source files, repositories, credentials, and documentation are provided only whe
     slug: "client-workspace-confidentiality",
     title: "Client Workspace & Confidentiality",
     audience: "client",
-    summary: "Starter expectations for workspace access and confidential project information.",
+    summary: "How Client Workspace access and confidential project information must be handled.",
     content: `## Workspace access
 
 Client Workspace access is limited to authorized project members. Users should protect login links and credentials, use individual accounts, and report suspected unauthorized access promptly.

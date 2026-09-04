@@ -44,7 +44,7 @@ export function SiteHeader() {
     const previousOverflow = document.body.style.overflow;
     const previousPaddingRight = document.body.style.paddingRight;
     const scrollbarWidth = window.innerWidth - document.documentElement.clientWidth;
-    const pageRegions = [document.querySelector("main"), document.querySelector("footer")].filter((element): element is HTMLElement => element instanceof HTMLElement);
+    const pageRegions = [document.querySelector("main"), document.querySelector("footer"), document.querySelector(".assistant")].filter((element): element is HTMLElement => element instanceof HTMLElement);
     document.body.style.overflow = "hidden";
     if (scrollbarWidth > 0) document.body.style.paddingRight = `${scrollbarWidth}px`;
     pageRegions.forEach((element) => { element.inert = true; element.setAttribute("aria-hidden", "true"); });
