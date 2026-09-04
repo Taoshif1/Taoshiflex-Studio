@@ -3,6 +3,8 @@ import Link from "next/link";
 import { site } from "@/content/site";
 import { currentVersion, getPublicPolicies } from "@/lib/policies";
 import { getStudioPresence } from "@/lib/studio-data";
+import { studioPresencePlatformLabels } from "@/lib/studio-presence";
+import { SocialPlatformIcon } from "@/components/global/social-platform-icon";
 
 const explore = [
   { href: "/work", label: "Work" },
@@ -94,9 +96,10 @@ export async function SiteFooter() {
                       target="_blank"
                       rel="noreferrer"
                       key={link.id}
+                      aria-label={`${studioPresencePlatformLabels[link.platform]} — ${link.label}`}
+                      title={`${studioPresencePlatformLabels[link.platform]} — ${link.label}`}
                     >
-                      {link.label}
-                      <span aria-hidden>&#8599;</span>
+                      <SocialPlatformIcon platform={link.platform} />
                     </a>
                   ))}
                 </div>
