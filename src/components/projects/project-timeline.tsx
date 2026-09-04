@@ -29,7 +29,7 @@ const typeLabels: Record<ProjectTimelineType, string> = {
   deliverable: "Deliverable",
 };
 
-export function ProjectTimeline({ events }: { events: ProjectTimelineEvent[] }) {
+export function ProjectTimeline({ events, helpHref }: { events: ProjectTimelineEvent[]; helpHref?: string }) {
   const [filter, setFilter] = useState<TimelineFilter>("all");
   const scroller = useRef<HTMLDivElement>(null);
   const reduceMotion = useReducedMotion();
@@ -55,6 +55,7 @@ export function ProjectTimeline({ events }: { events: ProjectTimelineEvent[] }) 
           <p className="eyebrow">Project history</p>
           <h2 id="timeline-title">Activity Timeline</h2>
           <p>Chronological progress, from earliest to latest.</p>
+          {helpHref ? <Link className="workspace-help-link" href={helpHref}>How does the timeline work?</Link> : null}
         </div>
         {events.length > 1 ? (
           <div className="timeline-controls" aria-label="Timeline controls">
