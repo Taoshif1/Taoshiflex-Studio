@@ -5,6 +5,8 @@ import { redirect } from "next/navigation";
 import { getClientAuthorization } from "@/lib/client-auth";
 import { getStudioPresence } from "@/lib/studio-data";
 import { ClientLogout } from "../client-auth-form";
+import { ClientMaintenanceBanner } from "../client-maintenance-banner";
+import { getClientWorkspaceMaintenance } from "@/lib/client-workspace-maintenance";
 import "./workspace-help.css";
 
 export const metadata: Metadata = {
@@ -31,7 +33,10 @@ const contents = [
 export default async function ClientHelpPage() {
   const authorization = await getClientAuthorization();
   if (!authorization) redirect("/client");
-  const presence = await getStudioPresence();
+  const [presence, maintenance] = await Promise.all([
+    getStudioPresence(),
+    getClientWorkspaceMaintenance(),
+  ]);
 
   return (
     <main className="client-shell client-help">
@@ -46,6 +51,7 @@ export default async function ClientHelpPage() {
           <ClientLogout />
         </div>
       </header>
+      <ClientMaintenanceBanner maintenance={maintenance}/>
 
       <div className="client-help-layout">
         <nav className="client-help-contents" aria-label="Workspace Guide contents">
