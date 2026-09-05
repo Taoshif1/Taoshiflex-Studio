@@ -5,6 +5,8 @@ import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { NotificationCenter } from "@/components/notifications/notification-center";
 import type { NotificationInbox } from "@/lib/notifications";
+import { SignOutIcon } from "@/components/ui/sign-out-icon";
+import { ToastRegion, useToasts } from "@/components/ui/toast";
 
 const items = [
   { label: "Dashboard", href: "/studio-admin", section: "dashboard" },
@@ -33,6 +35,7 @@ export function AdminNavigation({ email, inbox }: { email?: string; inbox: Notif
   const current = activeDestination(pathname, hash);
   const mobileMenu = useRef<HTMLDetailsElement>(null);
   const [signingOut, setSigningOut] = useState(false);
+  const { toasts, toast, dismiss } = useToasts();
 
   useEffect(() => {
     const syncHash = () => setHash(window.location.hash);
@@ -49,10 +52,13 @@ export function AdminNavigation({ email, inbox }: { email?: string; inbox: Notif
     if (signingOut) return;
     setSigningOut(true);
     try {
-      await fetch("/api/studio/auth", { method: "DELETE" });
-    } finally {
+      const response = await fetch("/api/studio/auth", { method: "DELETE" });
+      if (!response.ok) throw new Error("sign_out_failed");
       router.replace("/studio-admin");
       router.refresh();
+    } catch {
+      toast("error", "Sign-out could not be confirmed. Please retry.");
+      setSigningOut(false);
     }
   }
 
@@ -85,7 +91,7 @@ export function AdminNavigation({ email, inbox }: { email?: string; inbox: Notif
       <div className="admin-nav-utility">
         <Link href="/" target="_blank" rel="noreferrer">View Public Site <span aria-hidden>↗</span></Link>
         {email ? <small title={email}>{email}</small> : null}
-        <button type="button" onClick={signOut} disabled={signingOut}>{signingOut ? "Signing out…" : "Sign out"}</button>
+        <button className="admin-signout" type="button" onClick={signOut} disabled={signingOut}><SignOutIcon/><span>{signingOut ? "Signing out…" : "Sign out"}</span></button>
       </div>
     </aside>
     <details className="admin-mobile-nav" ref={mobileMenu}>
@@ -95,9 +101,10 @@ export function AdminNavigation({ email, inbox }: { email?: string; inbox: Notif
         <div className="admin-nav-utility">
           <NotificationCenter inbox={inbox}/>
           <Link href="/" target="_blank" rel="noreferrer">View Public Site <span aria-hidden>↗</span></Link>
-          <button type="button" onClick={signOut} disabled={signingOut}>{signingOut ? "Signing out…" : "Sign out"}</button>
+          <button className="admin-signout" type="button" onClick={signOut} disabled={signingOut}><SignOutIcon/><span>{signingOut ? "Signing out…" : "Sign out"}</span></button>
         </div>
       </div>
     </details>
+    <ToastRegion toasts={toasts} dismiss={dismiss}/>
   </>;
 }

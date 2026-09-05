@@ -42,7 +42,7 @@
   max-width: calc(100% - 1.5rem);
   max-height: min(41rem, calc(100svh - 5.4rem));
   max-height: min(41rem, calc(100dvh - 5.4rem));
-  grid-template-rows: auto minmax(0, 1fr) auto auto auto;
+  grid-template-rows: auto minmax(0, 1fr) auto auto auto auto;
   border: 1px solid rgba(184,144,85,.48);
   background: linear-gradient(rgba(26,25,22,.97),rgba(17,17,15,.99));
   box-shadow: 0 2rem 6rem rgba(0,0,0,.55);
@@ -148,6 +148,8 @@
   background: rgba(184,144,85,.07);
 }
 
+.assistant-thinking p { color: var(--stone); }
+
 .assistant-suggestions {
   position: relative;
   display: flex;
@@ -168,6 +170,7 @@
   font-size: 0.68rem;
   white-space: normal;
 }
+.assistant-suggestions button:disabled { cursor: not-allowed; opacity: 0.58; }
 
 .assistant-panel form {
   position: relative;
@@ -181,6 +184,15 @@
 .assistant-panel input { width: 100%; min-width: 0; flex: 1 1 auto; padding: 0.8rem; border: 1px solid var(--line); background: var(--ink); color: var(--ivory); }
 .assistant-panel form button { flex: 0 0 auto; padding: 0.65rem 0.8rem; border: 1px solid var(--gold); background: var(--gold); color: var(--ink); cursor: pointer; font-weight: 700; }
 .assistant-panel form button:disabled { border-color: var(--line); background: var(--panel); color: var(--stone); cursor: not-allowed; }
+
+.assistant-privacy {
+  position: relative;
+  margin: 0;
+  padding: 0 1.2rem 0.85rem;
+  color: var(--stone);
+  font-size: 0.66rem;
+  line-height: 1.45;
+}
 
 .assistant-panel > a {
   position: relative;

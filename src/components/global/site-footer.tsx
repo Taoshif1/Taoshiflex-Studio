@@ -36,6 +36,11 @@ export async function SiteFooter() {
               </span>
             </Link>
             <p>{site.description}</p>
+            <div className="footer-project-cta">
+              <strong>Have something worth building?</strong>
+              <p>Tell us what you&apos;re working on and we&apos;ll help shape the right scope.</p>
+              <Link href="/start-a-project">Start a Project <span aria-hidden>→</span></Link>
+            </div>
             <span className="footer-axis" aria-hidden>
               <i />
               <i />
