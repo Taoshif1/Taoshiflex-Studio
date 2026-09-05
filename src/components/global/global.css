@@ -3,9 +3,11 @@
 .wordmark{display:inline-flex;min-height:3rem;align-items:center;gap:.65rem;font-size:.88rem;font-weight:650;letter-spacing:-.02em}
 .wordmark-mark{display:block;width:1.875rem;height:auto;flex:0 0 auto;object-fit:contain}
 .wordmark-text>span,.footer-mark span{color:var(--gold)}
-.desktop-nav{display:flex;align-items:center;gap:clamp(1.1rem,2.35vw,2.65rem);font-size:.78rem;font-weight:560;letter-spacing:.075em;text-transform:uppercase}
+.desktop-nav{display:flex;align-items:center;gap:clamp(.75rem,1.35vw,1.5rem);font-size:.76rem;font-weight:560;letter-spacing:.075em;text-transform:uppercase}
 .desktop-nav>a:not(.nav-cta){color:var(--paper)}
-.nav-cta{padding:.68rem 1.05rem;border:1px solid var(--gold);letter-spacing:.065em}
+.nav-client,.nav-cta{display:inline-flex;min-height:2.65rem;align-items:center;justify-content:center;padding:.58rem .9rem;letter-spacing:.065em}
+.nav-client{border:1px solid var(--line);background:transparent}
+.nav-cta{border:1px solid var(--gold)}
 .menu-button{position:relative;z-index:calc(var(--z-navigation) + 1);display:none;min-width:3rem;min-height:3rem;padding:.75rem;border:0;background:none;cursor:pointer}
 .menu-button i{display:inline-block;width:.4rem;height:.4rem;margin-left:.6rem;border:1px solid var(--gold);transform:rotate(45deg)}
 .mobile-menu{position:fixed;z-index:var(--z-navigation);inset:0;width:100%;min-height:100svh;min-height:100dvh;padding-top:4.6rem;overflow-x:hidden;overflow-y:auto;overscroll-behavior:contain;background:var(--charcoal)}
@@ -18,8 +20,8 @@
 .footer-founder{max-width:36rem;color:var(--stone)}
 .footer nav{display:grid;gap:.6rem}
 .footer .technical{grid-column:1/-1;color:var(--stone)}
-@media(max-width:767px){.desktop-nav{display:none}.menu-button{display:block}.footer-grid{grid-template-columns:1fr}.footer .technical{grid-column:auto}}
+@media(max-width:899px){.desktop-nav{display:none}.menu-button{display:block}}@media(max-width:767px){.footer-grid{grid-template-columns:1fr}.footer .technical{grid-column:auto}}
 @media(prefers-reduced-motion:reduce){.mobile-menu{scroll-behavior:auto}}
-.desktop-nav a,.mobile-menu a{position:relative;transition:color var(--fast),border-color var(--fast),background var(--fast)}.desktop-nav a.nav-active,.mobile-menu a.nav-active{color:var(--gold)}.desktop-nav a:not(.nav-cta)::after{position:absolute;right:50%;bottom:-.62rem;left:50%;height:1px;background:var(--gold);content:"";transition:right var(--fast),left var(--fast)}.desktop-nav a:not(.nav-cta).nav-active::after{right:0;left:0}.mobile-menu a.nav-active::after{width:.45rem;height:.45rem;margin-left:auto;border:1px solid var(--gold);content:"";transform:rotate(45deg)}
-@media(hover:hover){.desktop-nav a:hover,.footer a:hover{color:var(--gold)}.desktop-nav a:not(.nav-cta):hover::after{right:0;left:0}.nav-cta:hover{background:rgba(184,144,85,.12)}}.footer a{transition:background var(--fast),color var(--fast),border-color var(--fast)}
+.desktop-nav a,.mobile-menu a{position:relative;transition:color var(--fast),border-color var(--fast),background var(--fast)}.desktop-nav a.nav-active,.mobile-menu a.nav-active{color:var(--gold)}.desktop-nav a:not(.nav-cta):not(.nav-client)::after{position:absolute;right:50%;bottom:-.62rem;left:50%;height:1px;background:var(--gold);content:"";transition:right var(--fast),left var(--fast)}.desktop-nav a:not(.nav-cta):not(.nav-client).nav-active::after{right:0;left:0}.nav-client.nav-active{border-color:var(--gold);background:rgba(184,144,85,.08)}.mobile-menu a.nav-active::after{width:.45rem;height:.45rem;margin-left:auto;border:1px solid var(--gold);content:"";transform:rotate(45deg)}
+@media(hover:hover){.desktop-nav a:hover,.footer a:hover{color:var(--gold)}.desktop-nav a:not(.nav-cta):not(.nav-client):hover::after{right:0;left:0}.nav-client:hover{border-color:rgba(184,144,85,.65);background:rgba(242,238,229,.04)}.nav-cta:hover{background:rgba(184,144,85,.12)}}.footer a{transition:background var(--fast),color var(--fast),border-color var(--fast)}
 @media(max-width:767px){.wordmark-mark{width:1.625rem;height:auto}.wordmark{gap:.55rem}}
