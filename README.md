@@ -54,7 +54,7 @@ After deploying the variables, open **Studio Admin -> Inquiry Alerts**, save the
 
 Supabase configuration prefers `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` (`sb_publishable_…`) for public/Auth requests and backend-only `SUPABASE_SECRET_KEY` (`sb_secret_…`) for privileged Data API requests. The publishable key may be exposed to browser code; the secret key must never use a `NEXT_PUBLIC_` prefix or be committed. `SUPABASE_SERVICE_ROLE_KEY` is accepted only as a transitional legacy JWT fallback.
 
-The Studio Assistant is a deliberately constrained foundation: its browser-side answers use approved pricing/process copy only and hand project-specific discussions to the persisted inquiry flow. It does not expose a model credential or claim autonomous knowledge.
+The public Studio Assistant uses Google Gemini for conversational guidance and retains its approved rule-based responses as a resilient fallback. Configure server-only `GEMINI_API_KEY` and optionally `GEMINI_MODEL` (defaults to `gemini-3.5-flash-lite`). The API key must never use a `NEXT_PUBLIC_` prefix. The server rebuilds a bounded context from public Studio identity, services, active packages, published projects, public policies, and public Studio Presence; it never sends Client Workspace, inquiry, billing, payment, Admin, SMTP, auth, or analytics data to Gemini. Requests are size/rate limited and provider calls have a bounded timeout.
 
 ## Client Workspace
 

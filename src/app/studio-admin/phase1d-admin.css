@@ -81,7 +81,7 @@
 }
 .admin-nav-utility a,
 .admin-nav-utility button {
-  min-height: 2.6rem;
+  min-height: 2.75rem;
   padding: 0.65rem 0.75rem;
   border: 1px solid var(--line);
   background: transparent;
@@ -91,6 +91,9 @@
   text-align: left;
   cursor: pointer;
 }
+.admin-nav-utility .admin-signout { display: inline-flex; align-items: center; gap: 0.55rem; }
+.admin-signout svg { width: 1rem; height: 1rem; flex: 0 0 auto; }
+.admin-signout:focus-visible { outline: 2px solid var(--gold); outline-offset: 3px; }
 .admin-nav-utility small {
   overflow: hidden;
   padding-inline: 0.75rem;
@@ -98,6 +101,12 @@
   text-overflow: ellipsis;
   white-space: nowrap;
 }
+.assistant-readiness { display: flex; align-items: center; gap: 0.8rem; margin: 1.25rem 0; padding: 0.9rem 1rem; border: 1px solid var(--line); background: rgba(17,17,15,.42); }
+.assistant-readiness > span { width: 0.55rem; height: 0.55rem; flex: 0 0 auto; border-radius: 50%; background: var(--stone); }
+.assistant-readiness.is-configured > span { background: var(--gold); box-shadow: 0 0 0 0.25rem rgba(184,144,85,.12); }
+.assistant-readiness > div { display: grid; gap: 0.15rem; min-width: 0; }
+.assistant-readiness strong { color: var(--paper); font-size: 0.78rem; }
+.assistant-readiness small { color: var(--stone); overflow-wrap: anywhere; }
 .admin-mobile-nav { display: none; }
 .admin-breadcrumbs { margin-bottom: 1.5rem; color: var(--stone); }
 .admin-breadcrumbs ol { display: flex; flex-wrap: wrap; gap: 0.45rem; margin: 0; padding: 0; list-style: none; }

@@ -14,6 +14,8 @@ import {
   type StudioDashboardViewModel,
 } from "@/lib/studio-dashboard";
 import { StudioDashboard } from "./studio-dashboard";
+import { getGeminiReadiness } from "@/lib/gemini-studio-assistant";
+import { DEFAULT_GEMINI_MODEL } from "@/lib/gemini-config";
 
 export const metadata:Metadata={title:"Studio Admin",robots:{index:false,follow:false}};
 type Row=Record<string,unknown>;
@@ -67,5 +69,6 @@ export default async function StudioAdminPage(){
     }
   }
   const alertReadiness=user?getStudioAlertReadiness():{email:false};
-  return <StudioConsole configured={configured} email={user?.email} projects={projects} inquiries={inquiries} packages={packages} settings={settings} attention={attention} alertReadiness={alertReadiness} dashboard={user?<StudioDashboard data={dashboard}/>:undefined}/>;
+  const aiReadiness=user?getGeminiReadiness():{configured:false,model:DEFAULT_GEMINI_MODEL};
+  return <StudioConsole configured={configured} email={user?.email} projects={projects} inquiries={inquiries} packages={packages} settings={settings} attention={attention} alertReadiness={alertReadiness} aiReadiness={aiReadiness} dashboard={user?<StudioDashboard data={dashboard}/>:undefined}/>;
 }
