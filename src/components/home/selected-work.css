@@ -1,4 +1,5 @@
 .project-scene { background: var(--ivory); }
+.project-cover-media{aspect-ratio:16/10}
 @media (min-width: 768px) { .work-section .work-heading{margin-bottom:clamp(.75rem,1.3vw,1.25rem)}.work-section .work-stage{gap:clamp(1rem,2vw,2rem)}.work-section .project-scene { position:relative;min-height:auto;padding-block:clamp(1.5rem,2.4vw,2.5rem); } }
 .work-stage>.empty-state{max-width:42rem;margin:0;padding:clamp(2rem,6vw,5rem);border:1px solid var(--line);color:var(--stone);font-size:clamp(1.1rem,2vw,1.5rem)}
 .work-section{background:radial-gradient(circle at 12% 22%,rgba(184,144,85,.12),transparent 25%),linear-gradient(145deg,#f5f1e9,var(--ivory) 62%,#e9e1d4)}.project-scene{position:relative}.project-scene::after{position:absolute;right:-4%;bottom:-8%;width:35%;height:35%;background:radial-gradient(circle,color-mix(in srgb,var(--accent,#b89055) 14%,transparent),transparent 68%);content:"";pointer-events:none}

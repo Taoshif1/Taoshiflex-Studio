@@ -104,6 +104,8 @@ function ProjectScene({
       <motion.div style={reduce ? undefined : { scale }}>
         <ResponsiveMedia
           accent={project.accent}
+          className="project-cover-media"
+          fit="contain"
           label={project.name}
           media={project.coverMedia}
         />
