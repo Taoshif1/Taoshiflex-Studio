@@ -63,6 +63,7 @@ export function PasswordField({
         />
         <button
           className={styles.toggle}
+          data-password-toggle
           type="button"
           aria-label={visible ? "Hide password" : "Show password"}
           aria-pressed={visible}

@@ -24,10 +24,10 @@ const visibilityOf=(project:Row):Visibility=>project.published?(project.featured
 
 async function request(url:string,init?:RequestInit){const response=await fetch(url,init);const value=await response.json().catch(()=>({})) as {error?:string};if(!response.ok)throw new Error(value.error||"Request failed.");return value}
 
-export function StudioConsole(props:{configured:boolean;email?:string;projects:Row[];inquiries:InquiryRecord[];packages:Row[];settings:Row[];attention:AttentionItem[];alertReadiness:{email:boolean}}){
+export function StudioConsole(props:{configured:boolean;email?:string;projects:Row[];inquiries:InquiryRecord[];packages:Row[];settings:Row[];attention:AttentionItem[];alertReadiness:{email:boolean};dashboard?:React.ReactNode}){
   const router=useRouter(),pendingRef=useRef(new Set<string>()),[pending,setPending]=useState<Set<string>>(()=>new Set()),[repos,setRepos]=useState<Repo[]>([]);
   const {toasts,toast,dismiss}=useToasts();
-  const {configured,email,projects,inquiries,packages,settings,attention,alertReadiness}=props;
+  const {configured,email,projects,inquiries,packages,settings,attention,alertReadiness,dashboard}=props;
   async function mutate(key:string,url:string,method:string,body:unknown,message:string,formData=false){if(pendingRef.current.has(key))return false;pendingRef.current.add(key);setPending(current=>new Set(current).add(key));try{await request(url,{method,headers:formData?undefined:jsonHeaders,body:formData?body as FormData:JSON.stringify(body)});toast("success",message);router.refresh();return true}catch(error){toast("error",error instanceof Error?error.message:"The operation failed.");return false}finally{pendingRef.current.delete(key);setPending(current=>{const next=new Set(current);next.delete(key);return next})}}
   async function login(form:FormData){await mutate("login","/api/studio/auth","POST",{email:form.get("email"),password:form.get("password")},"Signed in")}
   async function loadRepos(){if(pendingRef.current.has("github"))return;pendingRef.current.add("github");setPending(current=>new Set(current).add("github"));try{const value=await request("/api/studio/github") as {repositories?:Repo[]};setRepos(value.repositories??[]);toast("info","Repositories refreshed")}catch(error){toast("error",error instanceof Error?error.message:"GitHub could not be loaded.")}finally{pendingRef.current.delete("github");setPending(current=>{const next=new Set(current);next.delete("github");return next})}}
@@ -37,6 +37,7 @@ export function StudioConsole(props:{configured:boolean;email?:string;projects:R
   const presence=settings.find(item=>item.key==="studio_presence")?.value;
   const alerts=settings.find(item=>item.key==="studio_alerts")?.value;
   return <main className="admin-shell"><header className="admin-head"><div><p className="eyebrow">Private / Studio Admin</p><h1>Studio workspace</h1><p>Content, visibility, media and commercial settings.</p></div></header><div className="admin-workspace">
+    {dashboard}
     <NeedsAttention items={attention}/>
     <section id="projects"><SectionTitle eyebrow="Editorial control" title="Projects" meta={`${projects.length} records`}/><div className="editor-stack">{projects.map(project=><ProjectEditor key={String(project.id)} project={project} pending={pending} mutate={mutate}/>)}</div></section>
     <section id="github"><SectionTitle eyebrow="Source to private draft" title="GitHub curation" meta="Admin only"/><p className="section-intro">Imports always begin as Draft with repository visibility hidden. Editorial review remains deliberate.</p><button disabled={pending.has("github")} onClick={loadRepos}>{pending.has("github")?"Loading…":"Load repositories"}</button><div className="repo-grid">{repos.map(repo=><article key={repo.id}><small>{repo.private?"Private":"Public"} / {repo.language||"Unspecified"}</small><h3>{repo.name}</h3><p>{repo.description||"No repository description."}</p><button disabled={pending.has(`repo:${repo.id}`)} onClick={()=>mutate(`repo:${repo.id}`,"/api/studio/github","POST",{id:repo.id},`${repo.name} added as a Draft`)}>Curate as draft</button></article>)}</div></section>

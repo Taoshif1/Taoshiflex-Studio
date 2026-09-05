@@ -3,6 +3,7 @@
 import { FormEvent, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { PasswordField } from "@/components/ui/password-field";
+import { ToastRegion, useToasts } from "@/components/ui/toast";
 import { createClient } from "@/lib/supabase/client";
 
 const genericSignInError = "Email or password is incorrect.";
@@ -17,6 +18,7 @@ export function ClientAuthForm() {
   const [password, setPassword] = useState("");
   const [pending, setPending] = useState(false);
   const [message, setMessage] = useState("");
+  const { toasts, toast, dismiss } = useToasts();
 
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -35,6 +37,7 @@ export function ClientAuthForm() {
       router.refresh();
     } catch {
       setMessage(genericSignInError);
+      toast("error", genericSignInError);
       pendingRef.current = false;
       setPending(false);
     }
@@ -45,9 +48,13 @@ export function ClientAuthForm() {
     if (pendingRef.current) return;
     if (!normalizedEmail) {
       setMessage("Enter your email address first.");
+      toast("error", "Enter your email address first.");
       return;
     }
-    if (!emailInputRef.current?.reportValidity()) return;
+    if (!emailInputRef.current?.reportValidity()) {
+      toast("error", "Enter a valid email address.");
+      return;
+    }
 
     pendingRef.current = true;
     setPending(true);
@@ -58,8 +65,10 @@ export function ClientAuthForm() {
       const redirectTo = `${location.origin}/client/recovery`;
       await supabase.auth.resetPasswordForEmail(normalizedEmail, { redirectTo });
       setMessage(genericRecoveryMessage);
+      toast("info", genericRecoveryMessage);
     } catch {
       setMessage(genericRecoveryMessage);
+      toast("info", genericRecoveryMessage);
     } finally {
       pendingRef.current = false;
       setPending(false);
@@ -67,7 +76,7 @@ export function ClientAuthForm() {
   }
 
   return (
-    <form className="client-auth-form" onSubmit={submit} aria-busy={pending}>
+    <><form className="client-auth-form" onSubmit={submit} aria-busy={pending}>
       <label>
         Email address
         <input
@@ -102,7 +111,7 @@ export function ClientAuthForm() {
       >
         Forgot password?
       </button>
-    </form>
+    </form><ToastRegion toasts={toasts} dismiss={dismiss} /></>
   );
 }
 
@@ -110,6 +119,7 @@ export function ClientLogout() {
   const router = useRouter();
   const [pending, setPending] = useState(false);
   const [message, setMessage] = useState("");
+  const { toasts, toast, dismiss } = useToasts();
 
   async function logout() {
     if (pending) return;
@@ -127,11 +137,11 @@ export function ClientLogout() {
       router.replace("/client");
       router.refresh();
     } catch (error) {
-      setMessage(
-        error instanceof Error
-          ? error.message
-          : "Sign-out could not be confirmed. Please retry.",
-      );
+      const failure = error instanceof Error
+        ? error.message
+        : "Sign-out could not be confirmed. Please retry.";
+      setMessage(failure);
+      toast("error", failure);
       setPending(false);
     }
   }
@@ -146,6 +156,7 @@ export function ClientLogout() {
           {message}
         </p>
       ) : null}
+      <ToastRegion toasts={toasts} dismiss={dismiss} />
     </div>
   );
 }
