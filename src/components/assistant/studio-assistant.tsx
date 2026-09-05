@@ -73,7 +73,8 @@ export function StudioAssistant({ settings, packages }: { settings: AssistantSet
 
     setMessages((current) => {
       const next: PublicAssistantMessage[] = [...current, { role: "assistant", text: reply }];
-      return next.slice(-Math.max(2, settings.maximumMessages + 1));
+      const [greeting, ...conversation] = next;
+      return [greeting, ...conversation.slice(-Math.max(2, settings.maximumMessages))];
     });
   }
 
