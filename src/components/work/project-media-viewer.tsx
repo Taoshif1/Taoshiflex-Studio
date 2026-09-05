@@ -7,7 +7,7 @@ import { ResponsiveMedia } from "@/components/ui/primitives";
 import type { ProjectMedia } from "@/types/content";
 import styles from "./project-media-viewer.module.css";
 
-const formatIndex = (index: number) => String(index + 1).padStart(2, "0");
+const formatNumber = (value: number) => String(value).padStart(2, "0");
 
 export function ProjectMediaViewer({
   accent,
@@ -43,6 +43,7 @@ export function ProjectMediaViewer({
       onKeyDown={handleKeyDown}
       style={{ "--viewer-accent": accent } as CSSProperties}
       tabIndex={0}
+      role="region"
       aria-label={`${projectName} project media viewer. Use left and right arrow keys to change images.`}
     >
       <div className={styles.stage}>
@@ -71,16 +72,16 @@ export function ProjectMediaViewer({
         <div className={styles.controls}>
           <button type="button" onClick={selectPrevious}>Previous</button>
           <p className={styles.counter} aria-live="polite" aria-atomic="true">
-            <span className="sr-only">Image </span>{formatIndex(activeIndex)}
+            <span className="sr-only">Image </span>{formatNumber(activeIndex + 1)}
             <span aria-hidden="true"> / </span>
-            <span className="sr-only"> of </span>{formatIndex(total)}
+            <span className="sr-only"> of </span>{formatNumber(total)}
           </p>
           <button type="button" onClick={selectNext}>Next</button>
         </div>
       ) : null}
 
       {total > 1 ? (
-        <div className={styles.thumbnailRail} aria-label={`${projectName} media thumbnails`}>
+        <div className={styles.thumbnailRail} role="group" aria-label={`${projectName} media thumbnails`}>
           {media.map((item, index) => {
           const isActive = index === activeIndex;
           const label = item.alt || `${projectName} project image`;
@@ -107,7 +108,7 @@ export function ProjectMediaViewer({
                   <span className={styles.thumbnailPlaceholder} aria-hidden="true" />
                 )}
               </span>
-              <span className={styles.thumbnailNumber} aria-hidden="true">{formatIndex(index)}</span>
+              <span className={styles.thumbnailNumber} aria-hidden="true">{formatNumber(index + 1)}</span>
             </button>
           );
           })}

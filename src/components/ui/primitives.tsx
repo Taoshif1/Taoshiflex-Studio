@@ -34,7 +34,7 @@ export function ResponsiveMedia({
       style={{ "--accent": accent, "--media-ratio": `${width}/${height}` } as CSSProperties}
     >
       {media?.src ? (
-        <Image unoptimized src={media.src} alt={media.alt || label} width={width} height={height} sizes={sizes} priority={priority} />
+        <Image unoptimized src={media.src} alt={media.alt || label} width={width} height={height} sizes={sizes} preload={priority} />
       ) : (
         <div className="media-ui" role="img" aria-label={label}>
           <span className="technical">Media slot / {label}</span>
