@@ -76,11 +76,34 @@
 .client-code-button,
 .client-logout {
   min-height: 2.8rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.55rem;
+  padding: 0.65rem 0.9rem;
   border: 1px solid var(--line);
   background: transparent;
   color: var(--paper);
   cursor: pointer;
 }
+.client-logout svg { width: 1rem; height: 1rem; flex: 0 0 auto; }
+.client-logout:focus-visible { outline: 2px solid var(--gold); outline-offset: 3px; }
+.client-welcome-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 2rem;
+  margin-top: var(--section-compact);
+  padding: clamp(1.2rem, 3vw, 2rem);
+  border: 1px solid rgba(184, 144, 85, 0.42);
+  background: linear-gradient(110deg, rgba(184, 144, 85, 0.08), rgba(35, 33, 29, 0.55));
+}
+.client-welcome-card h2,
+.client-welcome-card p { margin: 0; }
+.client-welcome-card h2 { margin-top: 0.35rem; font-family: var(--font-display); font-size: clamp(1.8rem, 3vw, 2.7rem); font-weight: 400; }
+.client-welcome-card p:last-child { max-width: 48rem; margin-top: 0.45rem; color: var(--stone); }
+.client-welcome-actions { display: flex; flex: 0 0 auto; gap: 0.6rem; flex-wrap: wrap; }
+.client-welcome-actions .action { min-height: 2.8rem; }
 .client-sent-state {
   display: grid;
   gap: 0.6rem;
@@ -406,6 +429,7 @@
   border: 1px dashed var(--line);
 }
 @media (hover: hover) {
+  .client-logout:hover { border-color: var(--gold); background: rgba(184, 144, 85, 0.08); color: var(--gold); }
   .client-project-card:hover {
     border-color: rgba(184, 144, 85, 0.7);
     transform: translateY(-2px);
@@ -413,6 +437,9 @@
   .project-jump-links a:hover{border-color:rgba(184,144,85,.65);color:var(--gold);transform:translateY(-1px)}
 }
 @media (max-width: 767px) {
+  .client-welcome-card { align-items: flex-start; flex-direction: column; }
+  .client-welcome-actions { width: 100%; }
+  .client-welcome-actions .action { flex: 1 1 auto; justify-content: center; }
   .client-shell {
     padding-inline: 1rem;
   }

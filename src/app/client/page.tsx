@@ -9,8 +9,9 @@ import { supabaseRest } from "@/lib/supabase-rest";
 import { ClientAuthForm, ClientLogout } from "./client-auth-form";
 import { NotificationCenter } from "@/components/notifications/notification-center";
 import { loadNotificationInbox } from "@/lib/notifications";
+import { ClientWelcome } from "./client-welcome";
 
-export default async function ClientPage() {
+export default async function ClientPage({ searchParams }: { searchParams: Promise<{ welcome?: string }> }) {
   const authorization = await getClientAuthorization();
   if (!authorization) {
     return (
@@ -65,7 +66,7 @@ export default async function ClientPage() {
         </div>
         <div className="client-head-actions"><Link className="action" href="/client/help">Workspace Guide</Link><Link className="action" href="/client/policies">Policies</Link><NotificationCenter inbox={inbox}/><ClientLogout /></div>
       </header>
-      <section className="client-guide-card" aria-labelledby="client-guide-title"><div><p className="eyebrow">New to the Client Workspace?</p><h2 id="client-guide-title">Know what to expect.</h2><p>Learn how progress, reviews, files, feedback and payments work.</p></div><Link className="action action-solid" href="/client/help">View Workspace Guide</Link></section>
+      <ClientWelcome initiallyVisible={(await searchParams).welcome === "1"} />
       <ProjectGroup title="Active projects" projects={active} unreadProjectCounts={inbox.unreadProjectCounts} />
       <ProjectGroup title="Completed projects" projects={completed} unreadProjectCounts={inbox.unreadProjectCounts} />
       {!projects.length ? (

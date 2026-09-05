@@ -3,6 +3,7 @@
 import { FormEvent, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { PasswordField } from "@/components/ui/password-field";
+import { SignOutIcon } from "@/components/ui/sign-out-icon";
 import { ToastRegion, useToasts } from "@/components/ui/toast";
 import { createClient } from "@/lib/supabase/client";
 
@@ -33,7 +34,7 @@ export function ClientAuthForm() {
         password,
       });
       if (error || !data.session) throw new Error(genericSignInError);
-      router.replace("/client");
+      router.replace("/client?welcome=1");
       router.refresh();
     } catch {
       setMessage(genericSignInError);
@@ -148,8 +149,9 @@ export function ClientLogout() {
 
   return (
     <div>
-      <button className="client-logout" disabled={pending} onClick={logout}>
-        {pending ? "Signing out..." : "Sign out"}
+      <button type="button" className="client-logout" disabled={pending} onClick={logout}>
+        <SignOutIcon />
+        <span>{pending ? "Signing out..." : "Sign out"}</span>
       </button>
       {message ? (
         <p className="client-form-note" role="alert">
