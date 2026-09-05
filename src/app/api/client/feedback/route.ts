@@ -7,6 +7,7 @@ import {
   type FeedbackTargetType,
 } from "@/lib/client-projects";
 import { supabaseRest } from "@/lib/supabase-rest";
+import { requireClientWorkspaceWritable } from "@/lib/client-workspace-maintenance";
 
 const uuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 const targetTables: Record<Exclude<FeedbackTargetType, "project">, string> = {
@@ -44,6 +45,8 @@ export async function POST(request: Request) {
   if (!authorization) {
     return Response.json({ error: "Authentication required." }, { status: 401 });
   }
+  const maintenance = await requireClientWorkspaceWritable();
+  if (maintenance) return maintenance;
 
   const body = (await request.json().catch(() => null)) as FeedbackRequest | null;
   const projectId = body?.projectId;

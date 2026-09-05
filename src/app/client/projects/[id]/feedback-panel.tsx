@@ -16,10 +16,12 @@ type Props = {
   targetType: FeedbackTargetType;
   targetId: string | null;
   feedback: ProjectFeedback[];
+  readOnly?: boolean;
+  maintenanceMessage?: string;
 };
 type ComposeMode = Extract<FeedbackIntent, "changes_requested" | "comment"> | null;
 
-export function FeedbackPanel({ projectId, targetType, targetId, feedback }: Props) {
+export function FeedbackPanel({ projectId, targetType, targetId, feedback, readOnly = false, maintenanceMessage }: Props) {
   const router = useRouter();
   const pendingRef = useRef(false);
   const [pending, setPending] = useState(false);
@@ -27,7 +29,7 @@ export function FeedbackPanel({ projectId, targetType, targetId, feedback }: Pro
   const [notice, setNotice] = useState("");
 
   async function submit(intent: FeedbackIntent, message = "") {
-    if (pendingRef.current) return;
+    if (pendingRef.current || readOnly) return;
     pendingRef.current = true;
     setPending(true);
     setNotice("");
@@ -64,11 +66,12 @@ export function FeedbackPanel({ projectId, targetType, targetId, feedback }: Pro
         <span>{feedback.length ? `${feedback.length} ${feedback.length === 1 ? "response" : "responses"}` : "Share your review"}</span>
       </div>
       <div className="feedback-actions" aria-label="Feedback options">
-        <button type="button" disabled={pending} onClick={() => void submit("looks_good")}>Looks good</button>
-        <button type="button" disabled={pending} onClick={() => { setNotice(""); setMode("changes_requested"); }}>Request changes</button>
-        <button type="button" disabled={pending} onClick={() => { setNotice(""); setMode("comment"); }}>Leave a comment</button>
+        <button type="button" disabled={pending || readOnly} onClick={() => void submit("looks_good")}>Looks good</button>
+        <button type="button" disabled={pending || readOnly} onClick={() => { setNotice(""); setMode("changes_requested"); }}>Request changes</button>
+        <button type="button" disabled={pending || readOnly} onClick={() => { setNotice(""); setMode("comment"); }}>Leave a comment</button>
       </div>
-      {mode ? (
+      {readOnly ? <p className="feedback-read-only">{maintenanceMessage || "Feedback and project decisions are temporarily paused."}</p> : null}
+      {mode && !readOnly ? (
         <form className="feedback-compose" onSubmit={sendWrittenFeedback}>
           <label htmlFor={`feedback-${targetType}-${targetId ?? projectId}`}>
             {mode === "changes_requested" ? "What would you like changed?" : "Leave a comment"}

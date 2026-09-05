@@ -400,3 +400,91 @@
     padding: 1rem;
   }
 }
+
+.admin-workspace > #projects,
+.admin-workspace > #github,
+.admin-workspace > #pricing-admin,
+.admin-workspace > #inquiries,
+.admin-workspace > #inquiry-alerts,
+.admin-workspace > #studio-presence-admin,
+.admin-workspace > #assistant-admin {
+  display: none;
+}
+.admin-view-projects #projects,
+.admin-view-github #github,
+.admin-view-pricing #pricing-admin,
+.admin-view-alerts #inquiry-alerts,
+.admin-view-presence #studio-presence-admin,
+.admin-view-assistant #assistant-admin {
+  display: block;
+}
+.admin-overview {
+  padding-block: var(--section-compact);
+  border-bottom: 1px solid var(--line);
+}
+.admin-overview-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.75rem;
+}
+.admin-overview-grid article {
+  display: grid;
+  min-width: 0;
+  gap: 0.75rem;
+  padding: 1.2rem;
+  border: 1px solid var(--line);
+  background: rgba(35, 33, 29, 0.52);
+}
+.admin-overview-grid h3,
+.admin-overview-grid p { margin: 0; }
+.admin-overview-grid h3 { font-size: 1rem; }
+.admin-overview-grid p { color: var(--stone); font-size: 0.78rem; }
+.admin-overview-grid a {
+  align-self: end;
+  color: var(--gold);
+  font-size: 0.7rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+.maintenance-form { max-width: 58rem; }
+.maintenance-state {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.9rem;
+  padding: 1rem;
+  border: 1px solid var(--line);
+}
+.maintenance-state > span {
+  width: 0.65rem;
+  height: 0.65rem;
+  flex: 0 0 auto;
+  margin-top: 0.25rem;
+  border-radius: 50%;
+  background: #78b58c;
+}
+.maintenance-state > span.is-maintenance { background: var(--gold); }
+.maintenance-state p,
+.maintenance-state strong { margin: 0; }
+.maintenance-state div { display: grid; gap: 0.35rem; }
+.maintenance-state div > p:last-child { color: var(--stone); }
+.maintenance-toggle,
+.maintenance-confirm {
+  display: flex !important;
+  min-height: 3rem;
+  align-items: flex-start;
+  gap: 0.75rem;
+  padding: 1rem;
+  border: 1px solid var(--line);
+}
+.maintenance-toggle input,
+.maintenance-confirm input {
+  width: 1.2rem !important;
+  min-height: 1.2rem !important;
+  margin-top: 0.1rem;
+  accent-color: var(--gold);
+}
+.maintenance-toggle span { display: grid; gap: 0.25rem; }
+.maintenance-toggle small { color: var(--stone); }
+@media (max-width: 700px) {
+  .admin-overview-grid { grid-template-columns: 1fr; }
+}

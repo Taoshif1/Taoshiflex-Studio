@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { useEffect, useRef, useState } from "react";
+import { useRef, useState } from "react";
 import { NotificationCenter } from "@/components/notifications/notification-center";
 import type { NotificationInbox } from "@/lib/notifications";
 import { SignOutIcon } from "@/components/ui/sign-out-icon";
@@ -10,43 +10,31 @@ import { ToastRegion, useToasts } from "@/components/ui/toast";
 
 const items = [
   { label: "Dashboard", href: "/studio-admin", section: "dashboard" },
-  { label: "Projects", href: "/studio-admin#projects", section: "dashboard" },
+  { label: "Public Projects", href: "/studio-admin/projects", section: "projects" },
   { label: "Inquiries", href: "/studio-admin/inquiries", section: "inquiries" },
   { label: "Client Projects", href: "/studio-admin/client-projects", section: "client-projects" },
+  { label: "Pricing", href: "/studio-admin/pricing", section: "pricing" },
   { label: "Policies", href: "/studio-admin/policies", section: "policies" },
-  { label: "Pricing", href: "/studio-admin#pricing-admin", section: "dashboard" },
-  { label: "GitHub", href: "/studio-admin#github", section: "dashboard" },
-  { label: "Assistant", href: "/studio-admin#assistant-admin", section: "dashboard" },
+  { label: "GitHub", href: "/studio-admin/github", section: "github" },
+  { label: "Settings", href: "/studio-admin/settings", section: "settings" },
 ] as const;
 
-function activeDestination(pathname: string, hash: string) {
-  if (pathname.startsWith("/studio-admin/inquiries")) return "/studio-admin/inquiries";
-  if (pathname.startsWith("/studio-admin/client-projects")) return "/studio-admin/client-projects";
-  if (pathname.startsWith("/studio-admin/policies")) return "/studio-admin/policies";
-  if (pathname !== "/studio-admin") return "";
-  const hashDestination = items.find((item) => item.href === "/studio-admin" + hash);
-  return hashDestination?.href ?? "/studio-admin";
+function activeDestination(pathname: string) {
+  const destination = items.find((item) =>
+    item.href === "/studio-admin"
+      ? pathname === item.href
+      : pathname === item.href || pathname.startsWith(item.href + "/"),
+  );
+  return destination?.href ?? "";
 }
 
 export function AdminNavigation({ email, inbox }: { email?: string; inbox: NotificationInbox }) {
   const pathname = usePathname();
   const router = useRouter();
-  const [hash, setHash] = useState("");
-  const current = activeDestination(pathname, hash);
+  const current = activeDestination(pathname);
   const mobileMenu = useRef<HTMLDetailsElement>(null);
   const [signingOut, setSigningOut] = useState(false);
   const { toasts, toast, dismiss } = useToasts();
-
-  useEffect(() => {
-    const syncHash = () => setHash(window.location.hash);
-    syncHash();
-    window.addEventListener("hashchange", syncHash);
-    window.addEventListener("popstate", syncHash);
-    return () => {
-      window.removeEventListener("hashchange", syncHash);
-      window.removeEventListener("popstate", syncHash);
-    };
-  }, [pathname]);
 
   async function signOut() {
     if (signingOut) return;
@@ -75,8 +63,6 @@ export function AdminNavigation({ email, inbox }: { email?: string; inbox: Notif
         ? clientProjectUnread
         : 0;
     return <Link key={item.label} href={item.href} aria-current={isActive ? "page" : undefined} onClick={() => {
-      const itemHash = item.href.split("#")[1];
-      setHash(itemHash ? "#" + itemHash : "");
       mobileMenu.current?.removeAttribute("open");
     }}><span>{item.label}</span>{unread ? <strong className="admin-nav-count" aria-label={unread + " unread"}>{unread}</strong> : null}</Link>;
   });

@@ -10,12 +10,25 @@ import { type InquiryRecord } from "@/lib/inquiries";
 import { InquiryView } from "./inquiry-view";
 import { StudioPresenceForm } from "./studio-presence-form";
 import { InquiryAlertSettings } from "./inquiry-alert-settings";
+import { WorkspaceMaintenanceForm } from "./workspace-maintenance-form";
 
 type Row=Record<string,unknown>;
 type Repo={id:number;name:string;description:string|null;private:boolean;language:string|null};
 type Visibility="draft"|"published"|"featured";
 type MediaRow={id:string;storage_path:string;alt:string;role?:"cover"|"gallery";sort_order:number;metadata?:Row};
 type AttentionItem={id:string;title:string;message:string;href:string;createdAt:string;type:string};
+export type AdminOverviewSummary={
+  projects:{total:number;published:number;featured:number;draft:number};
+  inquiries:{total:number;newCount:number};
+  clientProjects:{total:number;active:number};
+  pricing:{total:number;active:number};
+  policies:{total:number;published:number};
+  presenceConfigured:boolean;
+  alertsEnabled:boolean;
+  assistantEnabled:boolean;
+  maintenanceEnabled:boolean;
+};
+type StudioConsoleView="overview"|"projects"|"pricing"|"github"|"presence"|"alerts"|"assistant"|"maintenance";
 const jsonHeaders={"Content-Type":"application/json"};
 const lines=(value:FormDataEntryValue|null)=>String(value??"").split("\n").map(item=>item.trim()).filter(Boolean);
 const field=(form:FormData,name:string)=>String(form.get(name)??"").trim();
@@ -24,10 +37,10 @@ const visibilityOf=(project:Row):Visibility=>project.published?(project.featured
 
 async function request(url:string,init?:RequestInit){const response=await fetch(url,init);const value=await response.json().catch(()=>({})) as {error?:string};if(!response.ok)throw new Error(value.error||"Request failed.");return value}
 
-export function StudioConsole(props:{configured:boolean;email?:string;projects:Row[];inquiries:InquiryRecord[];packages:Row[];settings:Row[];attention:AttentionItem[];alertReadiness:{email:boolean};aiReadiness:{configured:boolean;model:string};dashboard?:React.ReactNode}){
+export function StudioConsole(props:{configured:boolean;email?:string;view?:StudioConsoleView;projects?:Row[];inquiries?:InquiryRecord[];packages?:Row[];settings?:Row[];attention?:AttentionItem[];alertReadiness?:{email:boolean};aiReadiness?:{configured:boolean;model:string};dashboard?:React.ReactNode;overview?:AdminOverviewSummary}){
   const router=useRouter(),pendingRef=useRef(new Set<string>()),[pending,setPending]=useState<Set<string>>(()=>new Set()),[repos,setRepos]=useState<Repo[]>([]);
   const {toasts,toast,dismiss}=useToasts();
-  const {configured,email,projects,inquiries,packages,settings,attention,alertReadiness,aiReadiness,dashboard}=props;
+  const {configured,email,view="overview",projects=[],inquiries=[],packages=[],settings=[],attention=[],alertReadiness={email:false},aiReadiness={configured:false,model:""},dashboard,overview}=props;
   async function mutate(key:string,url:string,method:string,body:unknown,message:string,formData=false){if(pendingRef.current.has(key))return false;pendingRef.current.add(key);setPending(current=>new Set(current).add(key));try{await request(url,{method,headers:formData?undefined:jsonHeaders,body:formData?body as FormData:JSON.stringify(body)});toast("success",message);router.refresh();return true}catch(error){toast("error",error instanceof Error?error.message:"The operation failed.");return false}finally{pendingRef.current.delete(key);setPending(current=>{const next=new Set(current);next.delete(key);return next})}}
   async function login(form:FormData){await mutate("login","/api/studio/auth","POST",{email:form.get("email"),password:form.get("password")},"Signed in")}
   async function loadRepos(){if(pendingRef.current.has("github"))return;pendingRef.current.add("github");setPending(current=>new Set(current).add("github"));try{const value=await request("/api/studio/github") as {repositories?:Repo[]};setRepos(value.repositories??[]);toast("info","Repositories refreshed")}catch(error){toast("error",error instanceof Error?error.message:"GitHub could not be loaded.")}finally{pendingRef.current.delete("github");setPending(current=>{const next=new Set(current);next.delete("github");return next})}}
@@ -36,10 +49,22 @@ export function StudioConsole(props:{configured:boolean;email?:string;projects:R
   const assistant=(settings.find(item=>item.key==="assistant")?.value??{}) as Row;
   const presence=settings.find(item=>item.key==="studio_presence")?.value;
   const alerts=settings.find(item=>item.key==="studio_alerts")?.value;
-  return <main className="admin-shell"><header className="admin-head"><div><p className="eyebrow">Private / Studio Admin</p><h1>Studio workspace</h1><p>Content, visibility, media and commercial settings.</p></div></header><div className="admin-workspace">
-    {dashboard}
-    <NeedsAttention items={attention}/>
-    <section id="projects"><SectionTitle eyebrow="Editorial control" title="Projects" meta={`${projects.length} records`}/><div className="editor-stack">{projects.map(project=><ProjectEditor key={String(project.id)} project={project} pending={pending} mutate={mutate}/>)}</div></section>
+  const maintenance=settings.find(item=>item.key==="client_workspace_maintenance")?.value;
+  const headings:Record<StudioConsoleView,{eyebrow:string;title:string;copy:string}>={
+    overview:{eyebrow:"Private / Studio Admin",title:"Studio overview",copy:"Business health, operational attention, and focused routes into every Studio control."},
+    projects:{eyebrow:"Editorial control",title:"Public Projects",copy:"Curate public case studies, visibility, links, and media."},
+    pricing:{eyebrow:"Commercial system",title:"Pricing",copy:"Manage public packages, features, estimates, revisions, and support."},
+    github:{eyebrow:"Source curation",title:"GitHub / Repository Import",copy:"Review repositories and create private project drafts."},
+    presence:{eyebrow:"Public contact system",title:"Studio Presence",copy:"Manage public contact, booking, and social links."},
+    alerts:{eyebrow:"Operational delivery",title:"Inquiry Alerts",copy:"Configure private notification delivery for new project inquiries."},
+    assistant:{eyebrow:"AI guidance + resilient fallback",title:"Studio Assistant",copy:"Control public guidance, knowledge categories, and provider readiness."},
+    maintenance:{eyebrow:"Client operations",title:"Client Workspace Maintenance",copy:"Temporarily pause Client business actions while keeping project information readable."},
+  };
+  const heading=headings[view];
+  if(view==="overview")return <main className="admin-shell admin-view-overview"><header className="admin-head"><div><p className="eyebrow">{heading.eyebrow}</p><h1>{heading.title}</h1><p>{heading.copy}</p></div></header><div className="admin-workspace">{dashboard}<NeedsAttention items={attention}/>{overview?<AdminOverviewCards value={overview}/>:null}</div><ToastRegion toasts={toasts} dismiss={dismiss}/></main>;
+  return <main className={`admin-shell admin-view-${view}`}><header className="admin-head"><div><p className="eyebrow">{heading.eyebrow}</p><h1>{heading.title}</h1><p>{heading.copy}</p></div></header><div className="admin-workspace">
+    {view==="maintenance"?<section id="workspace-maintenance"><SectionTitle eyebrow="Client operations" title="Read-only maintenance" meta="Private setting"/><WorkspaceMaintenanceForm value={maintenance} pending={pending.has("client-workspace-maintenance")} submit={value=>mutate("client-workspace-maintenance","/api/studio/settings","PATCH",{key:"client_workspace_maintenance",value},"Client Workspace maintenance setting saved")}/></section>:null}
+    <section id="projects" hidden={view!=="projects"}><SectionTitle eyebrow="Editorial control" title="Projects" meta={`${projects.length} records`}/><div className="editor-stack">{projects.map(project=><ProjectEditor key={String(project.id)} project={project} pending={pending} mutate={mutate}/>)}</div></section>
     <section id="github"><SectionTitle eyebrow="Source to private draft" title="GitHub curation" meta="Admin only"/><p className="section-intro">Imports always begin as Draft with repository visibility hidden. Editorial review remains deliberate.</p><button disabled={pending.has("github")} onClick={loadRepos}>{pending.has("github")?"Loading…":"Load repositories"}</button><div className="repo-grid">{repos.map(repo=><article key={repo.id}><small>{repo.private?"Private":"Public"} / {repo.language||"Unspecified"}</small><h3>{repo.name}</h3><p>{repo.description||"No repository description."}</p><button disabled={pending.has(`repo:${repo.id}`)} onClick={()=>mutate(`repo:${repo.id}`,"/api/studio/github","POST",{id:repo.id},`${repo.name} added as a Draft`)}>Curate as draft</button></article>)}</div></section>
     <PricingPanel packages={packages} pending={pending} mutate={mutate}/>
     <section id="inquiries"><SectionTitle eyebrow="Qualified leads" title="Recent inquiries" meta={String(inquiries.length)+" latest"}/><div className="inquiry-preview-list">{inquiries.length?inquiries.map(item=><InquiryView key={item.id} inquiry={item} compact/>):<p className="inquiry-empty">No persisted inquiries yet.</p>}</div><Link className="admin-list-link" href="/studio-admin/inquiries">View all inquiries</Link></section>
@@ -47,6 +72,22 @@ export function StudioConsole(props:{configured:boolean;email?:string;projects:R
     <section id="studio-presence-admin"><SectionTitle eyebrow="Public contact system" title="Studio Presence" meta="Public footer"/><StudioPresenceForm value={presence} pending={pending.has("studio-presence")} submit={value=>mutate("studio-presence","/api/studio/settings","PATCH",{key:"studio_presence",value},"Studio Presence saved")}/></section>
     <section id="assistant-admin"><SectionTitle eyebrow="AI guidance + resilient fallback" title="Studio Assistant" meta={assistant.enabled?"Enabled":"Disabled"}/><div className={`assistant-readiness ${aiReadiness.configured?"is-configured":"is-fallback"}`}><span aria-hidden/><div><strong>{aiReadiness.configured?"AI provider configured":"AI unavailable — rule-based fallback active"}</strong><small>{aiReadiness.configured?`${aiReadiness.model} · server-only`:`Expected model: ${aiReadiness.model}`}</small></div></div><AssistantForm value={assistant} pending={pending.has("assistant")} submit={value=>mutate("assistant","/api/studio/settings","PATCH",{key:"assistant",value},"Assistant settings saved")}/></section>
   </div><ToastRegion toasts={toasts} dismiss={dismiss}/></main>;
+}
+
+function AdminOverviewCards({value}:{value:AdminOverviewSummary}){
+  const cards=[
+    {title:"Public Projects",summary:`${value.projects.total} total / ${value.projects.featured} featured / ${value.projects.published} published / ${value.projects.draft} draft`,href:"/studio-admin/projects",action:"Open Projects"},
+    {title:"Inquiries",summary:`${value.inquiries.total} total / ${value.inquiries.newCount} new`,href:"/studio-admin/inquiries",action:"View Inquiries"},
+    {title:"Client Projects",summary:`${value.clientProjects.active} active of ${value.clientProjects.total} total`,href:"/studio-admin/client-projects",action:"Open Client Projects"},
+    {title:"Pricing",summary:`${value.pricing.active} active of ${value.pricing.total} packages`,href:"/studio-admin/pricing",action:"Open Pricing"},
+    {title:"Policies",summary:`${value.policies.published} published of ${value.policies.total} policies`,href:"/studio-admin/policies",action:"Open Policies"},
+    {title:"GitHub / Repository Import",summary:"Private repository curation into editorial drafts",href:"/studio-admin/github",action:"Open Repository Import"},
+    {title:"Studio Presence",summary:value.presenceConfigured?"Configured":"Review public contact settings",href:"/studio-admin/settings/presence",action:"Open Presence"},
+    {title:"Inquiry Alerts",summary:value.alertsEnabled?"Email alerts enabled":"Alerts disabled or not configured",href:"/studio-admin/settings/alerts",action:"Open Alerts"},
+    {title:"Studio Assistant",summary:value.assistantEnabled?"Enabled":"Disabled",href:"/studio-admin/settings/assistant",action:"Open Assistant Settings"},
+    {title:"Client Workspace Maintenance",summary:value.maintenanceEnabled?"Read-only maintenance":"Normal",href:"/studio-admin/settings/maintenance",action:"Open Maintenance"},
+  ];
+  return <section className="admin-overview" aria-labelledby="admin-areas-title"><SectionTitle eyebrow="Focused workspaces" title="Admin areas" meta="Overview first"/><h3 id="admin-areas-title" className="sr-only">Admin area summaries</h3><div className="admin-overview-grid">{cards.map(card=><article key={card.href}><h3>{card.title}</h3><p>{card.summary}</p><Link href={card.href}>{card.action} <span aria-hidden>â†’</span></Link></article>)}</div></section>;
 }
 
 function NeedsAttention({items}:{items:AttentionItem[]}){

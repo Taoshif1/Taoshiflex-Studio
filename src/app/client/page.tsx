@@ -10,6 +10,8 @@ import { ClientAuthForm, ClientLogout } from "./client-auth-form";
 import { NotificationCenter } from "@/components/notifications/notification-center";
 import { loadNotificationInbox } from "@/lib/notifications";
 import { ClientWelcome } from "./client-welcome";
+import { getClientWorkspaceMaintenance } from "@/lib/client-workspace-maintenance";
+import { ClientMaintenanceBanner } from "./client-maintenance-banner";
 
 export default async function ClientPage({ searchParams }: { searchParams: Promise<{ welcome?: string }> }) {
   const authorization = await getClientAuthorization();
@@ -33,13 +35,14 @@ export default async function ClientPage({ searchParams }: { searchParams: Promi
     );
   }
   const access = { userAccessToken: authorization.token };
-  const [projects, inbox] = await Promise.all([
+  const [projects, inbox, maintenance] = await Promise.all([
     supabaseRest<ClientProject[]>(
       "client_projects?select=id,reference,name,client_name,summary,status,progress,current_phase,next_action,start_date,target_date,created_at,updated_at&order=updated_at.desc",
       {},
       access,
     ).catch(() => null),
     loadNotificationInbox(authorization.user.id, access),
+    getClientWorkspaceMaintenance(),
   ]);
   if (projects === null)
     return <WorkspaceUnavailable email={authorization.user.email} />;
@@ -66,6 +69,7 @@ export default async function ClientPage({ searchParams }: { searchParams: Promi
         </div>
         <div className="client-head-actions"><Link className="action" href="/client/help">Workspace Guide</Link><Link className="action" href="/client/policies">Policies</Link><NotificationCenter inbox={inbox}/><ClientLogout /></div>
       </header>
+      <ClientMaintenanceBanner maintenance={maintenance}/>
       <ClientWelcome initiallyVisible={(await searchParams).welcome === "1"} />
       <ProjectGroup title="Active projects" projects={active} unreadProjectCounts={inbox.unreadProjectCounts} />
       <ProjectGroup title="Completed projects" projects={completed} unreadProjectCounts={inbox.unreadProjectCounts} />
