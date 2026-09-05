@@ -1,7 +1,8 @@
 import "server-only";
 
 import type { AssistantSettings } from "@/types/content";
-import type { PublicAssistantMessage } from "@/lib/studio-assistant-fallback";
+import type { PublicAssistantMessage } from "@/lib/studio-assistant-contract";
+import type { PublicStudioAssistantKnowledge } from "@/lib/studio-assistant-knowledge";
 import { resolveGeminiModel } from "@/lib/gemini-config";
 
 export const GEMINI_TIMEOUT_MS = 8_000;
@@ -10,7 +11,7 @@ const MAX_OUTPUT_TOKENS = 600;
 type GenerateInput = {
   question: string;
   history: PublicAssistantMessage[];
-  knowledge: Record<string, unknown>;
+  knowledge: PublicStudioAssistantKnowledge;
   settings: AssistantSettings;
 };
 
@@ -26,10 +27,12 @@ export function getGeminiReadiness() {
   return { configured, model };
 }
 
-function systemInstruction(settings: AssistantSettings, knowledge: Record<string, unknown>) {
+function systemInstruction(settings: AssistantSettings, knowledge: PublicStudioAssistantKnowledge) {
   return `You are Taoshiflex Studio's public AI assistant.
 
-Help potential clients understand which public service fits them, websites, e-commerce, digital products, project scope, published pricing, the Studio process, delivery expectations, published work, and how to start a project. Be concise, helpful, commercially useful, and ask a focused follow-up question when requirements are unclear.
+Help potential clients understand which public service fits them, websites, e-commerce, digital products, project scope, published pricing, the Studio process, delivery expectations, published work, and how to start a project. Be concise, helpful, commercially useful, and ask one focused follow-up question when requirements are unclear.
+
+You may use reasonable general software engineering, product design, commerce, web architecture, UX, MVP, and project-planning knowledge to explain options and tradeoffs. Clearly separate general guidance from Studio-specific facts. Stay focused on helping business owners and project leads with websites, commerce, digital products, software scope, and Studio services; politely redirect unrelated general-knowledge requests.
 
 Hard rules:
 - Use only the PUBLIC_STUDIO_KNOWLEDGE below as factual Studio context.
