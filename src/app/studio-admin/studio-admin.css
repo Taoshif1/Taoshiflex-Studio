@@ -35,3 +35,11 @@
 .needs-attention{padding-top:3rem!important}.attention-list{display:grid;gap:.65rem}.attention-list>a{display:grid;grid-template-columns:auto minmax(0,1fr) auto auto;align-items:center;gap:1rem;padding:1rem 1.1rem;border:1px solid var(--line);background:rgba(35,33,29,.58);transition:border-color var(--fast),background var(--fast),transform var(--fast)}.attention-mark{width:.55rem;height:.55rem;border-radius:50%;background:var(--gold);box-shadow:0 0 0 .3rem rgba(184,144,85,.1)}.attention-list>a>div{display:grid;min-width:0;gap:.2rem}.attention-list small{color:var(--gold);font-size:.62rem;letter-spacing:.09em;text-transform:uppercase}.attention-list strong{color:var(--ivory)}.attention-list p{margin:0;color:var(--stone);font-size:.78rem;overflow-wrap:anywhere}.attention-list time{color:var(--stone);font-size:.7rem;white-space:nowrap}.attention-list>a>span:last-child{color:var(--gold)}.attention-empty{margin:0;padding:1.5rem;border:1px dashed var(--line);color:var(--stone)}
 @media(hover:hover){.attention-list>a:hover{border-color:rgba(184,144,85,.65);background:rgba(184,144,85,.06);transform:translateY(-1px)}}
 @media(max-width:600px){.attention-list>a{grid-template-columns:auto minmax(0,1fr) auto}.attention-list time{grid-column:2}.attention-list>a>span:last-child{grid-column:3;grid-row:1}}
+.inquiry-alert-settings{display:grid;gap:1rem;border:1px solid var(--line);background:rgba(35,33,29,.45)}
+.alert-channel{display:grid;gap:1rem;padding:1rem;border:1px solid var(--line);background:rgba(17,17,15,.48)}
+.alert-channel-head{display:flex;align-items:center;justify-content:space-between;gap:1rem}
+.alert-channel-head .eyebrow,.alert-channel-head h3{margin:0}.alert-channel-head h3{margin-top:.25rem}
+.alert-channel-head>span{padding:.35rem .55rem;border:1px solid var(--line);font-size:.67rem;letter-spacing:.05em;text-transform:uppercase}
+.alert-channel-head>span.configured{border-color:rgba(128,200,154,.55);color:#80c89a}.alert-channel-head>span.missing{color:var(--stone)}
+.alert-channel>button{width:max-content}.alert-settings-note{margin:0;color:var(--stone);font-size:.78rem}
+@media(max-width:600px){.alert-channel-head{align-items:flex-start;flex-direction:column}.alert-channel>button{width:100%}}

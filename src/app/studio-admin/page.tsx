@@ -3,6 +3,7 @@ import { getAdminAuthorization, isSupabasePublicConfigured, isSupabaseServerConf
 import type { InquiryRecord } from "@/lib/inquiries";
 import { loadAttentionNotifications } from "@/lib/notifications";
 import { StudioConsole } from "./studio-console";
+import { getStudioAlertReadiness } from "@/lib/inquiry-alerts";
 
 export const metadata:Metadata={title:"Studio Admin",robots:{index:false,follow:false}};
 type Row=Record<string,unknown>;
@@ -23,5 +24,6 @@ export default async function StudioAdminPage(){
     projects=projectRows;inquiries=inquiryRows;packages=packageRows;settings=settingRows;
     attention=attentionRows.map(item=>({id:item.id,title:item.title,message:item.message,href:item.href,createdAt:item.created_at,type:item.type}));
   }
-  return <StudioConsole configured={configured} email={user?.email} projects={projects} inquiries={inquiries} packages={packages} settings={settings} attention={attention}/>;
+  const alertReadiness=user?getStudioAlertReadiness():{email:false};
+  return <StudioConsole configured={configured} email={user?.email} projects={projects} inquiries={inquiries} packages={packages} settings={settings} attention={attention} alertReadiness={alertReadiness}/>;
 }

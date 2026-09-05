@@ -41,6 +41,17 @@ Projects support a client/business name, service name, category, status, public/
 
 Admin authorization validates the cookie token with Supabase Auth and performs the private `admin_users` membership lookup with backend-only elevated access. Mutations require a same-origin request and re-check authorization. The in-memory rate limiter is best-effort only and is not a distributed production limit; see `docs/supabase-foundation.md`.
 
+New-inquiry email alerts are an optional, best-effort delivery channel layered on top of persisted inquiries and the existing in-app Studio notification. Configure these server-only Netlify environment variables when email alerts are required:
+
+- `STUDIO_ALERT_SMTP_HOST`
+- `STUDIO_ALERT_SMTP_PORT` (for example, `465`)
+- `STUDIO_ALERT_SMTP_SECURE` (`true` for implicit TLS, otherwise `false`)
+- `STUDIO_ALERT_SMTP_USER`
+- `STUDIO_ALERT_SMTP_PASSWORD` (secret; use the provider's app password or SMTP credential)
+- `STUDIO_ALERT_SMTP_FROM` (for example, `Taoshiflex Studio <studio@example.com>`)
+
+After deploying the variables, open **Studio Admin -> Inquiry Alerts**, save the recipient address, enable email delivery, and send a test email. The provider password is never stored in `site_settings` or displayed in Studio Admin. An SMTP failure never rolls back or changes the successful public inquiry response.
+
 Supabase configuration prefers `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` (`sb_publishable_…`) for public/Auth requests and backend-only `SUPABASE_SECRET_KEY` (`sb_secret_…`) for privileged Data API requests. The publishable key may be exposed to browser code; the secret key must never use a `NEXT_PUBLIC_` prefix or be committed. `SUPABASE_SERVICE_ROLE_KEY` is accepted only as a transitional legacy JWT fallback.
 
 The Studio Assistant is a deliberately constrained foundation: its browser-side answers use approved pricing/process copy only and hand project-specific discussions to the persisted inquiry flow. It does not expose a model credential or claim autonomous knowledge.

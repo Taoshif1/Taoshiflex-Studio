@@ -1,5 +1,6 @@
 import { authorizeMutation, cleanText } from "@/lib/admin-security";
 import { parseStudioPresence } from "@/lib/studio-presence";
+import { parseStudioAlertSettings } from "@/lib/studio-alert-settings";
 import { supabaseRest } from "@/lib/supabase-rest";
 
 const categories=["services","pricing","process","projects"];
@@ -7,6 +8,12 @@ function validHandoff(value:string,request:Request){if(/^\/(?!\/)/.test(value))r
 export async function PATCH(request:Request){
   const auth=await authorizeMutation(request);if(auth.error)return auth.error;
   const body=await request.json().catch(()=>null) as Record<string,unknown>|null;
+  if(body?.key==="studio_alerts"){
+    const value=parseStudioAlertSettings(body.value);
+    if(!value)return Response.json({error:"Review the inquiry email alert settings."},{status:400});
+    await supabaseRest("site_settings?on_conflict=key",{method:"POST",headers:{Prefer:"resolution=merge-duplicates,return=minimal"},body:JSON.stringify({key:"studio_alerts",value,public:false})},true);
+    return Response.json({ok:true});
+  }
   if(body?.key==="studio_presence"){
     const value=parseStudioPresence(body.value);
     if(!value)return Response.json({error:"Review the Studio Presence fields and use safe HTTPS links."},{status:400});
