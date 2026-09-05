@@ -4,8 +4,8 @@ import { generateStudioAssistantReply } from "@/lib/gemini-studio-assistant";
 import { rateLimit } from "@/lib/rate-limit";
 import {
   fallbackStudioAssistantReply,
-  parseAssistantRequest,
 } from "@/lib/studio-assistant-fallback";
+import { parseAssistantRequest } from "@/lib/studio-assistant-contract";
 import { getPublicStudioAssistantContext } from "@/lib/studio-assistant-knowledge";
 
 const MAX_REQUEST_BYTES = 12_000;
@@ -55,12 +55,11 @@ export async function POST(request: NextRequest) {
     } catch {
       return Response.json(
         {
-          reply: fallbackStudioAssistantReply(
-            input.question,
-            context.settings,
-            context.packages,
-            true,
-          ),
+          reply: fallbackStudioAssistantReply({
+            ...input,
+            ...context,
+            providerUnavailable: true,
+          }),
           source: "fallback",
         },
         { headers },

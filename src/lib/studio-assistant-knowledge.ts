@@ -8,15 +8,67 @@ import {
   getPublishedProjects,
   getStudioPresence,
 } from "@/lib/studio-data";
-import type { AssistantSettings, ServicePackage } from "@/types/content";
+import type { AssistantSettings } from "@/types/content";
 
 const bounded = (value: string | undefined, maximum = 1_200) =>
   (value ?? "").trim().slice(0, maximum);
 
+export type PublicStudioAssistantKnowledge = {
+  studio: {
+    name: string;
+    description: string;
+    location: string;
+    availability: string;
+    contactEmail: string;
+    bookingUrl: string | null;
+    startProjectUrl: string;
+  };
+  services: Array<{
+    title: string;
+    value: string;
+    description: string;
+    capabilities: string[];
+  }>;
+  process: Array<{
+    title: string;
+    what: string;
+    why: string;
+    deliverable: string;
+  }>;
+  activePackages: Array<{
+    name: string;
+    category: string;
+    priceFrom: number | null;
+    currency: string;
+    description: string;
+    features: string[];
+    deliveryEstimate: string;
+    revisions: string | null;
+    support: string | null;
+  }>;
+  publishedProjects: Array<{
+    name: string;
+    category: string;
+    status: string;
+    summary: string;
+    context: string;
+    challenge: string;
+    approach: string;
+    solution: string;
+    result: string;
+    capabilities: string[];
+    features: string[];
+  }>;
+  publicPolicies: Array<{
+    title: string;
+    summary: string;
+    url: string;
+  }>;
+};
+
 export type PublicStudioAssistantContext = {
   settings: AssistantSettings;
-  packages: ServicePackage[];
-  knowledge: Record<string, unknown>;
+  knowledge: PublicStudioAssistantKnowledge;
 };
 
 export async function getPublicStudioAssistantContext(): Promise<PublicStudioAssistantContext> {
@@ -31,7 +83,6 @@ export async function getPublicStudioAssistantContext(): Promise<PublicStudioAss
 
   return {
     settings,
-    packages,
     knowledge: {
       studio: {
         name: site.name,
@@ -92,6 +143,7 @@ export async function getPublicStudioAssistantContext(): Promise<PublicStudioAss
         return {
           title: bounded(version.title, 160),
           summary: bounded(version.summary, 600),
+          url: `/policies/${policy.slug}`,
         };
       }),
     },

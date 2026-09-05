@@ -5,16 +5,16 @@ import { usePathname } from "next/navigation";
 import { FormEvent, useEffect, useRef, useState } from "react";
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import {
+  ASSISTANT_CLIENT_FAILURE_REPLY,
   ASSISTANT_MAX_HISTORY_MESSAGES,
   ASSISTANT_MAX_QUESTION_LENGTH,
-  fallbackStudioAssistantReply,
   type PublicAssistantMessage,
-} from "@/lib/studio-assistant-fallback";
-import type { AssistantSettings, ServicePackage } from "@/types/content";
+} from "@/lib/studio-assistant-contract";
+import type { AssistantSettings } from "@/types/content";
 
 const suggestions = ["Pricing", "Business website", "E-commerce", "Process"];
 
-export function StudioAssistant({ settings, packages }: { settings: AssistantSettings; packages: ServicePackage[] }) {
+export function StudioAssistant({ settings }: { settings: AssistantSettings }) {
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
   const [input, setInput] = useState("");
@@ -65,7 +65,7 @@ export function StudioAssistant({ settings, packages }: { settings: AssistantSet
       if (!result.reply) throw new Error("assistant_unavailable");
       reply = result.reply;
     } catch {
-      reply = fallbackStudioAssistantReply(question, settings, packages, true);
+      reply = ASSISTANT_CLIENT_FAILURE_REPLY;
     } finally {
       pendingRef.current = false;
       setPending(false);
