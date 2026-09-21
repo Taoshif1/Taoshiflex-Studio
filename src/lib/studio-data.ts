@@ -1,7 +1,7 @@
 import { projects as localProjects } from "@/content/projects";
 import { servicePackages as localPackages } from "@/content/pricing";
 import { cache } from "react";
-import type { AssistantSettings, Project, ServicePackage } from "@/types/content";
+import type { AssistantSettings, Project, ServicePackage, PublicReview } from "@/types/content";
 import { projectMediaPublicUrl } from "./project-media-url";
 import { isSupabasePublicConfigured, supabasePublicRest } from "./supabase-rest";
 import { publicProjectStatus } from "./public-project-status";
@@ -58,3 +58,11 @@ function mapProject(row:Record<string,unknown>):Project {
   const gallery=relationalMedia.filter(item=>item.role==="gallery"),coverMedia=relationalMedia.find(item=>item.role==="cover");
   return { ...content, slug:String(row.slug),name:String(row.name),category:String(row.category) as Project["category"],status:publicProjectStatus(String(row.status),String(row.client ?? content.client ?? row.name)),summary:String(row.summary),client:String(row.client ?? content.client ?? row.name),year:String(content.year ?? new Date(String(row.created_at)).getFullYear()),context:String(row.context ?? content.context ?? ""),challenge:String(row.challenge ?? content.challenge ?? ""),approach:String(row.approach ?? content.approach ?? ""),solution:String(row.solution ?? content.solution ?? ""),result:String(row.result ?? content.result ?? ""),capabilities:Array.isArray(row.services) ? row.services as string[] : content.capabilities ?? [],features:Array.isArray(row.features) ? row.features as string[] : content.features ?? [],technicalNotes:Array.isArray(row.technical_notes) ? row.technical_notes as string[] : content.technicalNotes ?? [],accent:String(row.accent ?? "#b89055"),coverMedia,media:gallery.length?gallery:content.media ?? [],repositoryUrl:row.repository_url ? String(row.repository_url) : undefined,showRepository:Boolean(row.show_repository),liveUrl:row.live_url ? String(row.live_url) : undefined,behanceUrl:row.behance_url ? String(row.behance_url) : undefined,facebookUrl:row.facebook_url ? String(row.facebook_url) : undefined,featured:Boolean(row.featured),published:Boolean(row.published),sortOrder:Number(row.sort_order),id:String(row.id),createdAt:String(row.created_at),updatedAt:String(row.updated_at) };
 }
+
+const getPublishedReviews = cache(async (): Promise<PublicReview[]> => {
+  if (!isSupabasePublicConfigured()) return [];
+  try { return await supabasePublicRest<PublicReview[]>("published_project_reviews?select=id,reviewer_name,reviewer_role,reviewer_company,rating,review_text,featured,project_slug,project_name,accent&order=sort_order.asc,id.asc"); }
+  catch { return []; }
+});
+export async function getFeaturedReviews() { return (await getPublishedReviews()).filter(review => review.featured); }
+export async function getPublishedProjectReview(slug: string) { return (await getPublishedReviews()).filter(review => review.project_slug === slug); }

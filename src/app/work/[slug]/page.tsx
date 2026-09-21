@@ -3,8 +3,9 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ActionLink, ResponsiveMedia } from "@/components/ui/primitives";
 import { ProjectMediaViewer } from "@/components/work/project-media-viewer";
-import { getPublishedProject, getPublishedProjects } from "@/lib/studio-data";
+import { getPublishedProject, getPublishedProjects, getPublishedProjectReview } from "@/lib/studio-data";
 import "./case-study.css";
+import { ReviewCard } from "@/components/reviews/review-card";
 
 type Props = { params: Promise<{ slug: string }> };
 
@@ -31,6 +32,7 @@ export default async function CaseStudy({ params }: Props) {
   const projects = await getPublishedProjects();
   const project = projects.find((item) => item.slug === slug);
   if (!project) notFound();
+  const reviews = await getPublishedProjectReview(slug);
 
   const index = projects.findIndex((item) => item.slug === slug);
   const next = projects[(index + 1) % projects.length];
@@ -111,6 +113,7 @@ export default async function CaseStudy({ params }: Props) {
         </div>
       </section>
 
+      {reviews.length > 0 && <section className="case-review container" aria-label="Client perspective"><p className="eyebrow">Client perspective</p>{reviews.map(review => <ReviewCard key={review.id} review={review}/>)}</section>}
       <footer className="case-next container">
         <p className="eyebrow">Next project</p>
         {next ? <Link href={`/work/${next.slug}`}>{next.name}<span aria-hidden>↗</span></Link> : null}

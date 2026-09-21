@@ -11,6 +11,7 @@ import { ToastRegion, useToasts } from "@/components/ui/toast";
 const items = [
   { label: "Dashboard", href: "/studio-admin", section: "dashboard" },
   { label: "Public Projects", href: "/studio-admin/projects", section: "projects" },
+  { label: "Reviews", href: "/studio-admin/reviews", section: "reviews" },
   { label: "Inquiries", href: "/studio-admin/inquiries", section: "inquiries" },
   { label: "Client Projects", href: "/studio-admin/client-projects", section: "client-projects" },
   { label: "Pricing", href: "/studio-admin/pricing", section: "pricing" },

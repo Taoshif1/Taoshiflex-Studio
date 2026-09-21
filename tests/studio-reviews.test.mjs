@@ -1,0 +1,11 @@
+import assert from 'node:assert/strict';
+import test from 'node:test';
+import { readFileSync } from 'node:fs';
+import { parseReview } from '../src/lib/review-contract.ts';
+const valid = { projectId:'11111111-1111-4111-8111-111111111111', reviewer_name:'A Client', reviewer_role:'Owner', reviewer_company:'Business', rating:5, review_text:'A thoughtful and reliable delivery experience.' };
+test('review validates bounded testimony',()=>{assert.equal(parseReview(valid).rating,5);for(const rating of [0,6,1.5,'5',null])assert.equal(parseReview({...valid,rating}),null);assert.equal(parseReview({...valid,review_text:'short'}),null);assert.equal(parseReview({...valid,review_text:'x'.repeat(1501)}),null);assert.equal(parseReview({...valid,projectId:'other'}),null)});
+test('review rejects forged identity and publication fields',()=>{for(const field of ['reviewer_user_id','published','featured','public_project_id','moderation_note'])assert.equal(parseReview({...valid,[field]:'forged'}),null)});
+const sql=readFileSync(new URL('../supabase/migrations/20260921202534_verified_project_reviews.sql',import.meta.url),'utf8');
+test('database enforces unique project/account and eligible client membership',()=>{assert.match(sql,/unique\(client_project_id,reviewer_user_id\)/);assert.match(sql,/m.user_id=auth.uid\(\) and m.role='client'/);assert.match(sql,/p.status='completed'/);assert.match(sql,/reviewer_user_id=auth.uid\(\)/)});
+test('public projection contains no private identity or moderation columns',()=>{const projection=sql.split('create view public.published_project_reviews')[1].split('revoke all')[0];assert.match(projection,/where r.published/);assert.doesNotMatch(projection,/r\.(reviewer_user_id|client_project_id|moderation_note)|email/);assert.match(sql,/revoke all on public.project_reviews from anon,authenticated/)});
+test('submitted testimony is immutable and client grants exclude moderation',()=>{assert.match(sql,/Submitted testimony is immutable/);assert.doesNotMatch(sql,/grant update.*to authenticated/);assert.match(sql,/check\(not featured or published\)/)});

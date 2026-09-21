@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { ClientReviewSection } from "./review-section";
 
 import { deriveClientNextAction } from "@/lib/client-next-action";
 import {
@@ -68,6 +69,7 @@ export default async function ClientProjectOverviewPage({ params }: Props) {
           <OverviewCard href={clientProjectHref(id, "feedback")} title="Feedback" value={`${openFeedback} open / ${feedback.length} total`} detail="Project-level conversation"/>
         </div>
       </section>
+      <ClientReviewSection projectId={id}/>
     </>
   );
 }
