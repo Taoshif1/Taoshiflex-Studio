@@ -14,7 +14,7 @@ import {
 export const getPublishedProjects = cache(async function getPublishedProjects(): Promise<Project[]> {
   if (!isSupabasePublicConfigured()) return localProjects.filter((project) => project.slug !== "redflint");
   try {
-    const rows = await supabasePublicRest<Array<Record<string, unknown>>>("projects?published=eq.true&select=*,project_media(*)&order=sort_order.asc");
+    const rows = await supabasePublicRest<Array<Record<string, unknown>>>("published_work?select=*&order=sort_order.asc");
     return rows.map(mapProject);
   } catch { return localProjects.filter((project) => project.slug !== "redflint"); }
 });
@@ -35,7 +35,7 @@ export const getActivePackages = cache(async function getActivePackages(): Promi
   } catch { return localPackages.filter((item) => item.enabled); }
 });
 
-const assistantDefaults:AssistantSettings={enabled:true,name:"Studio Assistant",greeting:"What are you planning to build? Ask about scope, pricing or process.",instructions:"Be concise, honest and direct.",knowledgeCategories:["services","pricing","process","projects"],showPricing:true,leadCapture:true,handoffUrl:"/start-a-project",maximumMessages:8,logConversations:false};
+const assistantDefaults:AssistantSettings={enabled:true,name:"Studio Assistant",greeting:"What are you planning to build? Ask about scope, pricing or process.",instructions:"Be concise, honest and direct.",knowledgeCategories:["services","pricing","process","projects","products"],showPricing:true,leadCapture:true,handoffUrl:"/start-a-project",maximumMessages:8,logConversations:false};
 export const getAssistantSettings=cache(async function getAssistantSettings():Promise<AssistantSettings>{
   if(!isSupabasePublicConfigured())return assistantDefaults;
   try{const rows=await supabasePublicRest<Array<{value?:Partial<AssistantSettings>}>>("site_settings?key=eq.assistant&public=eq.true&select=value&limit=1");return rows[0]?.value?{...assistantDefaults,...rows[0].value}:{...assistantDefaults,enabled:false}}catch{return assistantDefaults}
@@ -66,3 +66,15 @@ const getPublishedReviews = cache(async (): Promise<PublicReview[]> => {
 });
 export async function getFeaturedReviews() { return (await getPublishedReviews()).filter(review => review.featured); }
 export async function getPublishedProjectReview(slug: string) { return (await getPublishedReviews()).filter(review => review.project_slug === slug); }
+
+import { mapPublishedProduct } from "@/lib/product-contract";
+
+export const getPublishedProducts = cache(async (): Promise<import("@/types/content").Product[]> => {
+  if (!isSupabasePublicConfigured()) return [];
+  try {
+    const rows = await supabasePublicRest<Array<Omit<import("@/types/content").Product,"media"> & { media: Array<{id:string;role:"cover"|"gallery";storage_path:string;alt:string;sort_order:number}> }>>("published_products?select=*&order=sort_order.asc,id.asc");
+    return rows.map(row => mapPublishedProduct(row, row.media.map(item => ({id:item.id,kind:"image" as const,role:item.role,alt:item.alt,aspect:"landscape" as const,src:projectMediaPublicUrl(item.storage_path),sortOrder:item.sort_order}))));
+  } catch { return []; }
+});
+export async function getFeaturedProducts() { return (await getPublishedProducts()).filter(product => product.featured).slice(0,3); }
+export async function getPublishedProduct(slug:string) { return (await getPublishedProducts()).find(product => product.slug===slug); }

@@ -276,3 +276,10 @@ test("knowledge loader names only public sources and remains server-only", async
     /client_projects|client_project_members|project_billing|project_payments|inquiries\?|admin_users|studio_alerts|supabaseRest\(/,
   );
 });
+
+test("fallback product awareness uses supplied public catalog and handles empty catalog",()=>{
+ const publishedProducts=[{name:"Fixture Product",status:"Beta",summary:"Authored public summary",features:["Useful feature"],url:"/products/fixture-product"}];
+ assert.match(fallback("Tell me about Fixture Product",{knowledge:{...knowledge,publishedProducts}}),/Fixture Product.*Beta/);
+ assert.match(fallback("What are your products?",{knowledge:{...knowledge,publishedProducts}}),/\/products\/fixture-product/);
+ assert.match(fallback("What are your products?"),/No products are currently available/);
+});
