@@ -8,3 +8,5 @@ export type Inquiry = { projectType: string; stage: string; goals: string[]; bud
 export type SiteSettings = { name: string; description: string; url: string; location: string; email: string };
 export type ServicePackage = { id: string; slug: string; name: string; priceFrom: number | null; currency: "BDT"; description: string; features: string[]; deliveryEstimate: string; revisions?: string; support?: string; category: string; featured: boolean; enabled: boolean; sortOrder: number };
 export type AssistantSettings = { enabled: boolean; name: string; greeting: string; instructions: string; knowledgeCategories: string[]; showPricing: boolean; leadCapture: boolean; handoffUrl: string; maximumMessages: number; logConversations: boolean };
+
+export type Product = { id: string; slug: string; name: string; tagline: string; summary: string; story: string; problem: string; solution: string; roadmap: string; status: string; category: string; accent: string; features: string[]; technologies: string[]; product_url: string | null; repository_url: string | null; pricing_model: string; launch_date: string | null; featured: boolean; media: ProjectMedia[] };

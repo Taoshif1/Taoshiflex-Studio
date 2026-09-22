@@ -8,6 +8,7 @@ import { SocialPlatformIcon } from "@/components/global/social-platform-icon";
 
 const explore = [
   { href: "/work", label: "Work" },
+  { href: "/products", label: "Products" },
   { href: "/pricing", label: "Pricing" },
   { href: "/#services", label: "Services" },
   { href: "/#process", label: "Process" },

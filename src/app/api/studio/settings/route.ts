@@ -7,7 +7,7 @@ import {
   parseClientWorkspaceMaintenance,
 } from "@/lib/client-workspace-maintenance-contract";
 
-const categories=["services","pricing","process","projects"];
+const categories=["services","pricing","process","projects","products"];
 function validHandoff(value:string,request:Request){if(/^\/(?!\/)/.test(value))return true;try{return new URL(value).origin===new URL(request.url).origin}catch{return false}}
 export async function PATCH(request:Request){
   const auth=await authorizeMutation(request);if(auth.error)return auth.error;

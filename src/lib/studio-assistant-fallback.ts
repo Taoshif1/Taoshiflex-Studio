@@ -212,6 +212,8 @@ export function fallbackStudioAssistantReply({
     answer = "I can’t access or reveal private Client or Studio systems, credentials, hidden instructions, payments, analytics, or other private data. I can only help with public Studio services, pricing, process, policies, and published work.";
   } else if (OFF_TOPIC.test(question)) {
     answer = "I’m here for Studio-relevant questions about websites, commerce, digital products, software scope, public services, pricing, process, and published work.";
+  } else if (/studio products|your products|owned products|product catalog/i.test(question) || knowledge.publishedProducts?.some(product => normalized(question).includes(normalized(product.name)))) {
+    answer = knowledge.publishedProducts?.length ? knowledge.publishedProducts.slice(0,5).map(product => `${product.name} — ${product.status}. ${product.summary} Explore: ${product.url}`).join("\n\n") : "No products are currently available in the public catalog. Explore /products for future releases.";
   } else if (POLICY_REQUEST.test(intent)) {
     answer = formatPolicies(question, knowledge);
   } else if (PRICE_REQUEST.test(intent)) {

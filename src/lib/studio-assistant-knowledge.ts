@@ -6,6 +6,7 @@ import {
   getActivePackages,
   getAssistantSettings,
   getPublishedProjects,
+  getPublishedProducts,
   getStudioPresence,
 } from "@/lib/studio-data";
 import type { AssistantSettings } from "@/types/content";
@@ -46,6 +47,7 @@ export type PublicStudioAssistantKnowledge = {
     revisions: string | null;
     support: string | null;
   }>;
+  publishedProducts?: Array<{name:string;status:string;summary:string;features:string[];url:string}>;
   publishedProjects: Array<{
     name: string;
     category: string;
@@ -72,12 +74,13 @@ export type PublicStudioAssistantContext = {
 };
 
 export async function getPublicStudioAssistantContext(): Promise<PublicStudioAssistantContext> {
-  const [settings, packages, projects, presence, policies] = await Promise.all([
+  const [settings, packages, projects, presence, policies, products] = await Promise.all([
     getAssistantSettings(),
     getActivePackages(),
     getPublishedProjects(),
     getStudioPresence(),
     getPublicPolicies(),
+    getPublishedProducts(),
   ]);
   const allowed = new Set(settings.knowledgeCategories);
 
@@ -123,6 +126,7 @@ export async function getPublicStudioAssistantContext(): Promise<PublicStudioAss
               support: bounded(item.support, 160) || null,
             }))
           : [],
+      publishedProducts: allowed.has("products") ? products.slice(0,24).map(product => ({ name:product.name,status:product.status,summary:bounded(product.summary,600),features:product.features.slice(0,12),url:`/products/${product.slug}` })) : [],
       publishedProjects: allowed.has("projects")
         ? projects.slice(0, 24).map((project) => ({
             name: project.name,
