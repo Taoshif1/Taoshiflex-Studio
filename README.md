@@ -1,18 +1,33 @@
 # Taoshiflex Studio
 
-The commercial website and project platform for Taoshiflex Studio — a founder-led web design and development studio serving ambitious businesses in Bangladesh first, with an international-ready foundation.
+The commercial website, product showcase, client workspace, and Studio operations platform for Taoshiflex Studio — a founder-led web design and development studio serving ambitious businesses in Bangladesh first, with an international-ready foundation.
+
+Production: https://taoshiflexstudio.me
 
 ## Architecture
 
 - Next.js 16 App Router + React 19 + TypeScript
 - Tailwind CSS 4 plus a custom brand design system
 - Motion for restrained, accessible animation
-- Supabase Postgres for projects, services, inquiries, and settings
-- Supabase Auth for the private studio manager
-- Supabase Storage for project media
-- Row Level Security for public/private content separation
+- Supabase Postgres for projects, products, verified reviews, services, inquiries, client workspaces, and settings
+- Supabase Auth for Studio Admin and Client Workspace access
+- Supabase Storage for project and product media
+- Row Level Security plus constrained public projection views for public/private content separation
+- Netlify production hosting with Next.js runtime support
 
-Curated typed content remains a resilient public fallback while Supabase provides the production operating layer. Published and Featured flags control public project visibility, inquiries persist through a validated server route, and authenticated admins can curate GitHub repositories into private drafts.
+Curated typed content remains a resilient public fallback while Supabase provides the production operating layer. Published and Featured flags control public visibility, inquiries persist through a validated server route, and authenticated admins can curate GitHub repositories into private drafts.
+
+## Products and verified reviews
+
+The Studio now separates client Work from Studio-owned Products.
+
+Products are managed in Studio Admin and support publishing, homepage featuring, status, category, accent color, features, technologies, product/demo links, optional public repository links, pricing/launch context, cover media, gallery media, and display ordering. Public Product routes are /products and /products/[slug]. Featured published Products can appear automatically on the homepage.
+
+Private-source Products are supported without exposing their source repositories. A private-source Product can still show manually authored descriptions, screenshots, technologies, features, and a safe public demo URL, while repository visibility remains disabled. This is the intended model for private products such as Dokan Hisab SaaS.
+
+Verified client reviews are tied to authenticated Client Projects. Reviews are submitted by eligible project members, moderated in Studio Admin, published explicitly, and can be featured on the homepage or shown on the related public case study. Public pages use constrained published-review data only; private reviewer/account/workspace fields are not exposed.
+
+The public homepage review section uses accessible motion with reduced-motion handling and appears only when genuine published + featured reviews exist. No fake testimonials are used as fallback content.
 
 ## Local setup
 
@@ -30,14 +45,17 @@ Required production variables are `NEXT_PUBLIC_SITE_URL`, `NEXT_PUBLIC_SUPABASE_
 - `npm run lint` — ESLint
 - `npm run build` — production build
 - `npm run start` — run the production build
+- `npm run test:analytics` — Studio dashboard/analytics checks
+- `npm run test:assistant` — Studio Assistant behavior/privacy checks
+- `npm run test:studio` — review, Product, database/privacy, and Studio feature tests
 
 ## Content model
 
-Projects support a client/business name, service name, category, status, public/private visibility, case-study copy, repository URL, live URL, images, tags, and ordering. Inquiries are stored separately and are visible only to authenticated studio admins.
+Projects support a client/business name, service name, category, status, public/private visibility, case-study copy, repository URL, live URL, images, tags, and ordering. Products use a separate Studio-owned content model. Verified reviews are project-linked and publication-controlled. Inquiries are stored separately and are visible only to authenticated studio admins.
 
 ## Studio Admin
 
-`/studio-admin` is noindexed and protected by Supabase Auth plus membership in `admin_users`. `SUPABASE_SECRET_KEY` and `GITHUB_CURATOR_TOKEN` are server-only. GitHub imports always enter as unpublished, unfeatured drafts with repository visibility disabled; an admin must replace generated placeholders with verified content before publishing.
+`/studio-admin` is noindexed and protected by Supabase Auth plus membership in `admin_users`. `SUPABASE_SECRET_KEY` and `GITHUB_CURATOR_TOKEN` are server-only. GitHub imports always enter as unpublished, unfeatured drafts with repository visibility disabled; an admin must replace generated placeholders with verified content before publishing. Private repository metadata remains Admin-only and private-source records cannot expose repository URLs publicly.
 
 Admin authorization validates the cookie token with Supabase Auth and performs the private `admin_users` membership lookup with backend-only elevated access. Mutations require a same-origin request and re-check authorization. The in-memory rate limiter is best-effort only and is not a distributed production limit; see `docs/supabase-foundation.md`.
 
@@ -54,7 +72,7 @@ After deploying the variables, open **Studio Admin -> Inquiry Alerts**, save the
 
 Supabase configuration prefers `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` (`sb_publishable_…`) for public/Auth requests and backend-only `SUPABASE_SECRET_KEY` (`sb_secret_…`) for privileged Data API requests. The publishable key may be exposed to browser code; the secret key must never use a `NEXT_PUBLIC_` prefix or be committed. `SUPABASE_SERVICE_ROLE_KEY` is accepted only as a transitional legacy JWT fallback.
 
-The public Studio Assistant uses Google Gemini for conversational guidance and retains its approved rule-based responses as a resilient fallback. Configure server-only `GEMINI_API_KEY` and optionally `GEMINI_MODEL` (defaults to `gemini-3.5-flash-lite`). The API key must never use a `NEXT_PUBLIC_` prefix. The server rebuilds a bounded context from public Studio identity, services, active packages, published projects, public policies, and public Studio Presence; it never sends Client Workspace, inquiry, billing, payment, Admin, SMTP, auth, or analytics data to Gemini. Requests are size/rate limited and provider calls have a bounded timeout.
+The public Studio Assistant uses Google Gemini for conversational guidance and retains its approved rule-based responses as a resilient fallback. Configure server-only `GEMINI_API_KEY` and optionally `GEMINI_MODEL` (defaults to `gemini-3.5-flash-lite`). The API key must never use a `NEXT_PUBLIC_` prefix. The server rebuilds a bounded context from public Studio identity, services, active packages, published projects, published Products, public policies, and public Studio Presence; it never sends Client Workspace, inquiry, billing, payment, Admin, SMTP, auth, analytics, draft Product, or private repository data to Gemini. Requests are size/rate limited and provider calls have a bounded timeout.
 
 ## Client Workspace
 
@@ -77,6 +95,12 @@ In Supabase Authentication settings, set the production Site URL to `https://tao
 Do not use `{{ .ConfirmationURL }}` for the production recovery link because that recreates the same-browser PKCE verifier dependency. Do not place SMTP credentials in this repository.
 
 Clients can read only Client Projects where `client_project_members.user_id = auth.uid()`. The human-facing `TS-XXXXXXXX` reference is an identifier, never a password or authorization token. External deliverables use validated HTTPS links. Private deliverables use the non-public `client-deliverables` bucket: Studio uploads receive a short-lived path-scoped upload authorization, the server validates the completed object before compare-and-set attachment, and Clients receive short-lived signed downloads only after project membership is checked.
+
+## Current release notes
+
+The Products + Reviews expansion is merged to main and deployed on Netlify. Current Supabase migration history includes verified_project_reviews, studio_products_and_source_privacy, and restore_verified_public_work_sources. Public data is served through constrained published_work, published_products, and published_project_reviews projections.
+
+Primary public page titles also use the shared accent-title design system introduced after the Products launch, while Studio Admin remains intentionally neutral and operational.
 
 ## Product direction
 
