@@ -41,7 +41,7 @@ export default async function CaseStudy({ params }: Props) {
     <article className="case" style={{ "--project-accent": project.accent } as React.CSSProperties}>
       <header className="case-hero container">
         <p className="eyebrow">{project.category} / {project.year}</p>
-        <h1 className="display">{project.name}</h1>
+        <h1 className="display title-accent" style={{ "--title-accent": project.accent } as React.CSSProperties}>{project.name}</h1>
         <p>{project.summary}</p>
         <dl>
           <div><dt>Client / business</dt><dd>{project.client}</dd></div>

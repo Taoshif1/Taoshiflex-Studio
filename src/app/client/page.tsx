@@ -20,7 +20,7 @@ export default async function ClientPage({ searchParams }: { searchParams: Promi
       <main className="client-shell client-login">
         <section className="client-login-panel">
           <p className="eyebrow">Private / Client workspace</p>
-          <h1>Client Access</h1>
+          <h1 className="display display-md">Client <span className="title-accent title-accent-blue">Access.</span></h1>
           <p>Enter the email connected to your project.</p>
           <ClientAuthForm />
           <aside>
@@ -55,11 +55,11 @@ export default async function ClientPage({ searchParams }: { searchParams: Promi
       <header className="client-head">
         <div>
           <p className="eyebrow">Private / Client workspace</p>
-          <h1>
+          <h1 className="display display-md">
             Welcome
-            {authorization.user.email
-              ? `, ${authorization.user.email.split("@")[0]}`
-              : ""}
+            {authorization.user.email ? (
+              <>, <span className="title-accent title-accent-blue">{authorization.user.email.split("@")[0]}</span></>
+            ) : null}
             .
           </h1>
           <p>
