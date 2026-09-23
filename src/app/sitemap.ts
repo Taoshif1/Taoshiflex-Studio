@@ -2,6 +2,7 @@ import type { MetadataRoute } from "next";
 import { getPublishedProjects, getPublishedProducts } from "@/lib/studio-data";
 import { site } from "@/content/site";
 import { currentVersion, getPublicPolicies } from "@/lib/policies";
+import { isSupabasePublicConfigured, supabasePublicRest } from "@/lib/supabase-rest";
 
 const releaseLastModified = new Date("2026-09-23T00:00:00+06:00");
 
@@ -12,30 +13,43 @@ function safeDate(value?: string | null) {
 }
 
 function newest(values: Array<string | null | undefined>) {
-  return values.reduce<Date>(
-    (latest, value) => {
-      const date = safeDate(value);
-      return date > latest ? date : latest;
-    },
-    releaseLastModified,
-  );
+  return values.reduce<Date>((latest, value) => {
+    const date = safeDate(value);
+    return date > latest ? date : latest;
+  }, releaseLastModified);
+}
+
+async function getProductUpdateTimes() {
+  if (!isSupabasePublicConfigured()) return new Map<string, string>();
+  try {
+    const rows = await supabasePublicRest<Array<{ slug: string; updated_at: string }>>(
+      "published_products?select=slug,updated_at",
+    );
+    return new Map(rows.map((row) => [row.slug, row.updated_at]));
+  } catch {
+    return new Map<string, string>();
+  }
 }
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const [projects, policies, products] = await Promise.all([
+  const [projects, policies, products, productUpdateTimes] = await Promise.all([
     getPublishedProjects(),
     getPublicPolicies(),
     getPublishedProducts(),
+    getProductUpdateTimes(),
   ]);
 
   const workLastModified = newest(projects.map((project) => project.updatedAt));
-  const productLastModified = newest(products.map((product) => product.updatedAt));
+  const productLastModified = newest(
+    products.map((product) => productUpdateTimes.get(product.slug)),
+  );
   const policyLastModified = newest(
     policies.map((policy) => {
       const version = currentVersion(policy);
       return version.updated_at || version.published_at || policy.updated_at;
     }),
   );
+
   const homeLastModified = new Date(
     Math.max(
       releaseLastModified.getTime(),
@@ -46,36 +60,11 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   );
 
   const entries: MetadataRoute.Sitemap = [
-    {
-      url: site.url,
-      lastModified: homeLastModified,
-      changeFrequency: "monthly",
-      priority: 1,
-    },
-    {
-      url: `${site.url}/work`,
-      lastModified: workLastModified,
-      changeFrequency: "monthly",
-      priority: 0.9,
-    },
-    {
-      url: `${site.url}/products`,
-      lastModified: productLastModified,
-      changeFrequency: "monthly",
-      priority: 0.9,
-    },
-    {
-      url: `${site.url}/pricing`,
-      lastModified: releaseLastModified,
-      changeFrequency: "monthly",
-      priority: 0.9,
-    },
-    {
-      url: `${site.url}/start-a-project`,
-      lastModified: releaseLastModified,
-      changeFrequency: "monthly",
-      priority: 0.8,
-    },
+    { url: site.url, lastModified: homeLastModified, changeFrequency: "monthly", priority: 1 },
+    { url: `${site.url}/work`, lastModified: workLastModified, changeFrequency: "monthly", priority: 0.9 },
+    { url: `${site.url}/products`, lastModified: productLastModified, changeFrequency: "monthly", priority: 0.9 },
+    { url: `${site.url}/pricing`, lastModified: releaseLastModified, changeFrequency: "monthly", priority: 0.9 },
+    { url: `${site.url}/start-a-project`, lastModified: releaseLastModified, changeFrequency: "monthly", priority: 0.8 },
   ];
 
   if (policies.length) {
@@ -96,7 +85,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     })),
     ...products.map((product) => ({
       url: `${site.url}/products/${product.slug}`,
-      lastModified: safeDate(product.updatedAt),
+      lastModified: safeDate(productUpdateTimes.get(product.slug)),
       changeFrequency: "monthly" as const,
       priority: 0.8,
     })),
@@ -104,9 +93,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       const version = currentVersion(policy);
       return {
         url: `${site.url}/policies/${policy.slug}`,
-        lastModified: safeDate(
-          version.updated_at || version.published_at || policy.updated_at,
-        ),
+        lastModified: safeDate(version.updated_at || version.published_at || policy.updated_at),
         changeFrequency: "yearly" as const,
         priority: 0.6,
       };
