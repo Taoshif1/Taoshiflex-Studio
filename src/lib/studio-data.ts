@@ -72,7 +72,7 @@ import { mapPublishedProduct } from "@/lib/product-contract";
 export const getPublishedProducts = cache(async (): Promise<import("@/types/content").Product[]> => {
   if (!isSupabasePublicConfigured()) return [];
   try {
-    const rows = await supabasePublicRest<Array<Omit<import("@/types/content").Product,"media"|"createdAt"|"updatedAt"> & { created_at?:string; updated_at?:string; media: Array<{id:string;role:"cover"|"gallery";storage_path:string;alt:string;sort_order:number}> }>>("published_products?select=*&order=sort_order.asc,id.asc");
+    const rows = await supabasePublicRest<Array<Omit<import("@/types/content").Product,"media"> & { media: Array<{id:string;role:"cover"|"gallery";storage_path:string;alt:string;sort_order:number}> }>>("published_products?select=*&order=sort_order.asc,id.asc");
     return rows.map(row => mapPublishedProduct(row, row.media.map(item => ({id:item.id,kind:"image" as const,role:item.role,alt:item.alt,aspect:"landscape" as const,src:projectMediaPublicUrl(item.storage_path),sortOrder:item.sort_order}))));
   } catch { return []; }
 });
