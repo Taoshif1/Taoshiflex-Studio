@@ -341,4 +341,4 @@ const source: Record<string, string> = {
 };
 
 export const bn: Record<string, string> = Object.fromEntries(Object.entries(en).filter(([, value]) => source[value]).map(([key, value]) => [key, source[value]]));
-export const catalog: Record<string, Record<string, string>> = {};
+export { catalog } from "../catalog-bn";
