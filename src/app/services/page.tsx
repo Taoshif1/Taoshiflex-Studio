@@ -99,7 +99,7 @@ export default function ServicesPage() {
         </div>
       </header>
 
-      <section className="container services-index" aria-label="Studio services">
+      <section className="container services-index" aria-labelledby="services-index-title"><h2 className="sr-only" id="services-index-title"><T id="services.servicesCreativeEngineering"/></h2>
         {capabilities.map((service, index) => {
           const detail = serviceDetails[service.id as keyof typeof serviceDetails];
           return (
@@ -121,7 +121,7 @@ export default function ServicesPage() {
                     {detail.includes.map(item => <li key={item}><DynamicText text={item}/></li>)}
                   </ul>
                 </div>
-                <div className="service-node-row" aria-label={service.title + " focus areas"}>
+                <div className="service-node-row">
                   {service.nodes.map(node => <span key={node}><DynamicText text={node}/></span>)}
                 </div>
               </div>
