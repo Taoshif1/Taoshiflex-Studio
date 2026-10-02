@@ -1,40 +1,27 @@
 "use client";
-import { T } from "@/i18n/language-context";
-
 
 import Link from "next/link";
-import { useLanguage } from "@/i18n/language-context";
+import { useLanguage, T } from "@/i18n/language-context";
 import { translateText } from "@/i18n/helpers";
 import type { ServicePackage } from "@/types/content";
 import { comparisonRows, deliveryStages, quoteFactors } from "@/content/pricing-translations";
 
 const money = (value: number) => new Intl.NumberFormat("en-BD").format(value);
-export function PricingContent({ packages }: { packages: ServicePackage[] }) {
-  const { language, text: t } = useLanguage();
-  const packageText = (_language: string, slug: string, value: string) => translateText(language, value, slug);
-  return () => window.removeEventListener("storage", notify);
-}
 
 export function PricingContent({ packages }: { packages: ServicePackage[] }) {
-  // SSR and initial hydration use English; saved preference is read after hydration.
-  const savedLanguage = useSyncExternalStore(subscribeLanguage, storedLanguage, serverLanguage);
-  const [selection, setSelection] = useState<PricingLanguage | null>(null);
-  const language = selection ?? savedLanguage;
-  const t = (text: string) => pricingText(language, text);
-  function selectLanguage(next: PricingLanguage) {
-    setSelection(next);
-    try { localStorage.setItem(preferenceKey, next); }
-    catch { /* The current page can still switch when storage is unavailable. */ }
-  }
+  const { language, text } = useLanguage();
+  const t = (value: string) => text(value);
+  const packageText = (slug: string, value: string) => translateText(language, value, slug);
 
   return (
     <div className="pricing-page" lang={language}>
       <header className="container pricing-hero">
         <p className="eyebrow">{t("Services / Starting points")}</p>
-        <h1 className="display">{t("Clear scope.")}<br />
+        <h1 className="display">
+          {t("Clear scope.")}<br />
           <span className="title-accent title-accent-gold">{t("Honest starting prices.")}</span>
         </h1>
-        <p> <T id="pricing.chooseTheClosestStartingPointThesePackagesAssumeA"/> </p>
+        <p><T id="pricing.chooseTheClosestStartingPointThesePackagesAssumeA"/></p>
         <div className="pricing-hero-proof technical" aria-label={t("What Studio pricing covers")}>
           <span>{t("Requirements first")}</span>
           <span>{t("Custom design direction")}</span>
@@ -47,22 +34,28 @@ export function PricingContent({ packages }: { packages: ServicePackage[] }) {
         {packages.length ? packages.map((item, index) => (
           <article key={item.id} className={item.featured ? "featured" : ""}>
             {item.featured ? <span className="pricing-recommended">{t("Recommended")}</span> : null}
-            <div className="pricing-index technical">{String(index + 1).padStart(2, "0")} / {packageText(language, item.slug, item.category)}</div>
-            <h2>{packageText(language, item.slug, item.name)}</h2>
-            <p className="package-value">{packageText(language, item.slug, item.description)}</p>
+            <div className="pricing-index technical">{String(index + 1).padStart(2, "0")} / {packageText(item.slug, item.category)}</div>
+            <h2>{packageText(item.slug, item.name)}</h2>
+            <p className="package-value">{packageText(item.slug, item.description)}</p>
             <p className="price">
               {item.priceFrom === null ? t("Custom quote") : <>{t("Starting from")}<strong>৳{money(item.priceFrom)}</strong></>}
             </p>
             <ul>
-              {item.features.map(feature => <li key={feature}><span className="pricing-feature-mark" aria-hidden="true">+</span><span>{packageText(language, item.slug, feature)}</span></li>)}
+              {item.features.map(feature => (
+                <li key={feature}>
+                  <span className="pricing-feature-mark" aria-hidden="true">+</span>
+                  <span>{packageText(item.slug, feature)}</span>
+                </li>
+              ))}
             </ul>
             <div className="package-meta">
               <span>{t("Delivery estimate")}</span>
-              <strong>{packageText(language, item.slug, item.deliveryEstimate)}</strong>
-              {item.revisions ? <small>{t("Revisions:")} {packageText(language, item.slug, item.revisions)}</small> : null}
-              {item.support ? <small>{packageText(language, item.slug, item.support)}</small> : null}
+              <strong>{packageText(item.slug, item.deliveryEstimate)}</strong>
+              {item.revisions ? <small>{t("Revisions:")} {packageText(item.slug, item.revisions)}</small> : null}
+              {item.support ? <small>{packageText(item.slug, item.support)}</small> : null}
             </div>
-            <Link className="action" href={`/start-a-project?package=${item.slug}`}>{t("Discuss this scope")}<span aria-hidden>↗</span>
+            <Link className="action" href={`/start-a-project?package=${item.slug}`}>
+              {t("Discuss this scope")} <span aria-hidden>↗</span>
             </Link>
           </article>
         )) : (
@@ -113,7 +106,7 @@ export function PricingContent({ packages }: { packages: ServicePackage[] }) {
               <strong role="columnheader">{t("Taoshiflex custom engagement")}</strong>
             </div>
             {comparisonRows.map(row => (
-              <div className="pricing-comparison-row" role="row" key={t(row.label)}>
+              <div className="pricing-comparison-row" role="row" key={row.label}>
                 <span role="cell">{t(row.label)}</span>
                 <p role="cell">{t(row.lowCost)}</p>
                 <p role="cell">{t(row.studio)}</p>
@@ -131,7 +124,7 @@ export function PricingContent({ packages }: { packages: ServicePackage[] }) {
         </div>
         <ul>
           {quoteFactors.map((factor, index) => (
-            <li key={t(factor)}>
+            <li key={factor}>
               <span>{String(index + 1).padStart(2, "0")}</span>
               {t(factor)}
             </li>
@@ -143,10 +136,10 @@ export function PricingContent({ packages }: { packages: ServicePackage[] }) {
         <p className="eyebrow">{t("Scope note")}</p>
         <div>
           <h2>{t("Starting price does not mean unlimited scope.")}</h2>
-          <p> <T id="pricing.domainHostingPaidAPIsPremiumPluginsOrServicesPayment"/> </p>
+          <p><T id="pricing.domainHostingPaidAPIsPremiumPluginsOrServicesPayment"/></p>
           <div className="scope-note-actions">
-            <Link className="action action-solid" href="/start-a-project">{t("Start a project brief")}<span aria-hidden>↗</span></Link>
-            <Link className="action" href="/work">{t("See how we build")}<span aria-hidden>↗</span></Link>
+            <Link className="action action-solid" href="/start-a-project">{t("Start a project brief")} <span aria-hidden>↗</span></Link>
+            <Link className="action" href="/work">{t("See how we build")} <span aria-hidden>↗</span></Link>
           </div>
         </div>
       </section>
