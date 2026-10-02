@@ -420,7 +420,8 @@ const source: Record<string, string> = {
   "৳50,000–৳80,000": "৳৫০,০০০–৳৮০,০০০",
   "৳80,000–৳150,000": "৳৮০,০০০–৳১,৫০,০০০",
   "৳150,000+": "৳১,৫০,০০০+"
-
+,
+  "What are you planning to build?": "কী তৈরি করতে চান?"
 };
 
 export const bn: Record<string, string> = Object.fromEntries(Object.entries(en).filter(([, value]) => source[value]).map(([key, value]) => [key, source[value]]));
