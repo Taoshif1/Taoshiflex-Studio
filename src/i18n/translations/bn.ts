@@ -448,7 +448,8 @@ const source: Record<string, string> = {
   "project media viewer. Use left and right arrow keys to change images.": "প্রজেক্ট মিডিয়া ভিউয়ার। ছবি বদলাতে বাম ও ডান অ্যারো কী ব্যবহার করুন।",
   "media thumbnails": "মিডিয়া থাম্বনেইল",
   "Show image": "ছবি দেখুন"
-
+,
+  "BUSINESS OUTCOME": "ব্যবসার ফলাফল"
 };
 
 export const bn: Record<string, string> = Object.fromEntries(Object.entries(en).filter(([, value]) => source[value]).map(([key, value]) => [key, source[value]]));
