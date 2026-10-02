@@ -15,19 +15,27 @@ export const dynamic = "force-dynamic";
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params;
   const product = await getPublishedProduct(slug);
-  return product
-    ? {
-        title: product.name,
-        description: product.summary,
-        alternates: { canonical: `/products/${slug}` },
-        openGraph: {
-          type: "website",
-          title: product.name,
-          description: product.summary,
-          url: `/products/${slug}`,
-        },
-      }
-    : {};
+  if (!product) return {};
+  const cover = product.media.find(item => item.role === "cover");
+  const images = cover?.src ? [{ url: cover.src, alt: cover.alt || product.name }] : undefined;
+  return {
+    title: product.name,
+    description: product.summary,
+    alternates: { canonical: `/products/${slug}` },
+    openGraph: {
+      type: "website",
+      title: product.name,
+      description: product.summary,
+      url: `/products/${slug}`,
+      images,
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: product.name,
+      description: product.summary,
+      images: images?.map(image => image.url),
+    },
+  };
 }
 
 export default async function ProductPage({ params }: Props) {
