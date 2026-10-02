@@ -182,6 +182,7 @@ export const en: Record<string, string> = {
   "policies.detail.effectiveDate": "Effective date",
   "policies.detail.currentVersion": "Current version",
   "assistant.taoshiflexGuidedScope": "Taoshiflex / Guided scope",
+  "assistant.defaultGreeting": "What are you planning to build?",
   "assistant.geminiAIPublicStudioKnowledge": "Gemini AI · Public Studio knowledge",
   "assistant.studioAssistant": "Studio Assistant",
   "assistant.thinking": "Thinking…",
