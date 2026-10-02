@@ -10,6 +10,7 @@ export function formatMoney(minor:number, currency:string, decimals:number) {
   return new Intl.NumberFormat("en-BD", { style:"currency", currency, minimumFractionDigits:decimals, maximumFractionDigits:decimals }).format(minor / 10 ** decimals);
 }
 export function parseMoney(value:unknown, decimals:number) {
+  if (!Number.isInteger(decimals) || decimals < 0 || decimals > 3) return null;
   if (typeof value!=="string" || value.trim().length>24 || !/^\d+(?:\.\d+)?$/.test(value.trim())) return null;
   const [whole,fraction=""] = value.trim().split(".");
   if (fraction.length>decimals) return null;

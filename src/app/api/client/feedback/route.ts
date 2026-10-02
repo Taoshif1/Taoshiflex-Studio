@@ -1,3 +1,4 @@
+import { readJson } from "@/lib/request-body";
 import { isSameOrigin, cleanText } from "@/lib/admin-security";
 import { getClientAuthorization } from "@/lib/client-auth";
 import {
@@ -48,7 +49,7 @@ export async function POST(request: Request) {
   const maintenance = await requireClientWorkspaceWritable();
   if (maintenance) return maintenance;
 
-  const body = (await request.json().catch(() => null)) as FeedbackRequest | null;
+  const body = (await readJson(request).catch(() => null)) as FeedbackRequest | null;
   const projectId = body?.projectId;
   const targetType = body?.targetType;
   const intent = body?.intent;

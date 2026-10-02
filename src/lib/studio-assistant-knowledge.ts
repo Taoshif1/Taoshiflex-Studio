@@ -114,7 +114,7 @@ export async function getPublicStudioAssistantContext(): Promise<PublicStudioAss
         : [],
       activePackages:
         allowed.has("pricing") && settings.showPricing
-          ? packages.map((item) => ({
+          ? packages.slice(0, 30).map((item) => ({
               name: item.name,
               category: item.category,
               priceFrom: item.priceFrom,

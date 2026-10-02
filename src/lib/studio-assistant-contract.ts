@@ -29,6 +29,7 @@ export function parseAssistantRequest(value: unknown): AssistantRequest | null {
   for (const entry of input.history) {
     if (!entry || typeof entry !== "object" || Array.isArray(entry)) return null;
     const message = entry as Record<string, unknown>;
+    if (Object.keys(message).some(key => key !== "role" && key !== "text")) return null;
     if (
       (message.role !== "assistant" && message.role !== "user") ||
       typeof message.text !== "string"

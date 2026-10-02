@@ -112,6 +112,7 @@ function safeHttpsUrl(value: unknown, platform?: StudioPresencePlatform) {
 export function parseStudioPresence(value: unknown): StudioPresence | null {
   if (!value || typeof value !== "object" || Array.isArray(value)) return null;
   const input = value as Record<string, unknown>;
+  if(Object.keys(input).some(key=>!["email","location","availability","bookingUrl","bookingEnabled","socialLinks"].includes(key)))return null;
   const email = plainText(input.email, 254);
   const location = plainText(input.location, 120);
   const availability = plainText(input.availability, 160);
@@ -137,6 +138,7 @@ export function parseStudioPresence(value: unknown): StudioPresence | null {
   for (const item of input.socialLinks) {
     if (!item || typeof item !== "object" || Array.isArray(item)) return null;
     const link = item as Record<string, unknown>;
+    if(Object.keys(link).some(key=>!["id","platform","label","url","enabled","sortOrder"].includes(key)))return null;
     const id = typeof link.id === "string" ? link.id : "";
     const platform = link.platform as StudioPresencePlatform;
     const label = plainText(link.label, 80);

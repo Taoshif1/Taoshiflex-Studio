@@ -1,3 +1,4 @@
+import { readJson } from "@/lib/request-body";
 import { authorizeMutation } from "@/lib/admin-security";
 import { parseProduct } from "@/lib/product-contract";
 import { reviewUuid } from "@/lib/review-contract";
@@ -5,7 +6,8 @@ import { supabaseRest } from "@/lib/supabase-rest";
 
 async function save(request: Request, create: boolean) {
   const auth = await authorizeMutation(request); if (auth.error) return auth.error;
-  const body = await request.json().catch(() => null);
+  const body = await readJson(request).catch(() => null);
+  if (!body) return Response.json({error:"Invalid product."},{status:400});
   const product = parseProduct(body);
   if (!product || (!create && (typeof body.id !== "string" || !reviewUuid.test(body.id)))) return Response.json({ error: "Check required fields, URLs and publication settings. Private-source products cannot expose a repository link." }, { status: 400 });
   try {
@@ -19,7 +21,7 @@ export async function PATCH(request: Request) { return save(request, false); }
 // Archive preserves content and uploaded media for restoration; never silently deletes assets.
 export async function DELETE(request: Request) {
   const auth = await authorizeMutation(request); if (auth.error) return auth.error;
-  const body = await request.json().catch(() => null);
+  const body = await readJson(request).catch(() => null);
   if (typeof body?.id !== "string" || !reviewUuid.test(body.id) || typeof body.confirmName !== "string") return Response.json({error:"Product and confirmation name are required."},{status:400});
   try {
     const rows = await supabaseRest<Array<{name:string}>>(`products?id=eq.${body.id}&select=name`,{},"privileged");

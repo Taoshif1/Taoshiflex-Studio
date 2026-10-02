@@ -1,15 +1,15 @@
+import { readJson } from "@/lib/request-body";
 import { NextRequest } from "next/server";
 import { randomBytes } from "node:crypto";
 import { isSupabaseServerConfigured, supabaseRest } from "@/lib/supabase-rest";
-import { rateLimit } from "@/lib/rate-limit";
+
 import { dispatchNewInquiryAlerts } from "@/lib/inquiry-alerts";
 import type { InquiryRecord } from "@/lib/inquiries";
-import type { Inquiry } from "@/types/content";
+import { parseInquiry } from "@/lib/inquiry-contract";
+import { publicRateLimit } from "@/lib/public-rate-limit";
+import { isSameOrigin } from "@/lib/admin-security";
 
-const limits={projectType:80,stage:80,budget:80,timeline:80,details:3000,name:120,business:160,email:254,phone:40};
-function text(value:unknown,max:number){return typeof value==="string"?value.trim().slice(0,max):""}
-function validate(body:unknown):Inquiry|null{if(!body||typeof body!=="object")return null;const value=body as Record<string,unknown>;const inquiry={projectType:text(value.projectType,limits.projectType),stage:text(value.stage,limits.stage),goals:Array.isArray(value.goals)?value.goals.slice(0,8).map((item)=>text(item,80)).filter(Boolean):[],budget:text(value.budget,limits.budget),timeline:text(value.timeline,limits.timeline),details:text(value.details,limits.details),name:text(value.name,limits.name),business:text(value.business,limits.business),email:text(value.email,limits.email).toLowerCase(),phone:text(value.phone,limits.phone)};if(!inquiry.projectType||!inquiry.stage||!inquiry.goals.length||!inquiry.budget||!inquiry.timeline||inquiry.details.length<20||!inquiry.name||!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(inquiry.email))return null;return inquiry}
-export async function POST(request:NextRequest){const ip=request.headers.get("x-forwarded-for")?.split(",")[0]??"unknown";if(!rateLimit(`inquiry:${ip}`,5,60*60*1000))return Response.json({error:"Too many requests. Please try again later."},{status:429});if(!isSupabaseServerConfigured())return Response.json({error:"Project inquiries are temporarily unavailable. Please contact the Studio through a configured channel."},{status:503});let body:unknown;try{body=await request.json()}catch{return Response.json({error:"Invalid request."},{status:400})}const inquiry=validate(body);if(!inquiry)return Response.json({error:"Please review the brief and contact details."},{status:400});const reference=`TS-${randomBytes(4).toString("hex").toUpperCase()}`;let inserted:Pick<InquiryRecord,"id"|"reference"|"created_at">;try{const rows=await supabaseRest<Array<Pick<InquiryRecord,"id"|"reference"|"created_at">>>(
+export async function POST(request:NextRequest){if(!isSameOrigin(request))return Response.json({error:"Cross-origin request rejected."},{status:403});if(!await publicRateLimit(request,"inquiry",5,3600))return Response.json({error:"Too many requests. Please try again later."},{status:429});if(!isSupabaseServerConfigured())return Response.json({error:"Project inquiries are temporarily unavailable. Please contact the Studio through a configured channel."},{status:503});let body:unknown;try{body=await readJson(request)}catch{return Response.json({error:"Invalid request."},{status:400})}const inquiry=parseInquiry(body);if(!inquiry)return Response.json({error:"Please review the brief and contact details."},{status:400});const reference=`TS-${randomBytes(4).toString("hex").toUpperCase()}`;let inserted:Pick<InquiryRecord,"id"|"reference"|"created_at">;try{const rows=await supabaseRest<Array<Pick<InquiryRecord,"id"|"reference"|"created_at">>>(
   "inquiries?select=id,reference,created_at",
   {method:"POST",headers:{Prefer:"return=representation"},body:JSON.stringify({email:inquiry.email,payload:inquiry,status:"new",reference})},
   true,

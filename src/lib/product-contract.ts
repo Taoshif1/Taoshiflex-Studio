@@ -1,7 +1,10 @@
+import { safeWebUrl } from "./security-contract.ts";
 export const productStatuses = ["Live", "Beta", "In Development", "Coming Soon"] as const;
 export function parseProduct(value: unknown) {
   if (!value || typeof value !== "object" || Array.isArray(value)) return null;
   const row = value as Record<string, unknown>;
+  const allowed="id slug name tagline summary story problem solution roadmap status category accent features technologies product_url repository_url show_repository source_repository_private pricing_model launch_date featured published sort_order".split(" ");
+  if(Object.keys(row).some(key=>!allowed.includes(key)))return null;
   const limits: Record<string, number> = { slug:80,name:160,tagline:200,summary:500,story:8000,problem:4000,solution:4000,roadmap:4000,category:80,accent:7,pricing_model:160 };
   const texts: Record<string,string> = {};
   for (const [key,max] of Object.entries(limits)) {
@@ -23,7 +26,7 @@ export function parseProduct(value: unknown) {
     const raw = row[key];
     if (raw === "" || raw === null) { urls[key] = null; continue; }
     if (typeof raw !== "string" || raw.length > 500) return null;
-    try { const url = new URL(raw); if (url.protocol !== "https:" || url.username || url.password) return null; urls[key] = url.href; } catch { return null; }
+    const url = safeWebUrl(raw); if (!url) return null; urls[key] = url;
   }
   if (row.source_repository_private && (row.show_repository || urls.repository_url)) return null;
   const date = row.launch_date;
@@ -38,8 +41,8 @@ export function mapPublishedProduct(row: Omit<import("@/types/content").Product,
     summary: row.summary, story: row.story, problem: row.problem,
     solution: row.solution, roadmap: row.roadmap, status: row.status,
     category: row.category, accent: row.accent, features: row.features,
-    technologies: row.technologies, product_url: row.product_url,
-    repository_url: row.repository_url, pricing_model: row.pricing_model,
+    technologies: row.technologies, product_url: safeWebUrl(row.product_url),
+    repository_url: safeWebUrl(row.repository_url), pricing_model: row.pricing_model,
     launch_date: row.launch_date, featured: row.featured, media,
   };
 }

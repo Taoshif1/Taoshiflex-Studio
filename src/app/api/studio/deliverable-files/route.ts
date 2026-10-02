@@ -1,3 +1,5 @@
+import { validDeliverableExtension, validDeliverablePath } from "@/lib/file-contract";
+import { readJson } from "@/lib/request-body";
 import { authorizeMutation, cleanText } from "@/lib/admin-security";
 import {
   allowedDeliverableTypes,
@@ -23,9 +25,7 @@ function storagePathFilter(path: string | null) {
 }
 
 function isDeliverableObjectPath(path: string, projectId: string, deliverableId: string) {
-  const prefix = `${projectId}/${deliverableId}/`;
-  const filename = path.slice(prefix.length);
-  return path.length <= 300 && path.startsWith(prefix) && Boolean(filename) && !filename.includes("/");
+  return validDeliverablePath(path, projectId, deliverableId);
 }
 
 async function compareAndSetStoragePath({
@@ -55,7 +55,7 @@ export async function POST(request: Request) {
   const auth = await authorizeMutation(request);
   if (auth.error) return auth.error;
 
-  const body = (await request.json().catch(() => null)) as Record<string, unknown> | null;
+  const body = (await readJson(request).catch(() => null)) as Record<string, unknown> | null;
   const projectId = cleanText(body?.projectId, 40, true);
   const deliverableId = cleanText(body?.deliverableId, 40, true);
   const fileName = cleanText(body?.fileName, 180, true);
@@ -71,7 +71,7 @@ export async function POST(request: Request) {
   if (!Number.isSafeInteger(fileSize) || fileSize < 1 || fileSize > maxDeliverableBytes) {
     return Response.json({ error: "Deliverable files must be between 1 byte and 25 MB." }, { status: 400 });
   }
-  if (!allowedDeliverableTypes.has(fileType)) {
+  if (!allowedDeliverableTypes.has(fileType) || !validDeliverableExtension(fileName, fileType)) {
     return Response.json({ error: "That file type is not allowed for private deliverables." }, { status: 400 });
   }
 
@@ -114,7 +114,7 @@ export async function PATCH(request: Request) {
   const auth = await authorizeMutation(request);
   if (auth.error) return auth.error;
 
-  const body = (await request.json().catch(() => null)) as Record<string, unknown> | null;
+  const body = (await readJson(request).catch(() => null)) as Record<string, unknown> | null;
   const ticket = verifyDeliverableUploadTicket(body?.finalizeToken);
   if (!ticket) {
     return Response.json(
@@ -212,7 +212,7 @@ export async function PATCH(request: Request) {
 export async function DELETE(request: Request) {
   const auth = await authorizeMutation(request);
   if (auth.error) return auth.error;
-  const body = (await request.json().catch(() => null)) as Record<string, unknown> | null;
+  const body = (await readJson(request).catch(() => null)) as Record<string, unknown> | null;
   const projectId = cleanText(body?.projectId, 40, true);
   const deliverableId = cleanText(body?.deliverableId, 40, true);
 

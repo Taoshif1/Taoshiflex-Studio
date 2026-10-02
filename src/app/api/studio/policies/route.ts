@@ -1,3 +1,5 @@
+import { validDate as isCalendarDate } from "@/lib/security-contract";
+import { readJson } from "@/lib/request-body";
 import { authorizeMutation, cleanText } from "@/lib/admin-security";
 import { starterPolicies } from "@/lib/policy-starters";
 import { supabaseRest } from "@/lib/supabase-rest";
@@ -5,7 +7,7 @@ import { supabaseRest } from "@/lib/supabase-rest";
 const uuid=/^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 const slugPattern=/^[a-z0-9]+(?:-[a-z0-9]+)*$/;
 const audiences=["public","client","both"];
-const validDate=(value:unknown)=>typeof value==="string"&&/^\d{4}-\d{2}-\d{2}$/.test(value)?value:null;
+const validDate=(value:unknown)=>isCalendarDate(value)?value:null;
 
 async function createStarterDrafts(token:string){
   const existing=await supabaseRest<Array<{slug:string}>>("policies?select=slug",{},"privileged");
@@ -33,7 +35,7 @@ async function createStarterDrafts(token:string){
 
 export async function POST(request:Request){
   const auth=await authorizeMutation(request); if(auth.error)return auth.error;
-  const body=await request.json().catch(()=>null) as Record<string,unknown>|null;
+  const body=await readJson(request).catch(()=>null) as Record<string,unknown>|null;
   if(body?.kind==="starter-drafts"){
     try{const created=await createStarterDrafts(auth.token);return Response.json({ok:true,created})}
     catch{return Response.json({error:"Starter policy drafts could not be completed."},{status:409})}
@@ -46,7 +48,7 @@ export async function POST(request:Request){
 
 export async function PATCH(request:Request){
   const auth=await authorizeMutation(request); if(auth.error)return auth.error;
-  const body=await request.json().catch(()=>null) as Record<string,unknown>|null,kind=cleanText(body?.kind,30,true);
+  const body=await readJson(request).catch(()=>null) as Record<string,unknown>|null,kind=cleanText(body?.kind,30,true);
   try{
     if(kind==="version"){
       const id=cleanText(body?.id,40,true),title=cleanText(body?.title,160,true),summary=cleanText(body?.summary,500),content=cleanText(body?.content,100000),audience=cleanText(body?.audience,12,true);
@@ -73,7 +75,7 @@ export async function PATCH(request:Request){
 
 export async function DELETE(request:Request){
   const auth=await authorizeMutation(request); if(auth.error)return auth.error;
-  const body=await request.json().catch(()=>null) as Record<string,unknown>|null,id=cleanText(body?.id,40,true);
+  const body=await readJson(request).catch(()=>null) as Record<string,unknown>|null,id=cleanText(body?.id,40,true);
   if(!id||!uuid.test(id))return Response.json({error:"Valid draft required."},{status:400});
   try{await supabaseRest(`policy_versions?id=eq.${id}&published_at=is.null`,{method:"DELETE",headers:{Prefer:"return=minimal"}},"privileged");return Response.json({ok:true})}
   catch{return Response.json({error:"Published, acknowledged, or final policy drafts cannot be deleted. Archive the policy instead."},{status:409})}

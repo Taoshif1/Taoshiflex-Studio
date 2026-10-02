@@ -1,7 +1,9 @@
 import { NextRequest } from "next/server";
 
 import { generateStudioAssistantReply } from "@/lib/gemini-studio-assistant";
-import { rateLimit } from "@/lib/rate-limit";
+import { publicRateLimit } from "@/lib/public-rate-limit";
+import { readJson } from "@/lib/request-body";
+import { isSameOrigin } from "@/lib/admin-security";
 import {
   fallbackStudioAssistantReply,
 } from "@/lib/studio-assistant-fallback";
@@ -12,14 +14,14 @@ const MAX_REQUEST_BYTES = 12_000;
 const headers = { "Cache-Control": "no-store" };
 
 export async function POST(request: NextRequest) {
+  if (!isSameOrigin(request)) return Response.json({error:"Cross-origin request rejected."},{status:403});
   const length = Number(request.headers.get("content-length") ?? 0);
   if (Number.isFinite(length) && length > MAX_REQUEST_BYTES) {
     return Response.json({ error: "That message is too large." }, { status: 413, headers });
   }
-  const ip = request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || "local";
   if (
-    !rateLimit(`assistant-minute:${ip}`, 8, 60_000) ||
-    !rateLimit(`assistant-hour:${ip}`, 40, 60 * 60_000)
+    !await publicRateLimit(request,"assistant-minute",8,60) ||
+    !await publicRateLimit(request,"assistant-hour",40,3600)
   ) {
     return Response.json(
       {
@@ -30,12 +32,7 @@ export async function POST(request: NextRequest) {
     );
   }
 
-  const rawBody = await request.text().catch(() => "");
-  if (!rawBody || rawBody.length > MAX_REQUEST_BYTES) {
-    return Response.json({ error: "That message is too large." }, { status: 413, headers });
-  }
-  let body: unknown = null;
-  try { body = JSON.parse(rawBody); } catch { /* handled by request validation */ }
+  const body = await readJson(request);
   const input = parseAssistantRequest(body);
   if (!input) {
     return Response.json(
