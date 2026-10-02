@@ -1,9 +1,11 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { readFileSync } from "node:fs";
-import { parseLanguage } from "../src/i18n/config.ts";
-import { translate, translateText } from "../src/i18n/helpers.ts";
-import { inquirySteps } from "../src/lib/inquiry-config.ts";
+import { loadTs } from "./security-loader.mjs";
+
+const { parseLanguage } = loadTs("src/i18n/config.ts");
+const { translate, translateText } = loadTs("src/i18n/helpers.ts");
+const { inquirySteps } = loadTs("src/lib/inquiry-config.ts");
 
 test("language parser defaults safely to English", () => {
   assert.equal(parseLanguage("bn"), "bn");
