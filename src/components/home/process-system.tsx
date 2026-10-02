@@ -1,4 +1,6 @@
 "use client";
+import { DynamicText, T } from "@/i18n/language-context";
+
 import {
   motion,
   useReducedMotion,
@@ -29,18 +31,11 @@ export function ProcessSystem({ stages }: { stages: ProcessStage[] }) {
         <span className="draft-crosshair crosshair-b"><i /><i /></span>
       </div>
       <div className="container">
-        <p className="eyebrow">05 / Process</p>
+        <p className="eyebrow"><T id="home.process.05Process"/></p>
         <div className="process-grid">
           <div className="process-intro">
-            <h2 className="display display-md">
-              One system.
-              <br />
-              Five deliberate moves.
-            </h2>
-            <p>
-              Enough structure to protect the outcome. Enough flexibility to
-              respond to what we learn.
-            </p>
+            <h2 className="display display-md"> <T id="home.process.oneSystem"/> <br /> <T id="home.process.fiveDeliberateMoves"/> </h2>
+            <p> <T id="home.process.enoughStructureToProtectTheOutcomeEnoughFlexibilityTo"/> </p>
           </div>
           <div className="timeline">
             <div className="timeline-line">
@@ -57,13 +52,13 @@ export function ProcessSystem({ stages }: { stages: ProcessStage[] }) {
                   {String(index + 1).padStart(2, "0")}
                 </span>
                 <div>
-                  <h3>{stage.title}</h3>
-                  <p>{stage.what}</p>
+                  <h3><DynamicText text={stage.title}/></h3>
+                  <p><DynamicText text={stage.what}/></p>
                   <dl>
-                    <dt>Why it matters</dt>
-                    <dd>{stage.why}</dd>
-                    <dt>You get</dt>
-                    <dd>{stage.deliverable}</dd>
+                    <dt><T id="home.process.whyItMatters"/></dt>
+                    <dd><DynamicText text={stage.why}/></dd>
+                    <dt><T id="home.process.youGet"/></dt>
+                    <dd><DynamicText text={stage.deliverable}/></dd>
                   </dl>
                 </div>
               </article>

@@ -1,3 +1,4 @@
+import { DynamicText, T } from "@/i18n/language-context";
 import Link from "next/link";
 import type { CSSProperties } from "react";
 import type { Product } from "@/types/content";
@@ -38,43 +39,43 @@ export function ProductCard({
           ) : (
             <div className="product-monogram" aria-hidden="true">
               {product.name.slice(0, 1)}
-              <span>Built by Taoshiflex Studio</span>
+              <span><T id="products.card.builtByTaoshiflexStudio"/></span>
             </div>
           )}
           <div className="product-card-visual-label technical">
-            <span>Studio product</span>
-            <span>{product.status}</span>
+            <span><T id="products.card.studioProduct"/></span>
+            <span><DynamicText text={product.status}/></span>
           </div>
         </div>
       </Link>
 
       <div className="product-card-body">
         <div className="product-meta">
-          <span className="product-status">{product.status}</span>
-          <span>{product.category}</span>
+          <span className="product-status"><DynamicText text={product.status}/></span>
+          <span><DynamicText text={product.category}/></span>
         </div>
 
         <h2>
           <Link href={`/products/${product.slug}`}>{product.name}</Link>
         </h2>
 
-        <p className="product-tagline">{product.tagline}</p>
-        <p className="product-summary">{product.summary}</p>
+        <p className="product-tagline"><DynamicText text={product.tagline} slug={product.slug}/></p>
+        <p className="product-summary"><DynamicText text={product.summary} slug={product.slug}/></p>
 
         {!!product.features.length && (
           <ul className="product-tags" aria-label={`${product.name} highlights`}>
-            {product.features.slice(0, 3).map(feature => <li key={feature}>{feature}</li>)}
+            {product.features.slice(0, 3).map(feature => <li key={feature}><DynamicText text={feature} slug={product.slug}/></li>)}
           </ul>
         )}
 
         <div className="product-links">
           <Link className="product-card-action product-card-action-primary" href={`/products/${product.slug}`}>
-            <span>Explore product</span>
+            <span><T id="products.card.exploreProduct"/></span>
             <span aria-hidden="true">↗</span>
           </Link>
           {product.status === "Live" && product.product_url && (
             <a className="product-card-action" href={product.product_url} target="_blank" rel="noopener noreferrer">
-              <span>Visit product</span>
+              <span><T id="products.card.visitProduct"/></span>
               <span aria-hidden="true">↗</span>
             </a>
           )}

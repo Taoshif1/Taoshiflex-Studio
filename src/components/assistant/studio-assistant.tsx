@@ -1,4 +1,6 @@
 "use client";
+import { useLanguage, DynamicText, T } from "@/i18n/language-context";
+
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -15,6 +17,7 @@ import type { AssistantSettings } from "@/types/content";
 const suggestions = ["Pricing", "Business website", "E-commerce", "Process"];
 
 export function StudioAssistant({ settings }: { settings: AssistantSettings }) {
+  const { text } = useLanguage();
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
   const [input, setInput] = useState("");
@@ -83,11 +86,11 @@ export function StudioAssistant({ settings }: { settings: AssistantSettings }) {
 
   return <div className="assistant"><AnimatePresence>{open ? <motion.section id="studio-assistant-panel" className="assistant-panel" role="dialog" aria-labelledby="studio-assistant-title" aria-busy={pending} initial={reduce ? false : { opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 10 }}>
     <div className="assistant-geometry" aria-hidden><i/><i/></div>
-    <header><div><small>Taoshiflex / Guided scope</small><strong id="studio-assistant-title">{settings.name}</strong><span>Gemini AI · Public Studio knowledge</span></div><button type="button" onClick={close} aria-label={`Close ${settings.name}`}>×</button></header>
-    <div ref={logRef} className="assistant-log" aria-live="polite">{messages.map((message, index) => <div key={`${message.role}-${index}`} className={`assistant-message is-${message.role}`}><small>{message.role === "assistant" ? "Studio note" : "Your question"}</small><p>{message.text}</p></div>)}{pending ? <div className="assistant-message assistant-thinking" role="status"><small>Studio Assistant</small><p>Thinking…</p></div> : null}</div>
-    <div className="assistant-suggestions" aria-label="Suggested questions">{suggestions.map((item) => <button type="button" key={item} disabled={pending} onClick={() => void send(item)}>{item}</button>)}</div>
-    <form onSubmit={submit}><label htmlFor="studio-question">Ask the Studio</label><div><input id="studio-question" value={input} maxLength={ASSISTANT_MAX_QUESTION_LENGTH} onChange={(event) => setInput(event.target.value)} placeholder="Ask about scope or process" disabled={pending}/><button type="submit" disabled={pending || !input.trim()}>{pending ? "Thinking…" : "Send"} <span aria-hidden>→</span></button></div></form>
-    <p className="assistant-privacy">Don&apos;t share passwords, payment details or confidential Client information.</p>
-    {settings.leadCapture ? <Link href={settings.handoffUrl}>Move from guidance to a real project brief <span aria-hidden>↗</span></Link> : null}
-  </motion.section> : null}</AnimatePresence><button ref={triggerRef} className="assistant-trigger" type="button" onClick={() => setOpen((value) => !value)} aria-expanded={open} aria-controls="studio-assistant-panel"><span aria-hidden>{open ? "×" : "TS"}</span>{open ? "Close panel" : "Ask the Studio"}</button></div>;
+    <header><div><small><T id="assistant.taoshiflexGuidedScope"/></small><strong id="studio-assistant-title"><DynamicText text={settings.name}/></strong><span><T id="assistant.geminiAIPublicStudioKnowledge"/></span></div><button type="button" onClick={close} aria-label={`${text("Close")} ${settings.name}`}>×</button></header>
+    <div ref={logRef} className="assistant-log" aria-live="polite">{messages.map((message, index) => <div key={`${message.role}-${index}`} className={`assistant-message is-${message.role}`}><small><DynamicText text={message.role === "assistant" ? "Studio note" : "Your question"}/></small><p>{message.text === ASSISTANT_CLIENT_FAILURE_REPLY ? text("The Studio Assistant is unavailable. Please try again or send a project brief.") : index === 0 && message.role === "assistant" ? text(message.text) : message.text}</p></div>)}{pending ? <div className="assistant-message assistant-thinking" role="status"><small><T id="assistant.studioAssistant"/></small><p><T id="assistant.thinking"/></p></div> : null}</div>
+    <div className="assistant-suggestions" aria-label="Suggested questions">{suggestions.map((item) => <button type="button" key={item} disabled={pending} onClick={() => void send(item)}><DynamicText text={item}/></button>)}</div>
+    <form onSubmit={submit}><label htmlFor="studio-question"><T id="assistant.askTheStudio"/></label><div><input id="studio-question" value={input} maxLength={ASSISTANT_MAX_QUESTION_LENGTH} onChange={(event) => setInput(event.target.value)} placeholder={text("Ask about scope or process")} disabled={pending}/><button type="submit" disabled={pending || !input.trim()}><DynamicText text={pending ? "Thinking…" : "Send"}/> <span aria-hidden>→</span></button></div></form>
+    <p className="assistant-privacy"><T id="assistant.donTSharePasswordsPaymentDetailsOrConfidentialClient"/></p>
+    {settings.leadCapture ? <Link href={settings.handoffUrl}><T id="assistant.moveFromGuidanceToARealProjectBrief"/> <span aria-hidden>↗</span></Link> : null}
+  </motion.section> : null}</AnimatePresence><button ref={triggerRef} className="assistant-trigger" type="button" onClick={() => setOpen((value) => !value)} aria-expanded={open} aria-controls="studio-assistant-panel"><span aria-hidden>{open ? "×" : "TS"}</span><DynamicText text={open ? "Close panel" : "Ask the Studio"}/></button></div>;
 }

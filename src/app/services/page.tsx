@@ -1,3 +1,4 @@
+import { DynamicText, T } from "@/i18n/language-context";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { capabilities, processStages } from "@/content/site";
@@ -85,19 +86,15 @@ export default function ServicesPage() {
   return (
     <div className="services-page">
       <header className="container services-hero">
-        <p className="eyebrow">Services / Creative engineering</p>
-        <h1 className="display">
-          Strategy to interface.<br />
-          <span className="title-accent title-accent-blue">Interface to working system.</span>
+        <p className="eyebrow"><T id="services.servicesCreativeEngineering"/></p>
+        <h1 className="display"> <T id="services.strategyToInterface"/><br />
+          <span className="title-accent title-accent-blue"><T id="services.interfaceToWorkingSystem"/></span>
         </h1>
         <div className="services-hero-foot">
-          <p>
-            Taoshiflex Studio combines product thinking, design and engineering so the thing
-            that gets approved is also the thing that can be built, launched and operated.
-          </p>
+          <p> <T id="services.taoshiflexStudioCombinesProductThinkingDesignAndEngineeringSo"/> </p>
           <div className="services-hero-links">
-            <Link className="action action-solid" href="/start-a-project">Start a project <span aria-hidden>↗</span></Link>
-            <Link className="action" href="/pricing">See starting prices <span aria-hidden>↗</span></Link>
+            <Link className="action action-solid" href="/start-a-project"><T id="services.startAProject"/> <span aria-hidden>↗</span></Link>
+            <Link className="action" href="/pricing"><T id="services.seeStartingPrices"/> <span aria-hidden>↗</span></Link>
           </div>
         </div>
       </header>
@@ -109,23 +106,23 @@ export default function ServicesPage() {
             <article id={service.id} key={service.id} className="service-block">
               <div className="service-block-number technical">{String(index + 1).padStart(2, "0")}</div>
               <div className="service-block-title">
-                <p className="technical">{service.title}</p>
-                <h2>{service.value}</h2>
-                <p>{service.description}</p>
+                <p className="technical"><DynamicText text={service.title}/></p>
+                <h2><DynamicText text={service.value}/></h2>
+                <p><DynamicText text={service.description}/></p>
               </div>
               <div className="service-block-detail">
                 <div>
-                  <span className="technical">Best fit</span>
-                  <p>{detail.bestFor}</p>
+                  <span className="technical"><T id="services.bestFit"/></span>
+                  <p><DynamicText text={detail.bestFor}/></p>
                 </div>
                 <div>
-                  <span className="technical">Typical scope</span>
+                  <span className="technical"><T id="services.typicalScope"/></span>
                   <ul>
-                    {detail.includes.map(item => <li key={item}>{item}</li>)}
+                    {detail.includes.map(item => <li key={item}><DynamicText text={item}/></li>)}
                   </ul>
                 </div>
                 <div className="service-node-row" aria-label={service.title + " focus areas"}>
-                  {service.nodes.map(node => <span key={node}>{node}</span>)}
+                  {service.nodes.map(node => <span key={node}><DynamicText text={node}/></span>)}
                 </div>
               </div>
             </article>
@@ -137,20 +134,17 @@ export default function ServicesPage() {
         <div className="container">
           <div className="services-section-heading">
             <div>
-              <p className="eyebrow">How the Studio works</p>
-              <h2>Custom does not mean chaotic.</h2>
+              <p className="eyebrow"><T id="services.howTheStudioWorks"/></p>
+              <h2><T id="services.customDoesNotMeanChaotic"/></h2>
             </div>
-            <p>
-              The process is structured enough to protect quality, but flexible enough to respond
-              when discovery changes what the right solution should be.
-            </p>
+            <p> <T id="services.theProcessIsStructuredEnoughToProtectQualityBut"/> </p>
           </div>
           <div className="services-principle-grid">
             {engagementPrinciples.map((principle, index) => (
               <article key={principle.title}>
                 <span className="technical">{String(index + 1).padStart(2, "0")}</span>
-                <h3>{principle.title}</h3>
-                <p>{principle.copy}</p>
+                <h3><DynamicText text={principle.title}/></h3>
+                <p><DynamicText text={principle.copy}/></p>
               </article>
             ))}
           </div>
@@ -159,20 +153,18 @@ export default function ServicesPage() {
 
       <section className="container services-process" aria-labelledby="services-process-title">
         <div>
-          <p className="eyebrow">Delivery system</p>
-          <h2 id="services-process-title">Five deliberate moves.</h2>
-          <p>
-            The same core process adapts to a focused website, a commerce build or a more complex product.
-          </p>
+          <p className="eyebrow"><T id="services.deliverySystem"/></p>
+          <h2 id="services-process-title"><T id="services.fiveDeliberateMoves"/></h2>
+          <p> <T id="services.theSameCoreProcessAdaptsToAFocusedWebsite"/> </p>
         </div>
         <ol>
           {processStages.map((stage, index) => (
             <li key={stage.id}>
               <span className="technical">{String(index + 1).padStart(2, "0")}</span>
               <div>
-                <h3>{stage.title}</h3>
-                <p>{stage.what}</p>
-                <small>{stage.deliverable}</small>
+                <h3><DynamicText text={stage.title}/></h3>
+                <p><DynamicText text={stage.what}/></p>
+                <small><DynamicText text={stage.deliverable}/></small>
               </div>
             </li>
           ))}
@@ -181,16 +173,13 @@ export default function ServicesPage() {
 
       <section className="container services-cta">
         <div>
-          <p className="eyebrow">Not sure which service fits?</p>
-          <h2>Start with the problem, not the package.</h2>
-          <p>
-            Send the business goal, current situation and what you need the system to achieve.
-            We can shape the right scope from there.
-          </p>
+          <p className="eyebrow"><T id="services.notSureWhichServiceFits"/></p>
+          <h2><T id="services.startWithTheProblemNotThePackage"/></h2>
+          <p> <T id="services.sendTheBusinessGoalCurrentSituationAndWhatYou"/> </p>
         </div>
         <div>
-          <Link className="action action-solid" href="/start-a-project">Build the brief <span aria-hidden>↗</span></Link>
-          <Link className="action" href="/work">See selected work <span aria-hidden>↗</span></Link>
+          <Link className="action action-solid" href="/start-a-project"><T id="services.buildTheBrief"/> <span aria-hidden>↗</span></Link>
+          <Link className="action" href="/work"><T id="services.seeSelectedWork"/> <span aria-hidden>↗</span></Link>
         </div>
       </section>
     </div>
