@@ -27,7 +27,7 @@
 @media(max-width:767px){.wordmark-mark{width:1.625rem;height:auto}.wordmark{gap:.55rem}}
 
 /* Keep desktop navigation at 900px without inheriting Tailwind's narrow container steps. */
-@media(min-width:900px) and (max-width:1199px){
+@media(min-width:900px) and (max-width:1279px){
  .site-header .nav-inner{width:100%;max-width:none;padding-inline:1.5rem;gap:1rem}
  .site-header .wordmark{flex-shrink:0;white-space:nowrap}
  .site-header .desktop-nav{gap:.6rem;font-size:.7rem;letter-spacing:.035em;white-space:nowrap}
