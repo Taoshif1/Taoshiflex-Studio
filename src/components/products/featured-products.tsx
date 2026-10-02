@@ -1,3 +1,4 @@
+import { T } from "@/i18n/language-context";
 import Link from "next/link";
 import { MotionReveal } from "@/components/motion/motion-reveal";
 import type { Product } from "@/types/content";
@@ -10,10 +11,10 @@ export function FeaturedProducts({ products }: { products: Product[] }) {
     <section className="featured-products container" aria-labelledby="featured-products-title">
       <header>
         <div>
-          <p className="eyebrow">Products / Built by the Studio</p>
-          <h2 id="featured-products-title">Our ideas. Out in the world.</h2>
+          <p className="eyebrow"><T id="products.featured.productsBuiltByTheStudio"/></p>
+          <h2 id="featured-products-title"><T id="products.featured.ourIdeasOutInTheWorld"/></h2>
         </div>
-        <Link className="action" href="/products">Explore all products →</Link>
+        <Link className="action" href="/products"><T id="products.featured.exploreAllProducts"/></Link>
       </header>
 
       <div className="products-grid">

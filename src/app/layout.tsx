@@ -1,5 +1,8 @@
+import { T } from "@/i18n/language-context";
+import { LanguageProvider } from "@/i18n/language-context";
+import "@/i18n/language.css";
 import type { Metadata, Viewport } from "next";
-import { Instrument_Sans, Cormorant_Garamond } from "next/font/google";
+import { Instrument_Sans, Cormorant_Garamond, Noto_Sans_Bengali, Noto_Serif_Bengali } from "next/font/google";
 import "./globals.css";
 import "@/components/global/global.css";
 import "./phase1c1.css";
@@ -14,6 +17,8 @@ import { getAssistantSettings } from "@/lib/studio-data";
 
 const sans=Instrument_Sans({subsets:["latin"],variable:"--font-sans",display:"swap"});
 const display=Cormorant_Garamond({subsets:["latin"],variable:"--font-display",weight:["400","500"],display:"swap"});
+const banglaSans=Noto_Sans_Bengali({subsets:["bengali"],variable:"--font-bn-sans",display:"swap"});
+const banglaDisplay=Noto_Serif_Bengali({subsets:["bengali"],variable:"--font-bn-display",weight:["400","500"],display:"swap"});
 export const metadata:Metadata={metadataBase:new URL(site.url),title:{default:"Taoshiflex Studio — Creative Engineering",template:"%s — Taoshiflex Studio"},description:site.description,alternates:{canonical:"/"},openGraph:{type:"website",siteName:site.name,title:"Taoshiflex Studio — Creative Engineering",description:site.description,url:"/"},twitter:{card:"summary_large_image",title:"Taoshiflex Studio",description:site.description}};
 export const viewport:Viewport={width:"device-width",initialScale:1,themeColor:"#11110f",colorScheme:"dark"};
-export default async function RootLayout({children}:{children:React.ReactNode}){const assistant=await getAssistantSettings();const structured={"@context":"https://schema.org","@type":["Organization","ProfessionalService"],name:site.name,url:site.url,description:site.description,areaServed:["Bangladesh","Worldwide"],founder:{"@type":"Person",name:"Gazi Taoshif"},logo:`${site.url}/brand/txs-mark.png`,priceRange:"৳৳"};return <html lang="en" data-scroll-behavior="smooth" className={`${sans.variable} ${display.variable}`}><head><link rel="icon" href="/txs-search-icon-v3.png" type="image/png" sizes="96x96"/><link rel="icon" href="/favicon.ico" type="image/x-icon" sizes="48x48"/><link rel="shortcut icon" href="/favicon.ico"/></head><body><a className="skip" href="#main">Skip to content</a><SiteHeader/><main id="main">{children}</main><SiteFooter/><StudioAssistant settings={assistant}/><script type="application/ld+json" dangerouslySetInnerHTML={{__html:JSON.stringify(structured).replace(/</g,"\\u003c")}}/></body></html>}
+export default async function RootLayout({children}:{children:React.ReactNode}){const assistant=await getAssistantSettings();const structured={"@context":"https://schema.org","@type":["Organization","ProfessionalService"],name:site.name,url:site.url,description:site.description,areaServed:["Bangladesh","Worldwide"],founder:{"@type":"Person",name:"Gazi Taoshif"},logo:`${site.url}/brand/txs-mark.png`,priceRange:"৳৳"};return <html lang="en" data-scroll-behavior="smooth" className={`${sans.variable} ${display.variable} ${banglaSans.variable} ${banglaDisplay.variable}`}><head><link rel="icon" href="/txs-search-icon-v3.png" type="image/png" sizes="96x96"/><link rel="icon" href="/favicon.ico" type="image/x-icon" sizes="48x48"/><link rel="shortcut icon" href="/favicon.ico"/></head><body><LanguageProvider><a className="skip" href="#main"><T id="global.skipToContent"/></a><SiteHeader/><main id="main">{children}</main><SiteFooter/><StudioAssistant settings={assistant}/></LanguageProvider><script type="application/ld+json" dangerouslySetInnerHTML={{__html:JSON.stringify(structured).replace(/</g,"\\u003c")}}/></body></html>}

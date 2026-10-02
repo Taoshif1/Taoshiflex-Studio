@@ -1,3 +1,4 @@
+import { T } from "@/i18n/language-context";
 import type { Metadata } from "next";
 import { getPublishedProducts } from "@/lib/studio-data";
 import { ProductCard } from "@/components/products/product-card";
@@ -24,20 +25,16 @@ export default async function ProductsPage() {
   return (
     <div className="products-page container">
       <header className="products-hero products-index-hero">
-        <p className="eyebrow">Products / Built by the Studio</p>
-        <h1 className="display">
-          Ideas made<br />
-          <span className="title-accent">into systems.</span>
+        <p className="eyebrow"><T id="products.productsBuiltByTheStudio"/></p>
+        <h1 className="display"> <T id="products.ideasMade"/><br />
+          <span className="title-accent"><T id="products.intoSystems"/></span>
         </h1>
         <div className="products-hero-foot">
-          <p>
-            Independent software with a clear purpose. Explore the tools and products we build,
-            own and keep evolving.
-          </p>
+          <p> <T id="products.independentSoftwareWithAClearPurposeExploreTheTools"/> </p>
           <div className="products-hero-signals technical" aria-label="Studio product principles">
-            <span>Designed in-house</span>
-            <span>Built for real use</span>
-            <span>Maintained as products</span>
+            <span><T id="products.designedInHouse"/></span>
+            <span><T id="products.builtForRealUse"/></span>
+            <span><T id="products.maintainedAsProducts"/></span>
           </div>
         </div>
       </header>
@@ -52,9 +49,9 @@ export default async function ProductsPage() {
 
       {!products.length && (
         <div className="products-empty">
-          <p className="eyebrow">In the making</p>
-          <h2>The next chapter is taking shape.</h2>
-          <p>Published products will appear here when they are ready to share.</p>
+          <p className="eyebrow"><T id="products.inTheMaking"/></p>
+          <h2><T id="products.theNextChapterIsTakingShape"/></h2>
+          <p><T id="products.publishedProductsWillAppearHereWhenTheyAreReady"/></p>
         </div>
       )}
     </div>

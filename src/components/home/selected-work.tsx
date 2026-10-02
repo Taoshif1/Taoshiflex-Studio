@@ -1,4 +1,6 @@
 "use client";
+import { DynamicText, T } from "@/i18n/language-context";
+
 import Link from "next/link";
 import {
   motion,
@@ -36,8 +38,8 @@ export function SelectedWork({ projects }: { projects: Project[] }) {
         <span className="coordinate-ticks ticks-b"><i /><i /><i /></span>
       </div>
       <div className="container work-heading">
-        <p className="eyebrow">02 / Selected work</p>
-        <h2 className="display display-md">Proof, not promises.</h2>
+        <p className="eyebrow"><T id="home.work.02SelectedWork"/></p>
+        <h2 className="display display-md"><T id="home.work.proofNotPromises"/></h2>
       </div>
       <div className="work-stage container">
         {projects.length ? (
@@ -51,10 +53,7 @@ export function SelectedWork({ projects }: { projects: Project[] }) {
             />
           ))
         ) : (
-          <p className="empty-state">
-            No projects are featured on the homepage right now. Published case
-            studies remain available in Work.
-          </p>
+          <p className="empty-state"> <T id="home.work.noProjectsAreFeaturedOnTheHomepageRightNow"/> </p>
         )}
       </div>
     </section>
@@ -83,22 +82,21 @@ function ProjectScene({
       </div>
       <div className="project-meta">
         <p className="technical">
-          0{index + 1} / {project.category}
+          0{index + 1} / <DynamicText text={project.category}/>
         </p>
         <h3>{project.name}</h3>
-        <p>{project.summary}</p>
+        <p><DynamicText text={project.summary} slug={project.slug}/></p>
         <dl>
           <div>
-            <dt>State</dt>
-            <dd>{project.status}</dd>
+            <dt><T id="home.work.state"/></dt>
+            <dd><DynamicText text={project.status}/></dd>
           </div>
           <div>
-            <dt>Focus</dt>
+            <dt><T id="home.work.focus"/></dt>
             <dd>{project.capabilities.slice(0, 2).join(" + ")}</dd>
           </div>
         </dl>
-        <Link className="action" href={`/work/${project.slug}`}>
-          View case study <span aria-hidden>↗</span>
+        <Link className="action" href={`/work/${project.slug}`}> <T id="home.work.viewCaseStudy"/> <span aria-hidden>↗</span>
         </Link>
       </div>
       <motion.div style={reduce ? undefined : { scale }}>

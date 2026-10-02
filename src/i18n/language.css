@@ -1,0 +1,16 @@
+.language-root{display:contents}
+.language-toggle{display:inline-flex;align-items:center;gap:.2rem;flex-shrink:0}
+.language-toggle button{min-width:2.6rem;min-height:2.75rem;padding:.4rem .6rem;border:1px solid transparent;border-radius:3px;background:transparent;color:var(--stone);font-family:var(--font-bn-sans),sans-serif;font-size:.8rem;cursor:pointer}
+.language-toggle button[aria-pressed="true"]{color:var(--gold);border-color:var(--gold);background:rgba(184,144,85,.1)}
+.language-toggle button:focus-visible{outline:2px solid var(--gold);outline-offset:3px}
+.mobile-menu .language-toggle{margin-top:1.2rem;align-self:flex-start}
+[data-language="bn"]{--font-sans:var(--font-bn-sans);--font-display:var(--font-bn-display);font-family:var(--font-bn-sans),sans-serif;line-height:1.75}
+[data-language="bn"] :is(h1,h2,h3,.display,.mobile-menu a){line-height:1.35;letter-spacing:normal}
+[data-language="bn"] :is(.technical,.eyebrow,.action,.desktop-nav,.nav-client,.nav-cta,.footer-label,.pricing-recommended){letter-spacing:normal}
+[data-language="bn"] :is(.action,.nav-cta,.nav-client){white-space:normal;text-align:center}
+[data-language="bn"] .wordmark-text{font-family:var(--font-bn-sans),sans-serif}
+[data-language="bn"] .system-nodes span{font-size:.8rem}
+[data-language="bn"] .pricing-build-timeline li{padding-bottom:2rem}
+.policy-language-note{padding:1rem;border-left:2px solid var(--gold);color:var(--stone)}
+@media(max-width:1199px){.site-header .desktop-nav{display:none}.site-header .menu-button{display:block}}
+@media(max-width:767px){[data-language="bn"] .display{font-size:clamp(2rem,8vw,3.5rem)}[data-language="bn"] .mobile-menu a{font-size:clamp(1.5rem,7vw,2.5rem)}}
