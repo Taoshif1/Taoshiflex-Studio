@@ -35,7 +35,8 @@ export function parseProduct(value: unknown) {
 }
 
 // Explicit public allowlist: never forward additional source metadata.
-export function mapPublishedProduct(row: Omit<import("@/types/content").Product,"media">, media: import("@/types/content").ProjectMedia[]): import("@/types/content").Product {
+type PublishedProductRow = Omit<import("@/types/content").Product,"media"|"createdAt"|"updatedAt"> & { created_at?: string; updated_at?: string };
+export function mapPublishedProduct(row: PublishedProductRow, media: import("@/types/content").ProjectMedia[]): import("@/types/content").Product {
   return {
     id: row.id, slug: row.slug, name: row.name, tagline: row.tagline,
     summary: row.summary, story: row.story, problem: row.problem,
@@ -44,5 +45,7 @@ export function mapPublishedProduct(row: Omit<import("@/types/content").Product,
     technologies: row.technologies, product_url: safeWebUrl(row.product_url),
     repository_url: safeWebUrl(row.repository_url), pricing_model: row.pricing_model,
     launch_date: row.launch_date, featured: row.featured, media,
+    createdAt: typeof row.created_at === "string" ? row.created_at : undefined,
+    updatedAt: typeof row.updated_at === "string" ? row.updated_at : undefined,
   };
 }
