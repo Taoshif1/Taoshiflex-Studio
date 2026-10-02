@@ -1,3 +1,91 @@
-.pricing-page{padding-bottom:var(--section);background:radial-gradient(circle at 80% 15%,rgba(184,144,85,.09),transparent 24%)}.pricing-hero{padding-top:clamp(10rem,16vw,15rem);padding-bottom:clamp(4rem,8vw,8rem)}.pricing-hero>p:last-child{max-width:46rem;margin-top:2rem;color:var(--paper);font-size:1.15rem}.pricing-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:1px;background:var(--line);border:1px solid var(--line)}.pricing-grid article{position:relative;display:flex;min-width:0;flex-direction:column;padding:clamp(1.5rem,4vw,3.5rem);background:var(--charcoal)}.pricing-grid article.featured{z-index:1;background:linear-gradient(145deg,rgba(184,144,85,.12),var(--charcoal) 45%);box-shadow:inset 0 0 0 1px rgba(184,144,85,.55)}.pricing-recommended{position:absolute;top:1.25rem;right:clamp(1.25rem,3vw,2rem);display:inline-flex;min-height:1.75rem;align-items:center;padding:.25rem .65rem;border:1px solid rgba(184,144,85,.75);border-radius:999px;background:var(--charcoal);color:var(--gold);font-size:.62rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase}.pricing-index{color:var(--gold)}.pricing-grid article.featured .pricing-index{padding-right:8rem}.pricing-grid h2{margin:2.5rem 0 .75rem;font-family:var(--font-display);font-size:clamp(2.2rem,3.4vw,3.8rem);font-weight:400;letter-spacing:-.045em;line-height:.95}.package-value{max-width:35rem;color:var(--stone)}.price{min-height:4rem;margin:2rem 0;font-size:.8rem;letter-spacing:.08em;text-transform:uppercase}.price strong{display:block;font-family:var(--font-display);font-size:2.3rem;font-weight:400;letter-spacing:-.03em;text-transform:none}.pricing-grid ul{flex:1;margin:0 0 2rem;padding:0;list-style:none}.pricing-grid li{padding:.75rem 0;border-bottom:1px solid var(--line)}.pricing-grid li::before{margin-right:.7rem;color:var(--gold);content:"×"}.package-meta{display:grid;gap:.35rem;margin-bottom:2rem}.package-meta span{color:var(--stone);font-size:.65rem;letter-spacing:.1em;text-transform:uppercase}.package-meta small{color:var(--stone)}.pricing-grid .action{align-self:flex-start}.scope-note{display:grid;grid-template-columns:.35fr 1fr;gap:3rem;padding-top:var(--section)}.scope-note h2{margin:0;font-family:var(--font-display);font-size:clamp(2rem,4vw,4rem);font-weight:400}.scope-note div p{max-width:55rem;color:var(--stone)}@media(max-width:767px){.pricing-grid,.scope-note{grid-template-columns:1fr}.pricing-grid article{padding:2rem 1.25rem}.pricing-grid h2{margin-top:1.8rem}.pricing-hero .display{font-size:clamp(3rem,15vw,5rem)}.scope-note{gap:1.5rem}}
-.pricing-grid.empty{display:block;background:transparent}.pricing-empty{padding:clamp(2rem,6vw,5rem);border:1px solid var(--line);background:var(--charcoal)}.pricing-empty h2{font-family:var(--font-display);font-size:clamp(2.4rem,5vw,4.5rem);font-weight:400}
-@media(hover:hover){.pricing-grid article:hover{background:linear-gradient(145deg,rgba(184,144,85,.1),var(--charcoal) 52%);box-shadow:inset 0 0 0 1px rgba(184,144,85,.35)}}.pricing-grid article{transition:background var(--fast),box-shadow var(--fast)}
+.pricing-page{padding-bottom:var(--section);background:radial-gradient(circle at 80% 15%,rgba(184,144,85,.09),transparent 24%)}
+.pricing-hero{padding-top:clamp(10rem,16vw,15rem);padding-bottom:clamp(4rem,8vw,8rem)}
+.pricing-hero>p:last-of-type{max-width:52rem;margin-top:2rem;color:var(--paper);font-size:1.15rem}
+.pricing-hero-proof{display:flex;flex-wrap:wrap;gap:.65rem 1.2rem;margin-top:2rem;color:var(--stone)}
+.pricing-hero-proof span{display:inline-flex;align-items:center;gap:.55rem}
+.pricing-hero-proof span::before{width:.35rem;height:.35rem;border:1px solid var(--gold);content:"";transform:rotate(45deg)}
+.pricing-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:1px;background:var(--line);border:1px solid var(--line)}
+.pricing-grid article{position:relative;display:flex;min-width:0;flex-direction:column;padding:clamp(1.5rem,4vw,3.5rem);background:var(--charcoal);transition:background var(--fast),box-shadow var(--fast),transform var(--fast)}
+.pricing-grid article.featured{z-index:1;background:linear-gradient(145deg,rgba(184,144,85,.12),var(--charcoal) 45%);box-shadow:inset 0 0 0 1px rgba(184,144,85,.55)}
+.pricing-recommended{position:absolute;top:1.25rem;right:clamp(1.25rem,3vw,2rem);display:inline-flex;min-height:1.75rem;align-items:center;padding:.25rem .65rem;border:1px solid rgba(184,144,85,.75);border-radius:999px;background:var(--charcoal);color:var(--gold);font-size:.62rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase}
+.pricing-index{color:var(--gold)}
+.pricing-grid article.featured .pricing-index{padding-right:8rem}
+.pricing-grid h2{margin:2.5rem 0 .75rem;font-family:var(--font-display);font-size:clamp(2.2rem,3.4vw,3.8rem);font-weight:400;letter-spacing:-.045em;line-height:.95}
+.package-value{max-width:35rem;color:var(--stone)}
+.price{min-height:4rem;margin:2rem 0;font-size:.8rem;letter-spacing:.08em;text-transform:uppercase}
+.price strong{display:block;font-family:var(--font-display);font-size:2.3rem;font-weight:400;letter-spacing:-.03em;text-transform:none}
+.pricing-grid ul{flex:1;margin:0 0 2rem;padding:0;list-style:none}
+.pricing-grid li{position:relative;padding:.75rem 0 .75rem 1.3rem;border-bottom:1px solid var(--line)}
+.pricing-grid li::before{position:absolute;left:0;color:var(--gold);content:"+"}
+.package-meta{display:grid;gap:.35rem;margin-bottom:2rem}
+.package-meta span{color:var(--stone);font-size:.65rem;letter-spacing:.1em;text-transform:uppercase}
+.package-meta small{color:var(--stone)}
+.pricing-grid .action{align-self:flex-start}
+.pricing-grid.empty{display:block;background:transparent}
+.pricing-empty{padding:clamp(2rem,6vw,5rem);border:1px solid var(--line);background:var(--charcoal)}
+.pricing-empty h2{font-family:var(--font-display);font-size:clamp(2.4rem,5vw,4.5rem);font-weight:400}
+
+.pricing-build{display:grid;grid-template-columns:.72fr 1.28fr;gap:clamp(3rem,8vw,9rem);padding-top:clamp(5rem,9vw,9rem);padding-bottom:clamp(5rem,9vw,9rem)}
+.pricing-build-intro{position:sticky;top:8rem;height:max-content}
+.pricing-build-intro h2,.pricing-section-heading h2,.pricing-quote-factors h2,.scope-note h2{margin:1rem 0 1.35rem;font-family:var(--font-display);font-size:clamp(2.6rem,4.7vw,5rem);font-weight:400;letter-spacing:-.05em;line-height:.95}
+.pricing-build-intro>p:last-child,.pricing-section-heading>p,.pricing-quote-factors>div>p:last-child{max-width:40rem;color:var(--stone);line-height:1.75}
+.pricing-build-timeline{position:relative;margin:0;padding:0;list-style:none}
+.pricing-build-timeline::before{position:absolute;top:1.1rem;bottom:2rem;left:1.1rem;width:1px;background:var(--line);content:""}
+.pricing-build-timeline li{position:relative;display:grid;grid-template-columns:3.2rem 1fr;gap:1rem;min-height:12rem}
+.pricing-stage-number{position:relative;z-index:1;display:grid;width:2.25rem;height:2.25rem;place-items:center;border:1px solid var(--gold);background:var(--ink);color:var(--gold)}
+.pricing-build-timeline h3{margin:0 0 .6rem;font-family:var(--font-display);font-size:clamp(1.9rem,3vw,3rem);font-weight:400;letter-spacing:-.035em}
+.pricing-build-timeline p{max-width:38rem;margin:0;color:var(--paper);line-height:1.7}
+.pricing-build-timeline small{display:inline-block;margin-top:1rem;color:var(--gold);font-size:.66rem;letter-spacing:.12em;text-transform:uppercase}
+
+.pricing-compare{padding-block:clamp(5rem,8vw,8rem);background:linear-gradient(145deg,#f5f1e9,var(--ivory));color:var(--ink)}
+.pricing-compare .eyebrow{color:#69645b}
+.pricing-section-heading{display:grid;grid-template-columns:1.05fr .95fr;gap:clamp(2rem,7vw,8rem);align-items:end;margin-bottom:clamp(2.5rem,5vw,4.5rem)}
+.pricing-section-heading h2{margin-bottom:0}
+.pricing-section-heading>p{margin:0;color:#5d584f}
+.pricing-comparison-table{border:1px solid rgba(17,17,15,.16)}
+.pricing-comparison-head,.pricing-comparison-row{display:grid;grid-template-columns:.55fr 1fr 1fr}
+.pricing-comparison-head{background:var(--ink);color:var(--ivory)}
+.pricing-comparison-head>*{padding:1rem 1.25rem;border-right:1px solid rgba(242,238,229,.14)}
+.pricing-comparison-head>*:last-child{border-right:0}
+.pricing-comparison-head span,.pricing-comparison-head strong{font-size:.7rem;letter-spacing:.1em;text-transform:uppercase}
+.pricing-comparison-row{border-top:1px solid rgba(17,17,15,.14)}
+.pricing-comparison-row>*{min-width:0;margin:0;padding:1.2rem 1.25rem;border-right:1px solid rgba(17,17,15,.14);line-height:1.6}
+.pricing-comparison-row>*:last-child{border-right:0}
+.pricing-comparison-row>span{font-weight:650}
+.pricing-comparison-row>p:nth-child(2){color:#6a645b}
+.pricing-comparison-row>p:last-child{background:rgba(184,144,85,.09);color:#3e392f}
+
+.pricing-quote-factors{display:grid;grid-template-columns:.82fr 1.18fr;gap:clamp(3rem,8vw,9rem);padding-top:clamp(5rem,9vw,9rem)}
+.pricing-quote-factors ul{margin:0;padding:0;list-style:none;border-top:1px solid var(--line)}
+.pricing-quote-factors li{display:grid;grid-template-columns:3.1rem 1fr;gap:1rem;padding:1.15rem 0;border-bottom:1px solid var(--line);color:var(--paper)}
+.pricing-quote-factors li span{color:var(--gold);font-size:.68rem;letter-spacing:.1em}
+
+.scope-note{display:grid;grid-template-columns:.35fr 1fr;gap:3rem;padding-top:clamp(5rem,9vw,9rem)}
+.scope-note h2{margin-top:0}
+.scope-note div>p{max-width:55rem;color:var(--stone);line-height:1.75}
+.scope-note-actions{display:flex;flex-wrap:wrap;gap:1rem;margin-top:2rem}
+
+@media(hover:hover){
+  .pricing-grid article:hover{background:linear-gradient(145deg,rgba(184,144,85,.1),var(--charcoal) 52%);box-shadow:inset 0 0 0 1px rgba(184,144,85,.35);transform:translateY(-2px)}
+  .pricing-comparison-row:hover>p:last-child{background:rgba(184,144,85,.15)}
+}
+
+@media(max-width:900px){
+  .pricing-build,.pricing-quote-factors{grid-template-columns:1fr;gap:2.5rem}
+  .pricing-build-intro{position:static}
+  .pricing-section-heading{grid-template-columns:1fr}
+}
+
+@media(max-width:767px){
+  .pricing-grid,.scope-note{grid-template-columns:1fr}
+  .pricing-grid article{padding:2rem 1.25rem}
+  .pricing-grid h2{margin-top:1.8rem}
+  .pricing-hero .display{font-size:clamp(3rem,15vw,5rem)}
+  .pricing-hero-proof{display:grid}
+  .pricing-build{padding-top:4.5rem;padding-bottom:4.5rem}
+  .pricing-build-timeline li{min-height:auto;padding-bottom:3.5rem}
+  .pricing-comparison-table{overflow-x:auto}
+  .pricing-comparison-head,.pricing-comparison-row{min-width:46rem}
+  .pricing-quote-factors{padding-top:4.5rem}
+  .scope-note{gap:1.5rem;padding-top:4.5rem}
+}
