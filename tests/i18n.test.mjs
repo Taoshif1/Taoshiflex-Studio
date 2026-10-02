@@ -6,6 +6,8 @@ import { loadTs } from "./security-loader.mjs";
 const { parseLanguage } = loadTs("src/i18n/config.ts");
 const { translate, translateText } = loadTs("src/i18n/helpers.ts");
 const { inquirySteps } = loadTs("src/lib/inquiry-config.ts");
+const { en } = loadTs("src/i18n/translations/en.ts");
+const { bn } = loadTs("src/i18n/translations/bn.ts");
 
 test("language parser defaults safely to English", () => {
   assert.equal(parseLanguage("bn"), "bn");
@@ -17,6 +19,11 @@ test("language parser defaults safely to English", () => {
 test("shared navigation has a Bangla translation", () => {
   assert.equal(translate("en", "nav.startAProject"), "Start a Project");
   assert.equal(translate("bn", "nav.startAProject"), "প্রজেক্ট শুরু করুন");
+});
+
+test("Bangla dictionary covers every shared English translation key", () => {
+  assert.deepEqual(Object.keys(bn).sort(), Object.keys(en).sort());
+  for (const key of Object.keys(en)) assert.equal(typeof bn[key], "string", key);
 });
 
 test("known catalog content translates and unknown content falls back to English", () => {
