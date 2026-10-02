@@ -31,7 +31,7 @@ export default async function ProductsPage() {
         </h1>
         <div className="products-hero-foot">
           <p> <T id="products.independentSoftwareWithAClearPurposeExploreTheTools"/> </p>
-          <div className="products-hero-signals technical" aria-label="Studio product principles">
+          <div className="products-hero-signals technical">
             <span><T id="products.designedInHouse"/></span>
             <span><T id="products.builtForRealUse"/></span>
             <span><T id="products.maintainedAsProducts"/></span>
@@ -39,7 +39,7 @@ export default async function ProductsPage() {
         </div>
       </header>
 
-      <section aria-label="Studio products" className="products-showcase-list">
+      <section aria-labelledby="products-showcase-title" className="products-showcase-list"><h2 className="sr-only" id="products-showcase-title"><T id="products.productsBuiltByTheStudio"/></h2>
         {products.map((product, index) => (
           <MotionReveal key={product.id} className="product-reveal" delay={Math.min(index * 0.06, 0.18)}>
             <ProductCard product={product} index={index} variant="showcase" />
