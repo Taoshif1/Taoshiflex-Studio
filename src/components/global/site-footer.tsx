@@ -30,7 +30,6 @@ export async function SiteFooter() {
             <Link
               className="footer-identity"
               href="/"
-              aria-label="Taoshiflex Studio home"
             >
               <Image src="/brand/txs-mark.png" alt="" width={40} height={33} />
               <span id="footer-brand-name">
@@ -48,8 +47,8 @@ export async function SiteFooter() {
               <i />
             </span>
           </section>
-          <nav className="footer-column" aria-label="Explore">
-            <p className="footer-label"><T id="footer.explore"/></p>
+          <nav className="footer-column" aria-labelledby="footer-explore-label">
+            <p className="footer-label" id="footer-explore-label"><T id="footer.explore"/></p>
             {explore.map((link) => (
               <Link key={link.href} href={link.href}>
                 <DynamicText text={link.label}/>
@@ -57,8 +56,8 @@ export async function SiteFooter() {
               </Link>
             ))}
           </nav>
-          <nav className="footer-column footer-work" aria-label="Work with us">
-            <p className="footer-label"><T id="footer.workWithUs"/></p>
+          <nav className="footer-column footer-work" aria-labelledby="footer-work-label">
+            <p className="footer-label" id="footer-work-label"><T id="footer.workWithUs"/></p>
             <Link href="/start-a-project"> <T id="footer.startAProject"/><span aria-hidden>&#8599;</span>
             </Link>
             {presence.bookingEnabled && presence.bookingUrl ? (

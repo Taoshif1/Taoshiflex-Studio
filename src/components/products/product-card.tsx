@@ -25,7 +25,7 @@ export function ProductCard({
     >
       {variant === "showcase" && <span className="product-card-number technical">{number}</span>}
 
-      <Link className="product-card-media-link" href={`/products/${product.slug}`} aria-label={`Explore ${product.name}`}>
+      <Link className="product-card-media-link" href={`/products/${product.slug}`} aria-label={product.name}>
         <div className="product-card-visual">
           {cover ? (
             <ResponsiveMedia
@@ -63,7 +63,7 @@ export function ProductCard({
         <p className="product-summary"><DynamicText text={product.summary} slug={product.slug}/></p>
 
         {!!product.features.length && (
-          <ul className="product-tags" aria-label={`${product.name} highlights`}>
+          <ul className="product-tags">
             {product.features.slice(0, 3).map(feature => <li key={feature}><DynamicText text={feature} slug={product.slug}/></li>)}
           </ul>
         )}

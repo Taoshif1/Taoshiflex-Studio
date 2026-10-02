@@ -122,7 +122,7 @@ export default async function CaseStudy({ params }: Props) {
         </div>
       </section>
 
-      {reviews.length > 0 && <section className="case-review container" aria-label="Client perspective"><p className="eyebrow"><T id="work.detail.clientPerspective"/></p>{reviews.map(review => <ReviewCard key={review.id} review={review}/>)}</section>}
+      {reviews.length > 0 && <section className="case-review container" aria-labelledby="case-review-title"><p className="eyebrow" id="case-review-title"><T id="work.detail.clientPerspective"/></p>{reviews.map(review => <ReviewCard key={review.id} review={review}/>)}</section>}
       <footer className="case-next container">
         <p className="eyebrow"><T id="work.detail.nextProject"/></p>
         {next ? <Link href={`/work/${next.slug}`}>{next.name}<span aria-hidden>↗</span></Link> : null}

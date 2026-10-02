@@ -49,3 +49,21 @@ test("pricing features use a real marker column rather than an overlapping pseud
   assert.match(css, /grid-template-columns:1rem minmax\(0,1fr\)/);
   assert.doesNotMatch(css, /\.pricing-grid li::before/);
 });
+
+
+test("secondary public UI is wired through localization", () => {
+  const loading = readFileSync(new URL("../src/app/loading.tsx", import.meta.url), "utf8");
+  const reviews = readFileSync(new URL("../src/components/reviews/review-marquee.tsx", import.meta.url), "utf8");
+  const xSystem = readFileSync(new URL("../src/components/home/x-system.tsx", import.meta.url), "utf8");
+  const mediaViewer = readFileSync(new URL("../src/components/work/project-media-viewer.tsx", import.meta.url), "utf8");
+  assert.match(loading, /global\.loadingSystem/);
+  assert.match(reviews, /reviews\.clientPerspectives/);
+  assert.match(xSystem, /home\.x\.idea/);
+  assert.match(mediaViewer, /media\.previous/);
+});
+
+test("Bangla navigation breakpoint does not alter English desktop layout", () => {
+  const css = readFileSync(new URL("../src/i18n/language.css", import.meta.url), "utf8");
+  assert.match(css, /@media\(max-width:1199px\)\{\[data-language="bn"\] \.site-header \.desktop-nav/);
+  assert.doesNotMatch(css, /@media\(max-width:1199px\)\{\.site-header \.desktop-nav/);
+});

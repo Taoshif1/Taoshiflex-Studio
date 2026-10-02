@@ -421,7 +421,35 @@ const source: Record<string, string> = {
   "৳80,000–৳150,000": "৳৮০,০০০–৳১,৫০,০০০",
   "৳150,000+": "৳১,৫০,০০০+"
 ,
-  "What are you planning to build?": "কী তৈরি করতে চান?"
+  "What are you planning to build?": "কী তৈরি করতে চান?",
+  "Taoshiflex Studio / Loading system": "Taoshiflex Studio / লোড হচ্ছে",
+  "IDEA": "আইডিয়া",
+  "DESIGN": "ডিজাইন",
+  "BUILD": "বিল্ড",
+  "LAUNCH": "লঞ্চ",
+  "GROW": "গ্রো",
+  "Client perspectives": "ক্লায়েন্টদের অভিজ্ঞতা",
+  "The experience,": "তাদের অভিজ্ঞতা,",
+  "in their own words.": "তাদের নিজের ভাষায়।",
+  "Pause motion": "অ্যানিমেশন থামান",
+  "Resume motion": "অ্যানিমেশন চালু করুন",
+  "Previous": "আগেরটি",
+  "Next": "পরেরটি",
+  "Image": "ছবি",
+  "of": "এর মধ্যে",
+  "Media slot": "মিডিয়া",
+  "Taoshiflex Studio home": "Taoshiflex Studio হোম",
+  "Primary navigation": "প্রধান নেভিগেশন",
+  "Mobile navigation": "মোবাইল নেভিগেশন",
+  "Project brief progress": "প্রজেক্ট ব্রিফের অগ্রগতি",
+  "Suggested questions": "প্রস্তাবিত প্রশ্ন",
+  "Idea, design, build, launch and grow intersect in one system": "আইডিয়া, ডিজাইন, বিল্ড, লঞ্চ আর গ্রো—সব এক সিস্টেমে যুক্ত",
+  "out of 5 stars": "৫ তারকার মধ্যে",
+  "project media viewer. Use left and right arrow keys to change images.": "প্রজেক্ট মিডিয়া ভিউয়ার। ছবি বদলাতে বাম ও ডান অ্যারো কী ব্যবহার করুন।",
+  "media thumbnails": "মিডিয়া থাম্বনেইল",
+  "Show image": "ছবি দেখুন"
+,
+  "BUSINESS OUTCOME": "ব্যবসার ফলাফল"
 };
 
 export const bn: Record<string, string> = Object.fromEntries(Object.entries(en).filter(([, value]) => source[value]).map(([key, value]) => [key, source[value]]));

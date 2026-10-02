@@ -12,5 +12,5 @@
 [data-language="bn"] .system-nodes span{font-size:.8rem}
 [data-language="bn"] .pricing-build-timeline li{padding-bottom:2rem}
 .policy-language-note{padding:1rem;border-left:2px solid var(--gold);color:var(--stone)}
-@media(max-width:1199px){.site-header .desktop-nav{display:none}.site-header .menu-button{display:block}}
+@media(max-width:1199px){[data-language="bn"] .site-header .desktop-nav{display:none}[data-language="bn"] .site-header .menu-button{display:block}}
 @media(max-width:767px){[data-language="bn"] .display{font-size:clamp(2rem,8vw,3.5rem)}[data-language="bn"] .mobile-menu a{font-size:clamp(1.5rem,7vw,2.5rem)}}

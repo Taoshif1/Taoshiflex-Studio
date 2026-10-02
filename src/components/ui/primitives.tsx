@@ -2,6 +2,7 @@ import Link from "next/link";
 import Image from "next/image";
 import type { ProjectMedia } from "@/types/content";
 import type { CSSProperties, HTMLAttributes, ReactNode } from "react";
+import { T } from "@/i18n/language-context";
 
 export function Section({ children, className = "", id }: { children: ReactNode; className?: string; id?: string }) { return <section id={id} className={`section ${className}`}>{children}</section>; }
 export function SectionLabel({ children }: { children: ReactNode }) { return <p className="eyebrow">{children}</p>; }
@@ -37,7 +38,7 @@ export function ResponsiveMedia({
         <Image unoptimized src={media.src} alt={media.alt || label} width={width} height={height} sizes={sizes} preload={priority} />
       ) : (
         <div className="media-ui" role="img" aria-label={label}>
-          <span className="technical">Media slot / {label}</span>
+          <span className="technical"><T id="media.slot"/> / {label}</span>
         </div>
       )}
     </div>
