@@ -413,6 +413,13 @@ const source: Record<string, string> = {
   "Choose the closest starting point. These packages assume a custom-designed, custom-engineered engagement—not a pre-bought theme with your logo and copy swapped in. Every final proposal reflects the real content, integrations and operational requirements of your project.": "সবচেয়ে কাছের packageটি starting point হিসেবে ধরুন। এগুলো pre-built theme-এ logo আর লেখা বদলে দেওয়ার package নয়—custom design ও custom engineering ধরে তৈরি। Final proposal আপনার আসল content, integration ও operational requirement অনুযায়ী হবে।",
   "Start a project brief →": "প্রজেক্টের তথ্য দিন →",
   "Domain, hosting, paid APIs, premium plugins or services, payment-gateway and merchant fees, and other third-party costs are separate unless a proposal explicitly includes them. Payment setup depends on the client supplying properly verified merchant accounts. “Tracking” means order-status tracking unless a third-party courier API integration is specifically included.": "Domain, hosting, paid API, premium plugin/service, payment-gateway বা merchant fee এবং অন্য third-party খরচ proposal-এ আলাদা করে না থাকলে package-এর মধ্যে ধরা হয় না। Payment setup-এর জন্য client-এর verified merchant account লাগবে। “Tracking” বলতে order-status tracking বোঝানো হয়েছে; courier API integration আলাদা scope হলে তবেই থাকবে।"
+,
+  "Production-ready": "Production-ready",
+  "Complete": "সম্পন্ন",
+  "৳30,000–৳50,000": "৳৩০,০০০–৳৫০,০০০",
+  "৳50,000–৳80,000": "৳৫০,০০০–৳৮০,০০০",
+  "৳80,000–৳150,000": "৳৮০,০০০–৳১,৫০,০০০",
+  "৳150,000+": "৳১,৫০,০০০+"
 
 };
 
