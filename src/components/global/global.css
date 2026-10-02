@@ -25,3 +25,17 @@
 .desktop-nav a,.mobile-menu a{position:relative;transition:color var(--fast),border-color var(--fast),background var(--fast)}.desktop-nav a.nav-active,.mobile-menu a.nav-active{color:var(--gold)}.desktop-nav a:not(.nav-cta):not(.nav-client)::after{position:absolute;right:50%;bottom:-.62rem;left:50%;height:1px;background:var(--gold);content:"";transition:right var(--fast),left var(--fast)}.desktop-nav a:not(.nav-cta):not(.nav-client).nav-active::after{right:0;left:0}.nav-client.nav-active{border-color:var(--gold);background:rgba(184,144,85,.08)}.mobile-menu a.nav-active::after{width:.45rem;height:.45rem;margin-left:auto;border:1px solid var(--gold);content:"";transform:rotate(45deg)}
 @media(hover:hover){.desktop-nav a:hover,.footer a:hover{color:var(--gold)}.desktop-nav a:not(.nav-cta):not(.nav-client):hover::after{right:0;left:0}.nav-client:hover{border-color:rgba(184,144,85,.65);background:rgba(242,238,229,.04)}.nav-cta:hover{background:rgba(184,144,85,.12)}}.footer a{transition:background var(--fast),color var(--fast),border-color var(--fast)}
 @media(max-width:767px){.wordmark-mark{width:1.625rem;height:auto}.wordmark{gap:.55rem}}
+
+/* Keep desktop navigation at 900px without inheriting Tailwind's narrow container steps. */
+@media(min-width:900px) and (max-width:1279px){
+ .site-header .nav-inner{width:100%;max-width:none;padding-inline:1.5rem;gap:1rem}
+ .site-header .wordmark{flex-shrink:0;white-space:nowrap}
+ .site-header .desktop-nav{gap:.6rem;font-size:.7rem;letter-spacing:.035em;white-space:nowrap}
+ .site-header :is(.nav-client,.nav-cta){padding-inline:.65rem;letter-spacing:.035em}
+}
+
+@media(min-width:900px) and (max-width:1023px){
+ .site-header .nav-inner{padding-inline:1rem;gap:.65rem}
+ .site-header .desktop-nav{gap:.4rem;font-size:.68rem}
+ .site-header :is(.nav-client,.nav-cta){padding-inline:.5rem}
+}

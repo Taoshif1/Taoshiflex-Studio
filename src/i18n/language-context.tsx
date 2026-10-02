@@ -13,7 +13,7 @@ function subscribe(notify: () => void) {
   return () => window.removeEventListener("storage", notify);
 }
 const english = (): Language => "en";
-const LanguageContext = createContext({ language: "en" as Language, setLanguage: (_language: Language) => {}, privatePage: false });
+const LanguageContext = createContext<{ language: Language; setLanguage: (language: Language) => void; privatePage: boolean }>({ language: "en", setLanguage: () => {}, privatePage: false });
 export function LanguageProvider({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const privatePage = /^\/(client|studio-admin)(\/|$)/.test(pathname);
@@ -34,7 +34,19 @@ export function useLanguage() {
 export function LanguageToggle() {
   const { language, setLanguage, privatePage } = useLanguage();
   if (privatePage) return null;
-  return <div className="language-toggle" role="group" aria-label="Language / ভাষা"><button type="button" lang="en" aria-label="English" aria-pressed={language === "en"} onClick={() => setLanguage("en")}>EN</button><button type="button" lang="bn" aria-label="বাংলা" aria-pressed={language === "bn"} onClick={() => setLanguage("bn")}>বাংলা</button></div>;
+  return (
+    <button
+      type="button"
+      className="language-toggle"
+      role="switch"
+      aria-checked={language === "bn"}
+      aria-label="Bangla language / বাংলা ভাষা"
+      onClick={() => setLanguage(language === "en" ? "bn" : "en")}
+    >
+      <span lang="en" aria-hidden="true">EN</span>
+      <span lang="bn" aria-hidden="true">বাংলা</span>
+    </button>
+  );
 }
 export function T({ id }: { id: string }) { const { t } = useLanguage(); return <>{t(id)}</>; }
 export function DynamicText({ text: value, slug }: { text: string; slug?: string }) { const { text } = useLanguage(); return <>{text(value, slug)}</>; }

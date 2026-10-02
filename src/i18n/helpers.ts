@@ -1,8 +1,6 @@
 import type { Language } from "./config";
 import { en } from "./translations/en";
-import { bn, catalog } from "./translations/bn";
-
-const sourceKeys = new Map(Object.entries(en).map(([key, value]) => [value, key]));
+import { bn, bnSource, catalog } from "./translations/bn";
 
 export function translate(language: Language, key: string) {
   return (language === "bn" ? bn[key] : undefined) ?? en[key] ?? key;
@@ -10,8 +8,8 @@ export function translate(language: Language, key: string) {
 
 export function translateText(language: Language, text: string, slug?: string) {
   if (language === "en" || !text) return text;
-  const catalogTranslation = slug ? catalog[slug]?.[text] : undefined;
+  const entries = slug && Object.hasOwn(catalog, slug) ? catalog[slug] : undefined;
+  const catalogTranslation = entries && Object.hasOwn(entries, text) ? entries[text] : undefined;
   if (catalogTranslation) return catalogTranslation;
-  const key = sourceKeys.get(text);
-  return key ? bn[key] ?? text : text;
+  return Object.hasOwn(bnSource, text) ? bnSource[text] : text;
 }

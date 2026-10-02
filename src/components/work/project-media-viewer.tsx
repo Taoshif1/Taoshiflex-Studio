@@ -62,7 +62,7 @@ export function ProjectMediaViewer({
               accent={accent}
               className={styles.activeFrame}
               fit="contain"
-              label={activeMedia.alt || `${projectName} project image ${activeIndex + 1}`}
+              label={activeMedia.alt || `${projectName} ${text("Image")} ${activeIndex + 1}`}
               media={activeMedia}
               sizes="(max-width: 767px) 100vw, (max-width: 1536px) 92vw, 1400px"
             />
@@ -86,7 +86,7 @@ export function ProjectMediaViewer({
         <div className={styles.thumbnailRail} role="group" aria-label={`${projectName} ${text("media thumbnails")}`}>
           {media.map((item, index) => {
           const isActive = index === activeIndex;
-          const label = item.alt || `${projectName} project image`;
+          const label = item.alt || `${projectName} ${text("Image")}`;
           return (
             <button
               key={item.id}

@@ -1,4 +1,5 @@
 export const en: Record<string, string> = {
+  "global.dismissNotification": "Dismiss notification",
   "nav.clientAccess": "Client Access",
   "nav.startAProject": "Start a Project",
   "footer.haveSomethingWorthBuilding": "Have something worth building?",

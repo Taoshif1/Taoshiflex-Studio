@@ -1,5 +1,4 @@
-import { T } from "@/i18n/language-context";
-import { LanguageProvider } from "@/i18n/language-context";
+import { T, LanguageProvider } from "@/i18n/language-context";
 import "@/i18n/language.css";
 import type { Metadata, Viewport } from "next";
 import { Instrument_Sans, Cormorant_Garamond, Noto_Sans_Bengali, Noto_Serif_Bengali } from "next/font/google";
