@@ -11,7 +11,8 @@
     "test:assistant": "node --test tests/studio-assistant.test.mjs",
     "test:studio": "node --test tests/studio-reviews.test.mjs tests/studio-reviews-db.test.mjs tests/studio-products.test.mjs",
     "test:security": "node --test tests/security*.test.mjs",
-    "test:workspace": "node --test tests/private-workspace.test.mjs"
+    "test:workspace": "node --test tests/private-workspace.test.mjs",
+    "test:i18n": "node --test tests/i18n.test.mjs"
   },
   "dependencies": {
     "@supabase/ssr": "^0.12.5",
