@@ -151,7 +151,15 @@ export const catalog: Record<string, Record<string, string>> = {
     "Shipping, free-shipping threshold, support details and storefront settings from the Admin side": "Admin থেকে shipping, free-shipping threshold, support ও storefront setting",
     "Public review submission with Admin moderation before approved reviews become visible": "Admin moderation-এর পর public review প্রকাশ",
     "Maintenance Mode enforced in both customer-facing UI and backend order creation": "Customer UI ও backend order creation—দুই জায়গায় Maintenance Mode",
-    "Global and order-specific WhatsApp support for customer assistance": "Global ও order-specific WhatsApp support"
+    "Global and order-specific WhatsApp support for customer assistance": "Global ও order-specific WhatsApp support",
+    "Commerce strategy & storefront UX": "Commerce strategy ও storefront UX",
+    "Full-stack e-commerce engineering": "Full-stack e-commerce development",
+    "Inventory & order operations": "Inventory ও order operation",
+    "Customer account experience": "Customer account experience",
+    "Admin dashboard systems": "Admin dashboard system",
+    "Authentication & role-based access": "Authentication ও role-based access",
+    "Checkout & local payment workflows": "Checkout ও local payment workflow",
+    "Production hardening & testing": "Production hardening ও testing"
   },
 
   "kothas-aura": {
@@ -168,7 +176,15 @@ export const catalog: Record<string, Record<string, string>> = {
     "Customer dashboard with profile, orders and saved addresses": "Profile, order ও saved addressসহ customer dashboard",
     "Admin product, category, order and customer management": "Admin product, category, order ও customer management",
     "Review moderation, coupons, contact messages and newsletter subscribers": "Review moderation, coupon, contact message ও newsletter subscriber management",
-    "Store settings for hero, contact, social, delivery, payment, maintenance and SEO": "Hero, contact, social, delivery, payment, maintenance ও SEO-এর store settings"
+    "Store settings for hero, contact, social, delivery, payment, maintenance and SEO": "Hero, contact, social, delivery, payment, maintenance ও SEO-এর store settings",
+    "Commerce UX & storefront design": "Commerce UX ও storefront design",
+    "Full-stack product engineering": "Full-stack product development",
+    "Customer account & order experience": "Customer account ও order experience",
+    "Admin operations console": "Admin operations console",
+    "Authentication & role-based access": "Authentication ও role-based access",
+    "Checkout, payment & order logic": "Checkout, payment ও order logic",
+    "Responsive interface system": "Responsive interface system",
+    "Store settings & content operations": "Store settings ও content operation"
   },
 
   "flocka": {
@@ -188,6 +204,14 @@ export const catalog: Record<string, Record<string, string>> = {
     "Awards and team sections for authority and human context": "Authority ও human context-এর জন্য award/team section",
     "FAQ and blog sections for deeper information and objection handling": "FAQ ও blog section",
     "Scroll-linked footer interaction with rotating circular text treatment": "Rotating circular textসহ scroll-linked footer interaction",
-    "Responsive single-page composition designed across content-heavy and immersive sections": "Content-heavy ও immersive section জুড়ে responsive single-page composition"
+    "Responsive single-page composition designed across content-heavy and immersive sections": "Content-heavy ও immersive section জুড়ে responsive single-page composition",
+    "Creative web direction & visual storytelling": "Creative web direction ও visual storytelling",
+    "High-fidelity frontend engineering": "High-fidelity frontend development",
+    "Motion design & scroll choreography": "Motion design ও scroll choreography",
+    "Interactive 3D web experiences": "Interactive 3D web experience",
+    "Responsive landing-page design": "Responsive landing-page design",
+    "Agency positioning & content hierarchy": "Agency positioning ও content hierarchy",
+    "Portfolio and social-proof presentation": "Portfolio ও social-proof presentation",
+    "Micro-interaction design": "Micro-interaction design"
   }
 };
