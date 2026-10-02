@@ -92,10 +92,3 @@
 }
 
 .price strong{white-space:nowrap}
-/* Bangla needs normal tracking and more line height for vowel marks. */
-.pricing-page[lang="bn"]{line-height:1.75}
-.pricing-page[lang="bn"] :is(.display,h2,h3){line-height:1.3;letter-spacing:normal}
-.pricing-page[lang="bn"] :is(.technical,.eyebrow,.action,.pricing-recommended,.price,.package-meta span,.pricing-build-timeline small,.pricing-comparison-head span,.pricing-comparison-head strong){letter-spacing:normal}
-.pricing-page[lang="bn"] .pricing-recommended{font-size:.8rem}
-.pricing-page[lang="bn"] .package-meta :is(span,small),.pricing-page[lang="bn"] .pricing-build-timeline small{font-size:.85rem}
-.pricing-page[lang="bn"] .pricing-build-timeline li{padding-bottom:2rem}

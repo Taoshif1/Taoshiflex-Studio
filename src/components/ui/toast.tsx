@@ -27,12 +27,12 @@ export function useToasts() {
   return { toasts, toast, dismiss };
 }
 
-export function ToastRegion({ toasts, dismiss }: { toasts: ToastItem[]; dismiss: (id: number) => void }) {
+export function ToastRegion({ toasts, dismiss, dismissLabel = "Dismiss notification" }: { toasts: ToastItem[]; dismiss: (id: number) => void; dismissLabel?: string }) {
   return <div className="toast-region" aria-live="polite" aria-atomic="false">
     {toasts.map((item) => <div className={`toast ${item.kind}`} role={item.kind === "error" ? "alert" : "status"} key={item.id}>
       <span aria-hidden className="toast-mark">{item.kind === "success" ? "✓" : item.kind === "error" ? "!" : "i"}</span>
       <p>{item.message}</p>
-      <button type="button" onClick={() => dismiss(item.id)} aria-label="Dismiss notification">×</button>
+      <button type="button" onClick={() => dismiss(item.id)} aria-label={dismissLabel}>×</button>
     </div>)}
   </div>;
 }

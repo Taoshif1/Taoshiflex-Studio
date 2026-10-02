@@ -61,7 +61,7 @@ const source: Record<string, string> = {
   "E-Commerce Systems": "ই-কমার্স সিস্টেম",
   "Custom Platforms": "কাস্টম প্ল্যাটফর্ম",
   "Digital Products": "ডিজিটাল প্রোডাক্ট",
-  "Build a credible digital presence that turns attention into action.": "এমন ওয়েবসাইট তৈরি করুন, যা আস্থা তৈরি করে আর ভিজিটরকে গ্রাহক হতে সাহায্য করে।",
+  "Build a credible digital presence that turns attention into action.": "আস্থা গড়ে, ভিজিটরকে গ্রাহক করে—এমন ওয়েবসাইট।",
   "Positioning, content structure and conversion-focused experiences for businesses ready to be taken seriously.": "আপনার ব্যবসার পরিচয়, কনটেন্ট আর গ্রাহক পাওয়ার পথ সুন্দরভাবে সাজাই।",
   "Create a dependable way to sell, serve and operate online.": "অনলাইনে বিক্রি, গ্রাহকসেবা আর দোকান পরিচালনার নির্ভরযোগ্য ব্যবস্থা।",
   "Customer journeys and operational tools designed as one connected commerce system.": "গ্রাহকের কেনাকাটা আর দোকান পরিচালনার tools—একটি সংযুক্ত system-এ।",
@@ -351,7 +351,7 @@ const source: Record<string, string> = {
   "Custom quote": "Custom quote",
   "Starting from": "শুরু",
   "Delivery estimate": "সম্ভাব্য ডেলিভারি সময়",
-  "Revisions:": "Revision:",
+  "Revisions:": "সংশোধন:",
   "Discuss this scope": "এই প্যাকেজ নিয়ে কথা বলুন",
   "Catalog unavailable": "প্যাকেজ তালিকা পাওয়া যাচ্ছে না",
   "No public package is active.": "এখন কোনো public package active নেই।",
@@ -390,18 +390,18 @@ const source: Record<string, string> = {
   "Handover, post-launch support or an ongoing improvement plan can be included according to the agreed package and scope.": "Agreed package ও scope অনুযায়ী handover, post-launch support বা ongoing improvement plan থাকতে পারে।",
   "Support / next-step plan": "Support / next-step plan",
   "Starting point": "শুরুটা কোথা থেকে",
-  "Existing theme, template or page-builder system": "Existing theme, template বা page-builder system",
-  "Your requirements, users and business goal": "আপনার requirements, user এবং business goal",
-  "Adapt an existing visual structure": "Existing visual structure adjust করা",
-  "Custom structure and interface direction": "Custom structure ও interface direction",
-  "Configure an existing stack around standard needs": "Standard need অনুযায়ী existing stack configure করা",
-  "Build and integrate the behaviour your scope requires": "আপনার scope অনুযায়ী behaviour build ও integrate করা",
-  "Flexibility": "Flexibility",
+  "Existing theme, template or page-builder system": "তৈরি থিম, template বা page-builder দিয়ে শুরু",
+  "Your requirements, users and business goal": "আপনার Requirements, ব্যবহারকারী ও ব্যবসার লক্ষ্য",
+  "Adapt an existing visual structure": "আগের ডিজাইনে প্রয়োজনমতো বদল",
+  "Custom structure and interface direction": "আপনার জন্য আলাদা কাঠামো ও UI design",
+  "Configure an existing stack around standard needs": "সাধারণ চাহিদা অনুযায়ী তৈরি সিস্টেমের সেটআপ",
+  "Build and integrate the behaviour your scope requires": "আপনার কাজের পরিধি অনুযায়ী ফিচার তৈরি ও সংযুক্ত করা",
+  "Flexibility": "বদলানোর সুযোগ",
   "Best when your needs fit the template": "যখন আপনার need template-এর সঙ্গে মিলে যায় তখন ভালো",
-  "Better when your workflow, brand or product needs are specific": "Workflow, brand বা product need specific হলে বেশি উপযোগী",
+  "Better when your workflow, brand or product needs are specific": "আলাদা workflow, ব্র্যান্ড বা প্রোডাক্টের চাহিদায় বেশি উপযোগী",
   "After launch": "Launch-এর পরে",
-  "Varies by provider and package": "Provider ও package অনুযায়ী বদলে যায়",
-  "Clear handover plus scoped support or growth options": "Clear handover এবং scope অনুযায়ী support/growth option",
+  "Varies by provider and package": "সেবাদাতা ও প্যাকেজ অনুযায়ী বদলে যায়",
+  "Clear handover plus scoped support or growth options": "বুঝিয়ে হস্তান্তর, সঙ্গে চুক্তি অনুযায়ী সাপোর্ট বা উন্নয়নের সুযোগ",
   "Number of pages, screens and content states": "Page, screen এবং content state-এর সংখ্যা",
   "Custom interactions, animation and design depth": "Custom interaction, animation এবং design depth",
   "Product catalog, checkout and commerce complexity": "Product catalog, checkout এবং commerce complexity",
@@ -427,7 +427,7 @@ const source: Record<string, string> = {
   "DESIGN": "ডিজাইন",
   "BUILD": "বিল্ড",
   "LAUNCH": "লঞ্চ",
-  "GROW": "গ্রো",
+  "GROW": "বাড়ুন",
   "Client perspectives": "ক্লায়েন্টদের অভিজ্ঞতা",
   "The experience,": "তাদের অভিজ্ঞতা,",
   "in their own words.": "তাদের নিজের ভাষায়।",
@@ -443,14 +443,18 @@ const source: Record<string, string> = {
   "Mobile navigation": "মোবাইল নেভিগেশন",
   "Project brief progress": "প্রজেক্ট ব্রিফের অগ্রগতি",
   "Suggested questions": "প্রস্তাবিত প্রশ্ন",
-  "Idea, design, build, launch and grow intersect in one system": "আইডিয়া, ডিজাইন, বিল্ড, লঞ্চ আর গ্রো—সব এক সিস্টেমে যুক্ত",
+  "Idea, design, build, launch and grow intersect in one system": "আইডিয়া, ডিজাইন, বিল্ড, লঞ্চ আর ব্যবসার বৃদ্ধি—সব একসঙ্গে",
   "out of 5 stars": "৫ তারকার মধ্যে",
   "project media viewer. Use left and right arrow keys to change images.": "প্রজেক্ট মিডিয়া ভিউয়ার। ছবি বদলাতে বাম ও ডান অ্যারো কী ব্যবহার করুন।",
   "media thumbnails": "মিডিয়া থাম্বনেইল",
   "Show image": "ছবি দেখুন"
 ,
-  "BUSINESS OUTCOME": "ব্যবসার ফলাফল"
+  "BUSINESS OUTCOME": "ব্যবসার ফলাফল",
+  "Dismiss notification": "নোটিফিকেশন বন্ধ করুন"
 };
 
 export const bn: Record<string, string> = Object.fromEntries(Object.entries(en).filter(([, value]) => source[value]).map(([key, value]) => [key, source[value]]));
 export { catalog } from "../catalog-bn";
+
+// Exact-source translations also cover editorial copy without a keyed T entry.
+export { source as bnSource };

@@ -67,3 +67,51 @@ test("Bangla navigation breakpoint does not alter English desktop layout", () =>
   assert.match(css, /@media\(max-width:1199px\)\{\[data-language="bn"\] \.site-header \.desktop-nav/);
   assert.doesNotMatch(css, /@media\(max-width:1199px\)\{\.site-header \.desktop-nav/);
 });
+
+
+test("language control is one native keyboard-operable switch", () => {
+  const source = readFileSync(new URL("../src/i18n/language-context.tsx", import.meta.url), "utf8");
+  const toggle = source.slice(source.indexOf("export function LanguageToggle"), source.indexOf("export function T("));
+  assert.equal((toggle.match(/<button\b/g) || []).length, 1);
+  assert.match(toggle, /role="switch"/);
+  assert.match(toggle, /aria-checked=\{language === "bn"\}/);
+  assert.match(toggle, /type="button"/);
+  assert.doesNotMatch(toggle, /aria-pressed|role="group"/);
+  const css = readFileSync(new URL("../src/i18n/language.css", import.meta.url), "utf8");
+  assert.match(css, /prefers-reduced-motion:reduce/);
+  assert.match(css, /language-toggle:focus-visible/);
+  assert.match(css, /menu-button\[aria-expanded="true"\]\{display:block\}/);
+});
+
+test("all inquiry option translations preserve the source configuration", () => {
+  const before = JSON.stringify(inquirySteps);
+  for (const step of inquirySteps) for (const value of step.options) {
+    assert.equal(translateText("en", value), value);
+    assert.ok(translateText("bn", value).trim());
+  }
+  assert.equal(JSON.stringify(inquirySteps), before);
+});
+
+test("new wording on an existing CMS slug never receives an unrelated translation", () => {
+  assert.equal(translateText("bn", "A newly revised offer", "one-page-website"), "A newly revised offer");
+  assert.equal(translateText("bn", "A newly revised summary", "redflint"), "A newly revised summary");
+  for (const [key, value] of Object.entries(bn)) assert.ok(value.trim(), key);
+  assert.notEqual(translateText("bn", "Dismiss notification"), "Dismiss notification");
+});
+
+
+test("exact-source pricing copy is reachable even without a keyed English entry", () => {
+  assert.equal(translateText("bn", "Recommended"), "প্রস্তাবিত");
+  assert.equal(translateText("bn", "Starting from"), "শুরু");
+  assert.equal(translateText("bn", "Discuss this scope"), "এই প্যাকেজ নিয়ে কথা বলুন");
+  const { deliveryStages, comparisonRows, quoteFactors } = loadTs("src/content/pricing-translations.ts");
+  const { bnSource } = loadTs("src/i18n/translations/bn.ts");
+  for (const value of [...deliveryStages.flatMap(({ title, copy, output }) => [title, copy, output]), ...comparisonRows.flatMap(Object.values), ...quoteFactors]) {
+    assert.ok(Object.hasOwn(bnSource, value), value);
+    assert.equal(translateText("bn", value), bnSource[value]);
+    assert.equal(translateText("en", value), value);
+  }
+  assert.equal(translateText("bn", "constructor"), "constructor");
+  assert.equal(translateText("bn", "constructor", "personacv"), "constructor");
+  assert.equal(translateText("bn", "Unknown copy", "__proto__"), "Unknown copy");
+});
