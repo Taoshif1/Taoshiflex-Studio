@@ -26,6 +26,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   ]);
 
   const workLastModified = newest(projects.map((project) => project.updatedAt));
+  const productLastModified = newest(products.map((product) => product.updatedAt));
   const policyLastModified = newest(
     policies.map((policy) => {
       const version = currentVersion(policy);
@@ -40,6 +41,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
         Math.max(
           releaseLastModified.getTime(),
           workLastModified.getTime(),
+          productLastModified.getTime(),
           policyLastModified.getTime(),
         ),
       ),
@@ -54,7 +56,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     },
     {
       url: `${site.url}/products`,
-      lastModified: releaseLastModified,
+      lastModified: productLastModified,
       changeFrequency: "monthly",
       priority: 0.9,
     },
@@ -96,7 +98,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     })),
     ...products.map((product) => ({
       url: `${site.url}/products/${product.slug}`,
-      lastModified: releaseLastModified,
+      lastModified: safeDate(product.updatedAt),
       changeFrequency: "monthly" as const,
       priority: 0.8,
     })),

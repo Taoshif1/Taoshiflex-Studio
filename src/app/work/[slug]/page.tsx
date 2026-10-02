@@ -15,6 +15,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params;
   const project = await getPublishedProject(slug);
   if (!project) return {};
+  const images = project.coverMedia?.src ? [{ url: project.coverMedia.src, alt: project.coverMedia.alt || project.name }] : undefined;
   return {
     title: project.name,
     description: project.summary,
@@ -23,6 +24,13 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       title: `${project.name} — Taoshiflex Studio`,
       description: project.summary,
       url: `/work/${slug}`,
+      images,
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: `${project.name} — Taoshiflex Studio`,
+      description: project.summary,
+      images: images?.map(image => image.url),
     },
   };
 }
