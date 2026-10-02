@@ -1,0 +1,54 @@
+name: PR checks
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Use Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Typecheck
+        run: npx tsc --noEmit
+
+      - name: Analytics tests
+        run: npm run test:analytics
+
+      - name: Assistant tests
+        run: npm run test:assistant
+
+      - name: Studio tests
+        run: npm run test:studio
+
+      - name: Workspace tests
+        run: npm run test:workspace
+
+      - name: Security tests
+        run: npm run test:security
+
+      - name: Localization tests
+        run: npm run test:i18n
+
+      - name: Production build
+        run: npm run build
