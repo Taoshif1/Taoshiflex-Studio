@@ -1,8 +1,5 @@
 "use client";
-import { T } from "@/i18n/language-context";
-
-
-import { LanguageToggle, DynamicText, useLanguage } from "@/i18n/language-context";
+import { DynamicText, LanguageToggle, T, useLanguage } from "@/i18n/language-context";
 import Link from "next/link";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
