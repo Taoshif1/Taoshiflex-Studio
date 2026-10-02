@@ -1,10 +1,11 @@
+import { readJson } from "@/lib/request-body";
 import { authorizeMutation } from "@/lib/admin-security";
 import { sendTestInquiryAlert } from "@/lib/inquiry-alerts";
 
 export async function POST(request: Request) {
   const authorization = await authorizeMutation(request);
   if (authorization.error) return authorization.error;
-  const body = (await request.json().catch(() => null)) as {
+  const body = (await readJson(request).catch(() => null)) as {
     channel?: unknown;
   } | null;
   if (body?.channel !== "email") {

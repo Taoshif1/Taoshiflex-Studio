@@ -1,3 +1,4 @@
+import { readJson } from "@/lib/request-body";
 import { cleanText, isSameOrigin } from "@/lib/admin-security";
 import { getClientAuthorization } from "@/lib/client-auth";
 import { getAdminAuthorization, supabaseRest } from "@/lib/supabase-rest";
@@ -19,7 +20,7 @@ export async function PATCH(request: Request) {
     return Response.json({ error: "Authentication required." }, { status: 401 });
   }
 
-  const body = await request.json().catch(() => null) as { action?: unknown; id?: unknown } | null;
+  const body = await readJson(request).catch(() => null) as { action?: unknown; id?: unknown } | null;
   const action = cleanText(body?.action, 20, true);
   if (action !== "one" && action !== "all") {
     return Response.json({ error: "Valid notification action is required." }, { status: 400 });

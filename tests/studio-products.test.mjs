@@ -1,3 +1,4 @@
+import {readJson,readForm} from "../src/lib/request-body.ts";
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import {readFileSync} from 'node:fs';
@@ -17,7 +18,7 @@ test('Postgres protects product drafts, source URLs, uniqueness and Work metadat
  grant select on public.projects to anon,authenticated;
  alter table public.projects enable row level security;create policy published on public.projects for select using(published);
  insert into public.projects(slug,name,published,repository_url,show_repository,github_repository_id,content) values('work','Authored work',true,'https://github.com/private/source',true,1,'{"github_token":"secret","context":"Authored context"}');`);
- await db.exec(readFileSync(new URL('../supabase/migrations/20260921203739_studio_products_and_source_privacy.sql',import.meta.url),'utf8'));
+ await db.exec(readFileSync(new URL('../supabase/migrations/20260921205018_studio_products_and_source_privacy.sql',import.meta.url),'utf8'));
  await db.exec(`insert into public.products(slug,name,tagline,summary,published,featured,source_repository_private) values('private-product','Private source product','Authored tagline','An independently authored product description.',true,true,true);
  insert into public.products(slug,name) values('draft','Draft');`);
  await assert.rejects(db.exec("insert into public.products(slug,name) values('draft','Duplicate')"),/unique constraint/);
@@ -55,7 +56,7 @@ function loadRoute(path, mocks) {
  const source=readFileSync(new URL(path,import.meta.url),'utf8');
  const js=ts.transpileModule(source,{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2022}}).outputText;
  const exports={};
- vm.runInNewContext(js,{exports,require:name=>{if(!(name in mocks))throw Error(name);return mocks[name]},Response,Request,File,FormData,Uint8Array,URL});
+ vm.runInNewContext(js,{exports,require:name=>{if(name==='@/lib/request-body')return {readJson,readForm};if(!(name in mocks))throw Error(name);return mocks[name]},Response,Request,File,FormData,Uint8Array,URL});
  return exports;
 }
 test('admin product mutations reject unauthorized requests and invalid products before writes',async()=>{

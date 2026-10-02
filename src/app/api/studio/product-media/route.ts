@@ -1,3 +1,4 @@
+import { readForm, readJson } from "@/lib/request-body";
 import { randomUUID } from "node:crypto";
 import { authorizeMutation, cleanText } from "@/lib/admin-security";
 import { PROJECT_MEDIA_MAX_BYTES, PROJECT_MEDIA_TYPES, removeProjectMedia, uploadProjectMedia, validProjectImage } from "@/lib/project-media";
@@ -7,11 +8,11 @@ type Media = {id:string;product_id:string;storage_path:string;role:string};
 const extensions:Record<string,string>={"image/jpeg":"jpg","image/png":"png","image/webp":"webp","image/avif":"avif"};
 export async function POST(request:Request) {
   const auth=await authorizeMutation(request);if(auth.error)return auth.error;
-  const form=await request.formData().catch(()=>null);
+  const form=await readForm(request).catch(()=>null);
   const productId=form?.get("productId"),role=form?.get("role"),alt=cleanText(form?.get("alt"),240,true),file=form?.get("file"),replaceId=form?.get("replaceId");
   if(typeof productId!=="string"||!reviewUuid.test(productId)||!alt||!['cover','gallery'].includes(String(role))||!(file instanceof File)||(replaceId && (typeof replaceId!=="string"||!reviewUuid.test(replaceId))))return Response.json({error:"Choose an image, role and descriptive alt text."},{status:400});
   if(file.size>PROJECT_MEDIA_MAX_BYTES||!PROJECT_MEDIA_TYPES.includes(file.type as typeof PROJECT_MEDIA_TYPES[number]))return Response.json({error:"Use JPEG, PNG, WebP or AVIF, up to 6 MB."},{status:413});
-  if(!validProjectImage(file,new Uint8Array(await file.arrayBuffer())))return Response.json({error:"Unsupported image content."},{status:415});
+  if(!await validProjectImage(file,new Uint8Array(await file.arrayBuffer())))return Response.json({error:"Unsupported image content."},{status:415});
   const path=`products/${productId}/${randomUUID()}.${extensions[file.type]}`;
   let attached=false;
   try {
@@ -36,13 +37,13 @@ export async function POST(request:Request) {
 }
 export async function PATCH(request:Request) {
   const auth=await authorizeMutation(request);if(auth.error)return auth.error;
-  const body=await request.json().catch(()=>null),alt=cleanText(body?.alt,240,true);
-  if(typeof body?.id!=="string"||!reviewUuid.test(body.id)||!alt||!Number.isInteger(body.sort_order)||Math.abs(body.sort_order)>100000)return Response.json({error:"Valid image, alt text and order are required."},{status:400});
+  const body=await readJson(request).catch(()=>null),alt=cleanText(body?.alt,240,true);
+  if(typeof body?.id!=="string"||!reviewUuid.test(body.id)||!alt||!Number.isInteger(body.sort_order)||Math.abs(Number(body.sort_order))>100000)return Response.json({error:"Valid image, alt text and order are required."},{status:400});
   try {const rows=await supabaseRest<Array<{id:string}>>(`product_media?id=eq.${body.id}&select=id`,{method:"PATCH",headers:{Prefer:"return=representation"},body:JSON.stringify({alt,sort_order:body.sort_order})},"privileged");if(!rows.length)return Response.json({error:"Image not found."},{status:404});return Response.json({ok:true});}catch{return Response.json({error:"Image details could not be saved."},{status:409});}
 }
 export async function DELETE(request:Request) {
   const auth=await authorizeMutation(request);if(auth.error)return auth.error;
-  const body=await request.json().catch(()=>null);
+  const body=await readJson(request).catch(()=>null);
   if(typeof body?.id!=="string"||!reviewUuid.test(body.id))return Response.json({error:"Valid image is required."},{status:400});
   try {
     const rows=await supabaseRest<Media[]>(`product_media?id=eq.${body.id}&select=id,product_id,storage_path,role`,{},"privileged");

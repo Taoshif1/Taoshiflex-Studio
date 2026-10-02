@@ -1,3 +1,4 @@
+import { validDeliverableContent, validDeliverableImage } from "./file-contract";
 import "server-only";
 
 import { createHmac, timingSafeEqual } from "node:crypto";
@@ -131,6 +132,17 @@ export async function getDeliverableObjectInfo(path: string) {
     throw new Error("Private deliverable upload could not be verified.", {
       cause: error,
     });
+  }
+  if(!Number.isFinite(data.size)||Number(data.size)<1||Number(data.size)>maxDeliverableBytes)throw new Error("Invalid deliverable size");
+  if (typeof data.contentType !== "string" || !allowedDeliverableTypes.has(data.contentType)) {
+    throw new Error("Invalid deliverable content type");
+  }
+  const downloaded=await storage().download(path);
+  if(downloaded.error||!downloaded.data)throw new Error("File validation unavailable");
+  const bytes=new Uint8Array(await downloaded.data.arrayBuffer());
+  if(bytes.length!==Number(data.size)||!validDeliverableContent(data.contentType,bytes))throw new Error("Invalid deliverable content");
+  if (data.contentType.startsWith("image/") && !await validDeliverableImage(data.contentType, bytes)) {
+    throw new Error("Invalid deliverable image");
   }
   return {
     size: Number.isFinite(data.size) ? Number(data.size) : 0,

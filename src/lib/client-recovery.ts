@@ -1,16 +1,17 @@
 import "server-only";
 
-import { createHmac, timingSafeEqual } from "node:crypto";
+import { createHmac, timingSafeEqual, randomUUID } from "node:crypto";
 
 import { cookies } from "next/headers";
 
-import { supabaseConfig } from "@/lib/supabase-rest";
+import { supabaseConfig, supabaseRest } from "@/lib/supabase-rest";
 
 const recoveryCookieName = "taoshiflex-client-recovery";
 const recoveryLifetimeSeconds = 15 * 60;
 
 type RecoveryIntent = {
   sub: string;
+  nonce: string;
   exp: number;
 };
 
@@ -32,6 +33,7 @@ function sign(value: string) {
 export async function setRecoveryIntent(userId: string) {
   const payload: RecoveryIntent = {
     sub: userId,
+    nonce: randomUUID(),
     exp: Math.floor(Date.now() / 1000) + recoveryLifetimeSeconds,
   };
   const encoded = Buffer.from(JSON.stringify(payload), "utf8").toString(
@@ -51,7 +53,7 @@ export async function setRecoveryIntent(userId: string) {
 export async function hasRecoveryIntent(userId: string) {
   const cookieStore = await cookies();
   const raw = cookieStore.get(recoveryCookieName)?.value;
-  if (!raw) return false;
+  if (!raw || raw.length>2048) return false;
 
   const separator = raw.lastIndexOf(".");
   if (separator < 1) return false;
@@ -76,6 +78,7 @@ export async function hasRecoveryIntent(userId: string) {
 
     return (
       payload.sub === userId &&
+      typeof payload.nonce === "string" &&
       Number.isInteger(payload.exp) &&
       payload.exp > Math.floor(Date.now() / 1000)
     );
@@ -93,4 +96,11 @@ export async function clearRecoveryIntent() {
     path: "/client",
     maxAge: 0,
   });
+}
+
+export async function consumeRecoveryIntent(userId: string, token: string) {
+  if(!await hasRecoveryIntent(userId))return false;
+  const raw=(await cookies()).get(recoveryCookieName)!.value;
+  const payload=JSON.parse(Buffer.from(raw.split(".")[0],"base64url").toString("utf8")) as RecoveryIntent;
+  return supabaseRest<boolean>("rpc/consume_recovery_intent",{method:"POST",body:JSON.stringify({intent_id:payload.nonce,intent_expiry:payload.exp})},{userAccessToken:token});
 }

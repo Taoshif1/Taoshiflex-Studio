@@ -1,3 +1,4 @@
+import { safeWebUrl } from "@/lib/security-contract";
 import type { ProjectDeliverable } from "@/lib/client-projects";
 
 export function DeliverableActions({ deliverable }: { deliverable: ProjectDeliverable }) {
@@ -13,7 +14,7 @@ export function DeliverableActions({ deliverable }: { deliverable: ProjectDelive
         </a>
       ) : null}
       {deliverable.external_url ? (
-        <a className="action" href={deliverable.external_url} target="_blank" rel="noreferrer">
+        <a className="action" href={safeWebUrl(deliverable.external_url) ?? undefined} target="_blank" rel="noreferrer">
           Open external link ↗
         </a>
       ) : null}

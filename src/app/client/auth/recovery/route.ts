@@ -1,8 +1,10 @@
+import { readForm, readJson } from "@/lib/request-body";
 import { NextResponse } from "next/server";
 
 import {
   clearRecoveryIntent,
   hasRecoveryIntent,
+  consumeRecoveryIntent,
   setRecoveryIntent,
 } from "@/lib/client-recovery";
 import { isSameOrigin } from "@/lib/admin-security";
@@ -39,9 +41,9 @@ export async function POST(request: Request) {
   let tokenHash = "";
   let type = "";
   try {
-    const form = await request.formData();
-    tokenHash = String(form.get("token_hash") ?? "").trim();
-    type = String(form.get("type") ?? "");
+    const form = await readForm(request, 4096);
+    tokenHash = String(form?.get("token_hash") ?? "").trim();
+    type = String(form?.get("type") ?? "");
   } catch {
     return resetRedirect(request, "invalid");
   }
@@ -78,8 +80,8 @@ export async function PATCH(request: Request) {
 
   let password = "";
   try {
-    const body = (await request.json()) as { password?: unknown };
-    password = typeof body.password === "string" ? body.password : "";
+    const body = (await readJson(request)) as { password?: unknown };
+    password = typeof body?.password === "string" ? body.password : "";
   } catch {
     return NextResponse.json(
       { error: "Enter a valid new password." },
@@ -107,6 +109,12 @@ export async function PATCH(request: Request) {
       );
     }
 
+    const {data:sessionData}=await supabase.auth.getSession();
+    const token=sessionData.session?.access_token;
+    if(!token||!await consumeRecoveryIntent(userId,token)){
+      await clearRecoveryIntent();
+      return NextResponse.json({error:"Request a fresh recovery link."},{status:401,headers:noStoreHeaders});
+    }
     const { error } = await supabase.auth.updateUser({ password });
     if (error) {
       return NextResponse.json(

@@ -23,7 +23,7 @@ test('Postgres enforces review eligibility, uniqueness, immutable testimony and 
       insert into auth.users values('${user}'),('${other}');
       insert into public.client_projects values('${project}','completed'),('${active}','active');
       insert into public.client_project_members values('${project}','${user}','client'),('${active}','${user}','client');`);
-    await db.exec(readFileSync(new URL('../supabase/migrations/20260921202534_verified_project_reviews.sql',import.meta.url),'utf8'));
+    await db.exec(readFileSync(new URL('../supabase/migrations/20260921205004_verified_project_reviews.sql',import.meta.url),'utf8'));
     const insert=id=>`insert into public.project_reviews(client_project_id,reviewer_name,rating,review_text) values('${id}','Real client',5,'A thoughtful and reliable delivery experience.')`;
     await db.exec(`set role authenticated;select set_config('request.jwt.claim.sub','${other}',false);`);
     await assert.rejects(db.exec(insert(project)),/row-level security/);

@@ -1,3 +1,4 @@
+import { readForm, readJson } from "@/lib/request-body";
 import { randomUUID } from "node:crypto";
 import { authorizeMutation, cleanText } from "@/lib/admin-security";
 import { PROJECT_MEDIA_MAX_BYTES, PROJECT_MEDIA_TYPES, removeProjectMedia, uploadProjectMedia, validProjectImage } from "@/lib/project-media";
@@ -9,10 +10,10 @@ type MediaRow={id:string;project_id:string;storage_path:string;role:"cover"|"gal
 
 export async function POST(request:Request){
   const auth=await authorizeMutation(request);if(auth.error)return auth.error;
-  const form=await request.formData().catch(()=>null);const projectId=cleanText(form?.get("projectId"),80,true),alt=cleanText(form?.get("alt"),240,true),role=form?.get("role"),file=form?.get("file");
+  const form=await readForm(request).catch(()=>null);const projectId=cleanText(form?.get("projectId"),80,true),alt=cleanText(form?.get("alt"),240,true),role=form?.get("role"),file=form?.get("file");
   if(!projectId||!uuid.test(projectId)||!alt||(role!=="cover"&&role!=="gallery")||!(file instanceof File))return Response.json({error:"Choose a valid image, role, and descriptive alt text."},{status:400});
   if(file.size>PROJECT_MEDIA_MAX_BYTES||!PROJECT_MEDIA_TYPES.includes(file.type as typeof PROJECT_MEDIA_TYPES[number]))return Response.json({error:"Use a JPEG, PNG, WebP, or AVIF image no larger than 6 MB."},{status:413});
-  const bytes=new Uint8Array(await file.arrayBuffer());if(!validProjectImage(file,bytes))return Response.json({error:"The file content does not match a supported image format."},{status:415});
+  const bytes=new Uint8Array(await file.arrayBuffer());if(!await validProjectImage(file,bytes))return Response.json({error:"The file content does not match a supported image format."},{status:415});
   const projects=await supabaseRest<Array<{id:string}>>(`projects?id=eq.${encodeURIComponent(projectId)}&select=id&limit=1`,{},true);if(!projects.length)return Response.json({error:"Project not found."},{status:404});
   const path=`projects/${projectId}/${randomUUID()}.${extensions[file.type]}`;
   try{
@@ -31,7 +32,7 @@ export async function POST(request:Request){
 
 export async function PATCH(request:Request){
   const auth=await authorizeMutation(request);if(auth.error)return auth.error;
-  const body=await request.json().catch(()=>null) as {projectId?:unknown;orderedIds?:unknown;setCoverId?:unknown}|null;const projectId=cleanText(body?.projectId,80,true);
+  const body=await readJson(request).catch(()=>null) as {projectId?:unknown;orderedIds?:unknown;setCoverId?:unknown}|null;const projectId=cleanText(body?.projectId,80,true);
   if(!projectId||!uuid.test(projectId))return Response.json({error:"Valid project id is required."},{status:400});
   if(typeof body?.setCoverId==="string"&&uuid.test(body.setCoverId)){try{const target=await supabaseRest<MediaRow[]>(`project_media?id=eq.${encodeURIComponent(body.setCoverId)}&project_id=eq.${encodeURIComponent(projectId)}&select=id,project_id,storage_path,role,sort_order&limit=1`,{},true),cover=await supabaseRest<MediaRow[]>(`project_media?project_id=eq.${encodeURIComponent(projectId)}&role=eq.cover&select=id,project_id,storage_path,role,sort_order&limit=1`,{},true);if(!target.length)return Response.json({error:"Gallery image not found."},{status:404});if(cover[0])await supabaseRest(`project_media?id=eq.${encodeURIComponent(cover[0].id)}`,{method:"PATCH",headers:{Prefer:"return=minimal"},body:JSON.stringify({role:"gallery",sort_order:target[0].sort_order})},true);await supabaseRest(`project_media?id=eq.${encodeURIComponent(target[0].id)}`,{method:"PATCH",headers:{Prefer:"return=minimal"},body:JSON.stringify({role:"cover",sort_order:0})},true);return Response.json({ok:true})}catch{return Response.json({error:"Media roles require migration 004 before they can be changed."},{status:409})}}
   if(!Array.isArray(body?.orderedIds)||body.orderedIds.length>50||body.orderedIds.some(id=>typeof id!=="string"||!uuid.test(id)))return Response.json({error:"Invalid gallery order."},{status:400});
@@ -40,7 +41,7 @@ export async function PATCH(request:Request){
 
 export async function DELETE(request:Request){
   const auth=await authorizeMutation(request);if(auth.error)return auth.error;
-  const body=await request.json().catch(()=>null) as {id?:unknown}|null;const id=cleanText(body?.id,80,true);if(!id||!uuid.test(id))return Response.json({error:"Valid media id is required."},{status:400});
+  const body=await readJson(request).catch(()=>null) as {id?:unknown}|null;const id=cleanText(body?.id,80,true);if(!id||!uuid.test(id))return Response.json({error:"Valid media id is required."},{status:400});
   let rows:MediaRow[];try{rows=await supabaseRest<MediaRow[]>(`project_media?id=eq.${encodeURIComponent(id)}&select=id,project_id,storage_path,role,sort_order&limit=1`,{},true)}catch{return Response.json({error:"Project media requires migration 004."},{status:409})}if(!rows.length)return Response.json({error:"Media not found."},{status:404});
   try{await removeProjectMedia([rows[0].storage_path]);await supabaseRest(`project_media?id=eq.${encodeURIComponent(id)}`,{method:"DELETE",headers:{Prefer:"return=minimal"}},true);return Response.json({ok:true})}catch(error){return Response.json({error:error instanceof Error?error.message:"Media could not be removed."},{status:409})}
 }

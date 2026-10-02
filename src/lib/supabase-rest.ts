@@ -35,7 +35,7 @@ export function isSupabaseServerConfigured(){const {url,secretKey,legacyServiceR
 
 export async function supabaseRest<T>(path:string,init:RequestInit={},access:SupabaseAccess="public"):Promise<T>{
   const {url}=supabaseConfig();if(!url)throw new Error("Supabase URL is not configured");
-  const response=await fetch(`${url}/rest/v1/${path}`,{...init,headers:supabaseHeaders(access,{"Content-Type":"application/json",...Object.fromEntries(new Headers(init.headers).entries())}),cache:"no-store"});
+  const response=await fetch(`${url}/rest/v1/${path}`,{...init,headers:supabaseHeaders(access,{"Content-Type":"application/json",...Object.fromEntries(new Headers(init.headers).entries())}),signal:AbortSignal.timeout(12_000),redirect:"error",cache:"no-store"});
   if(!response.ok){const failure=await response.json().catch(()=>null) as {code?:unknown;message?:unknown}|null;throw new SupabaseRestError(response.status,typeof failure?.code==="string"?failure.code:undefined,typeof failure?.message==="string"?failure.message:undefined)}
   const text=await response.text();return(text?JSON.parse(text):null)as T;
 }
@@ -44,6 +44,7 @@ export async function supabasePublicRest<T>(path:string,revalidate=60):Promise<T
   const {url}=supabaseConfig();if(!url)throw new Error("Supabase URL is not configured");
   const response=await fetch(`${url}/rest/v1/${path}`,{
     headers:supabaseHeaders("public",{"Content-Type":"application/json"}),
+    signal:AbortSignal.timeout(12_000),redirect:"error",
     next:{revalidate:Math.max(1,Math.floor(revalidate))},
   });
   if(!response.ok){const failure=await response.json().catch(()=>null) as {code?:unknown;message?:unknown}|null;throw new SupabaseRestError(response.status,typeof failure?.code==="string"?failure.code:undefined,typeof failure?.message==="string"?failure.message:undefined)}

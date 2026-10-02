@@ -1,3 +1,4 @@
+import { readJson } from "@/lib/request-body";
 import { isSameOrigin } from "@/lib/admin-security";
 import { getClientAuthorization } from "@/lib/client-auth";
 import { requireClientWorkspaceWritable } from "@/lib/client-workspace-maintenance";
@@ -10,7 +11,7 @@ export async function POST(request: Request) {
   if (!auth) return Response.json({ error: "Sign in to submit a review." }, { status: 401 });
   const maintenance = await requireClientWorkspaceWritable();
   if (maintenance) return maintenance;
-  const review = parseReview(await request.json().catch(() => null));
+  const review = parseReview(await readJson(request).catch(() => null));
   if (!review) return Response.json({ error: "Enter a name, 1–5 rating and a review of 20–1,500 characters." }, { status: 400 });
   try {
     await supabaseRest("project_reviews", { method: "POST", headers: { Prefer: "return=minimal" }, body: JSON.stringify(review) }, { userAccessToken: auth.token });

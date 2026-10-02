@@ -1,3 +1,4 @@
+import { readJson } from "@/lib/request-body";
 import { authorizeMutation, cleanText } from "@/lib/admin-security";
 import type { FeedbackIntent, FeedbackStatus } from "@/lib/client-projects";
 import { supabaseRest } from "@/lib/supabase-rest";
@@ -20,7 +21,7 @@ export async function PATCH(request: Request) {
   const authorization = await authorizeMutation(request);
   if (authorization.error) return authorization.error;
 
-  const body = (await request.json().catch(() => null)) as AdminFeedbackRequest | null;
+  const body = (await readJson(request).catch(() => null)) as AdminFeedbackRequest | null;
   const action = body?.action;
   const id = body?.id;
   const projectId = body?.projectId;
