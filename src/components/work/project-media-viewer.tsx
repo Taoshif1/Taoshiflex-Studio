@@ -6,6 +6,7 @@ import { useState, type CSSProperties, type KeyboardEvent } from "react";
 import { ResponsiveMedia } from "@/components/ui/primitives";
 import type { ProjectMedia } from "@/types/content";
 import styles from "./project-media-viewer.module.css";
+import { T, useLanguage } from "@/i18n/language-context";
 
 const formatNumber = (value: number) => String(value).padStart(2, "0");
 
@@ -18,6 +19,7 @@ export function ProjectMediaViewer({
   media: ProjectMedia[];
   projectName: string;
 }) {
+  const { text } = useLanguage();
   const [activeIndex, setActiveIndex] = useState(0);
   const reduceMotion = useReducedMotion();
   const total = media.length;
@@ -44,7 +46,7 @@ export function ProjectMediaViewer({
       style={{ "--viewer-accent": accent } as CSSProperties}
       tabIndex={0}
       role="region"
-      aria-label={`${projectName} project media viewer. Use left and right arrow keys to change images.`}
+      aria-label={`${projectName} ${text("project media viewer. Use left and right arrow keys to change images.")}`}
     >
       <div className={styles.stage}>
         <AnimatePresence initial={false} mode="wait">
@@ -70,18 +72,18 @@ export function ProjectMediaViewer({
 
       {total > 1 ? (
         <div className={styles.controls}>
-          <button type="button" onClick={selectPrevious}>Previous</button>
+          <button type="button" onClick={selectPrevious}><T id="media.previous"/></button>
           <p className={styles.counter} aria-live="polite" aria-atomic="true">
-            <span className="sr-only">Image </span>{formatNumber(activeIndex + 1)}
+            <span className="sr-only"><T id="media.image"/> </span>{formatNumber(activeIndex + 1)}
             <span aria-hidden="true"> / </span>
-            <span className="sr-only"> of </span>{formatNumber(total)}
+            <span className="sr-only"> <T id="media.of"/> </span>{formatNumber(total)}
           </p>
-          <button type="button" onClick={selectNext}>Next</button>
+          <button type="button" onClick={selectNext}><T id="media.next"/></button>
         </div>
       ) : null}
 
       {total > 1 ? (
-        <div className={styles.thumbnailRail} role="group" aria-label={`${projectName} media thumbnails`}>
+        <div className={styles.thumbnailRail} role="group" aria-label={`${projectName} ${text("media thumbnails")}`}>
           {media.map((item, index) => {
           const isActive = index === activeIndex;
           const label = item.alt || `${projectName} project image`;
@@ -90,7 +92,7 @@ export function ProjectMediaViewer({
               key={item.id}
               type="button"
               className={styles.thumbnail}
-              aria-label={`Show image ${index + 1} of ${total} — ${label}`}
+              aria-label={`${text("Show image")} ${index + 1} ${text("of")} ${total} — ${label}`}
               aria-pressed={isActive}
               onClick={() => setActiveIndex(index)}
             >
