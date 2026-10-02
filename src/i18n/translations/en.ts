@@ -385,5 +385,6 @@ export const en: Record<string, string> = {
   "shared.TaoshiflexStudioHome": "Taoshiflex Studio home",
   "shared.ProjectBriefProgress": "Project brief progress",
   "shared.SuggestedQuestions": "Suggested questions"
-
+,
+  "home.capabilities.businessOutcome": "BUSINESS OUTCOME"
 };
