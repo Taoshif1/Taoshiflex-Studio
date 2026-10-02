@@ -100,8 +100,8 @@ export async function SiteFooter() {
                       target="_blank"
                       rel="noreferrer"
                       key={link.id}
-                      aria-label={`${studioPresencePlatformLabels[link.platform]} — $<DynamicText text={link.label}/>`}
-                      title={`${studioPresencePlatformLabels[link.platform]} — $<DynamicText text={link.label}/>`}
+                      aria-label={`${studioPresencePlatformLabels[link.platform]} — ${link.label}`}
+                      title={`${studioPresencePlatformLabels[link.platform]} — ${link.label}`}
                     >
                       <SocialPlatformIcon platform={link.platform} />
                     </a>
