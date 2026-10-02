@@ -4,6 +4,9 @@ out
 .env*
 !.env.example
 *.log
+*.diff
+*.patch
+.audit-*
 qa-*.png
 .vercel
 
