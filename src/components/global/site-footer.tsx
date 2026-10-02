@@ -30,7 +30,6 @@ export async function SiteFooter() {
             <Link
               className="footer-identity"
               href="/"
-              aria-label="Taoshiflex Studio home"
             >
               <Image src="/brand/txs-mark.png" alt="" width={40} height={33} />
               <span id="footer-brand-name">
