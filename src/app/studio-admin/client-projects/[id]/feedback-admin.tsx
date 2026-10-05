@@ -1,4 +1,6 @@
 "use client";
+import { PendingButton } from "@/components/ui/loading";
+import { useToasts } from "@/components/ui/toast";
 
 import { FormEvent, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
@@ -13,6 +15,7 @@ type Props = { projectId: string; feedback: AdminProjectFeedback[] };
 type Action = "reply" | "resolve";
 
 export function FeedbackAdmin({ projectId, feedback }: Props) {
+  const { toast } = useToasts();
   const router = useRouter();
   const pendingRef = useRef(false);
   const [pendingId, setPendingId] = useState<string | null>(null);
@@ -32,10 +35,10 @@ export function FeedbackAdmin({ projectId, feedback }: Props) {
       });
       const result = (await request.json().catch(() => ({}))) as { error?: string; message?: string };
       if (!request.ok) throw new Error(result.error || "Feedback could not be updated.");
-      setNotice(result.message || "Feedback updated.");
+      setNotice(result.message || "Feedback updated."); toast("success", result.message || "Feedback updated.");
       router.refresh();
     } catch (error) {
-      setNotice(error instanceof Error ? error.message : "Feedback could not be updated.");
+      setNotice(error instanceof Error ? error.message : "Feedback could not be updated."); toast("error", error instanceof Error ? error.message : "Feedback could not be updated.");
     } finally {
       pendingRef.current = false;
       setPendingId(null);
@@ -75,8 +78,8 @@ export function FeedbackAdmin({ projectId, feedback }: Props) {
                   <input type="hidden" name="id" value={item.id}/>
                   <label>Studio response<textarea name="response" rows={3} minLength={2} maxLength={2000} defaultValue={item.studio_response ?? ""} placeholder="Share what changed or answer the client."/></label>
                   <div className="admin-feedback-actions">
-                    <button disabled={pendingId !== null}>{pendingId === item.id ? "Saving…" : item.studio_response ? "Update response" : "Send response"}</button>
-                    <button
+                    <PendingButton pending={pendingId === item.id} pendingLabel={"Sending…"} disabled={pendingId !== null}>{pendingId === item.id ? "Saving…" : item.studio_response ? "Update response" : "Send response"}</PendingButton>
+                    <PendingButton pending={pendingId !== null} pendingLabel={"Saving…"}
                       type="button"
                       disabled={pendingId !== null}
                       onClick={(event) => {
@@ -84,7 +87,7 @@ export function FeedbackAdmin({ projectId, feedback }: Props) {
                         const response = form ? String(new FormData(form).get("response") || "") : "";
                         void mutate(item.id, "resolve", response);
                       }}
-                    >Mark resolved</button>
+                    >Mark resolved</PendingButton>
                   </div>
                   {item.intent === "changes_requested" && !item.studio_response ? <small>Reply is required before resolving a change request.</small> : null}
                 </form>

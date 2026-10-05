@@ -1,6 +1,7 @@
 import "server-only";
 
 import nodemailer from "nodemailer";
+import { smtpDiagnostic } from "./smtp-diagnostics";
 
 import type { InquiryRecord } from "@/lib/inquiries";
 import {
@@ -187,6 +188,8 @@ async function sendEmail(
         subject: content.subject,
         text: content.text,
         html: content.html,
+      }).then((result: { accepted?: unknown[]; rejected?: unknown[] }) => {
+        if (!result.accepted?.length || result.rejected?.length) throw new AlertDeliveryError("smtp_recipient");
       }),
       new Promise<never>((_, reject) => {
         timeout = setTimeout(
@@ -197,7 +200,7 @@ async function sendEmail(
     ]);
   } catch (error) {
     if (error instanceof AlertDeliveryError) throw error;
-    throw new AlertDeliveryError("smtp_delivery_failed");
+    throw new AlertDeliveryError(smtpDiagnostic(error).code);
   } finally {
     if (timeout) clearTimeout(timeout);
     transporter.close();

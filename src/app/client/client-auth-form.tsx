@@ -1,10 +1,11 @@
 "use client";
+import { PendingButton } from "@/components/ui/loading";
 
 import { FormEvent, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { PasswordField } from "@/components/ui/password-field";
 import { SignOutIcon } from "@/components/ui/sign-out-icon";
-import { ToastRegion, useToasts } from "@/components/ui/toast";
+import { useToasts } from "@/components/ui/toast";
 import { createClient } from "@/lib/supabase/client";
 
 const genericSignInError = "Email or password is incorrect.";
@@ -19,7 +20,7 @@ export function ClientAuthForm() {
   const [password, setPassword] = useState("");
   const [pending, setPending] = useState(false);
   const [message, setMessage] = useState("");
-  const { toasts, toast, dismiss } = useToasts();
+  const { toast } = useToasts();
 
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -101,29 +102,31 @@ export function ClientAuthForm() {
       <p className="client-form-note" aria-live="polite">
         {message || "Enter the credentials connected to your project."}
       </p>
-      <button className="action action-solid" disabled={pending}>
+      <PendingButton pending={pending} pendingLabel={"Working..."} className="action action-solid" disabled={pending}>
         {pending ? "Working..." : "Sign In"}
-      </button>
-      <button
+      </PendingButton>
+      <PendingButton pending={pending} pendingLabel={"Saving…"}
         className="client-recovery-button"
         type="button"
         disabled={pending}
         onClick={requestPasswordReset}
       >
         Forgot password?
-      </button>
-    </form><ToastRegion toasts={toasts} dismiss={dismiss} /></>
+      </PendingButton>
+    </form></>
   );
 }
 
 export function ClientLogout() {
   const router = useRouter();
+  const pendingRef = useRef(false);
   const [pending, setPending] = useState(false);
   const [message, setMessage] = useState("");
-  const { toasts, toast, dismiss } = useToasts();
+  const { toast } = useToasts();
 
   async function logout() {
-    if (pending) return;
+    if (pendingRef.current) return;
+    pendingRef.current = true;
     setPending(true);
     setMessage("");
     try {
@@ -143,22 +146,23 @@ export function ClientLogout() {
         : "Sign-out could not be confirmed. Please retry.";
       setMessage(failure);
       toast("error", failure);
+      pendingRef.current = false;
       setPending(false);
     }
   }
 
   return (
     <div>
-      <button type="button" className="client-logout" disabled={pending} onClick={logout}>
+      <PendingButton pending={pending} pendingLabel="Signing out…" type="button" className="client-logout" disabled={pending} onClick={logout}>
         <SignOutIcon />
         <span>{pending ? "Signing out..." : "Sign out"}</span>
-      </button>
+      </PendingButton>
       {message ? (
         <p className="client-form-note" role="alert">
           {message}
         </p>
       ) : null}
-      <ToastRegion toasts={toasts} dismiss={dismiss} />
+
     </div>
   );
 }

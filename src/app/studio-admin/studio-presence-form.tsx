@@ -1,4 +1,5 @@
 "use client";
+import { PendingButton } from "@/components/ui/loading";
 
 import { FormEvent, useState } from "react";
 
@@ -280,9 +281,9 @@ export function StudioPresenceForm({
         )}
       </div>
 
-      <button disabled={pending}>
+      <PendingButton pending={pending} pendingLabel={"Saving..."} disabled={pending}>
         {pending ? "Saving..." : "Save Studio Presence"}
-      </button>
+      </PendingButton>
     </form>
   );
 }

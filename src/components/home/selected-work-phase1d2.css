@@ -1,24 +1,19 @@
-.work-section{position:relative;overflow:hidden}
-.work-section>.container{position:relative;z-index:1}
-.work-trajectory{position:absolute;z-index:0;inset:0;overflow:hidden;opacity:.34;pointer-events:none}
-.work-trajectory svg{position:absolute;inset:2% -3% 0;width:106%;height:96%;fill:none;stroke:rgba(17,17,15,.28);stroke-width:1;vector-effect:non-scaling-stroke}
-.work-trajectory .trajectory-guide{stroke-dasharray:3 12;opacity:.55}
-.work-trajectory .trajectory-path{stroke:rgba(184,144,85,.7);stroke-width:1.25}
-.work-trajectory .trajectory-path-two{stroke:rgba(71,88,96,.42);stroke-dasharray:14 7}
-.work-trajectory circle{fill:var(--ivory);stroke:rgba(184,144,85,.8);stroke-width:1.5}
-.registration-mark,.coordinate-ticks,.project-evidence{position:absolute;display:block;pointer-events:none}
-.registration-mark{width:2.2rem;height:2.2rem;border:1px solid rgba(17,17,15,.24);border-radius:50%}
-.registration-mark i{position:absolute;top:50%;left:-.45rem;width:calc(100% + .9rem);height:1px;background:rgba(17,17,15,.28)}
-.registration-mark i:last-child{transform:rotate(90deg)}
-.registration-a{top:13%;right:8%}.registration-b{bottom:10%;left:7%;transform:scale(.72)}
-.coordinate-ticks{display:flex;gap:.65rem;padding-top:.45rem;border-top:1px solid rgba(17,17,15,.28)}
-.coordinate-ticks i{width:1px;height:.45rem;background:rgba(17,17,15,.34)}
-.ticks-a{top:29%;left:3%;transform:rotate(-25deg)}.ticks-b{right:4%;bottom:31%;transform:rotate(-25deg)}
-.project-scene{isolation:isolate}
-.project-scene>*:not(.project-evidence){position:relative;z-index:1}
-.project-evidence{z-index:0;top:1rem;right:0;width:clamp(5rem,9vw,8rem);height:clamp(3.5rem,6vw,5rem);border-top:1px solid rgba(17,17,15,.22);border-right:1px solid rgba(17,17,15,.22);opacity:.48}
-.project-evidence i{position:absolute;top:-.3rem;width:1px;height:.6rem;background:rgba(17,17,15,.38)}
-.project-evidence i:first-child{left:25%}.project-evidence i:nth-child(2){left:58%}
-.project-evidence span{position:absolute;right:.45rem;bottom:.3rem;color:rgba(17,17,15,.5);font-size:.55rem;letter-spacing:.14em}
-@media(max-width:767px){.work-trajectory{opacity:.2}.registration-b,.ticks-b{display:none}.project-evidence{right:1rem}}
-@media(prefers-reduced-motion:reduce){.work-trajectory,.project-evidence{transform:none}}
+.work-section{position:relative;overflow:hidden;background:radial-gradient(ellipse at 10% 10%,rgba(184,144,85,.10),transparent 45%),var(--ivory)}
+.work-section .work-heading{margin-bottom:clamp(1rem,2vw,2rem)}
+.work-section .work-stage{gap:clamp(1.5rem,3vw,3rem)}
+.work-section .project-scene{position:relative;min-height:auto;padding-block:clamp(2rem,4vw,4rem);border-top:1px solid rgba(17,17,15,.18);background:transparent}
+.project-meta>.technical{display:flex;align-items:center;gap:1rem}
+.work-section .work-number{font-family:var(--font-display);font-size:clamp(2.2rem,4vw,4rem);line-height:1;color:#8d6a35;letter-spacing:-.05em}
+.work-section .project-meta h3{font-size:clamp(2.75rem,5.5vw,5.7rem);line-height:1.04;margin-block:1rem 1.25rem}
+.work-section .project-meta dl{margin-block:1.75rem}
+.work-section .project-meta .action{display:inline-flex;gap:1.5rem;background:var(--ink);color:var(--ivory);padding:1rem 1.3rem}
+.work-media-mount{position:relative;min-width:0;padding:clamp(.65rem,1.5vw,1.25rem);padding-top:2.5rem;border:1px solid rgba(17,17,15,.2);background:#e3dbce;box-shadow:0 18px 44px -28px rgba(17,17,15,.45)}
+.work-media-mount::before{content:"";position:absolute;top:-1px;left:1.25rem;width:4rem;height:2px;background:var(--accent,#b89055)}
+.work-evidence-label{position:absolute;left:1.25rem;top:.8rem;color:#645b4f;font-size:.6rem}
+.work-section .project-cover-media{aspect-ratio:16/10;border:1px solid rgba(17,17,15,.12);background:#eee8df;overflow:hidden}
+.project-cover-media img{transition:transform .45s ease}
+@media(hover:hover) and (prefers-reduced-motion:no-preference){.work-media-mount:hover .project-cover-media img{transform:scale(1.025)}}
+@media(min-width:768px){.work-section .project-scene:nth-child(even){grid-template-columns:1.25fr .75fr}.project-scene:nth-child(even) .project-meta{grid-column:2;grid-row:1}.project-scene:nth-child(even) .work-media-mount{grid-column:1;grid-row:1}}
+@media(max-width:767px){.work-section .project-scene{align-items:stretch;padding-block:2rem;gap:1.5rem}.work-section .project-meta h3{font-size:clamp(2.7rem,11vw,4.5rem)}}
+.work-stage>.empty-state{max-width:42rem;margin:0;padding:clamp(2rem,6vw,5rem);border:1px solid var(--line);color:var(--stone)}
+@media(prefers-reduced-motion:reduce){.project-cover-media img{transition:none}}

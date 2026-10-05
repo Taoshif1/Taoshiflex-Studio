@@ -1,16 +1,19 @@
 "use client";
+import { PendingButton } from "@/components/ui/loading";
+import { useToasts } from "@/components/ui/toast";
 import { FormEvent, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { formatMoney, paymentMethodLabel, type CommercialData } from "@/lib/commercial";
 import { formatFeedbackTime } from "@/lib/client-projects";
 
 export function BillingPanel({projectId,data,readOnly=false,maintenanceMessage}:{projectId:string;data:CommercialData;readOnly?:boolean;maintenanceMessage?:string}) {
-  const router=useRouter(), busy=useRef(false);
+  const { toast } = useToasts();
+  const router = useRouter(), busy=useRef(false);
   const [pending,setPending]=useState(false), [open,setOpen]=useState(false), [message,setMessage]=useState("");
   if(!data.billing||!data.summary) return <p className="workspace-empty">Commercial terms will appear after the Studio configures project billing.</p>;
   const {billing,summary}=data;
   const progress=billing.agreed_value_minor?Math.min(100,Math.round(summary.paid_minor/billing.agreed_value_minor*100)):0;
-  async function submit(event:FormEvent<HTMLFormElement>){event.preventDefault();if(busy.current||readOnly)return;busy.current=true;setPending(true);setMessage("Submitting...");const form=new FormData(event.currentTarget);try{const response=await fetch("/api/client/payments",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({projectId,...Object.fromEntries(form)})}),result=await response.json() as {error?:string;message?:string};if(!response.ok)throw new Error(result.error);setMessage(result.message||"Submitted.");setOpen(false);router.refresh()}catch(error){setMessage(error instanceof Error?error.message:"Payment could not be submitted.")}finally{busy.current=false;setPending(false)}}
+  async function submit(event:FormEvent<HTMLFormElement>){event.preventDefault();if(busy.current||readOnly)return;busy.current=true;setPending(true);setMessage("Submitting...");const form=new FormData(event.currentTarget);try{const response=await fetch("/api/client/payments",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({projectId,...Object.fromEntries(form)})}),result=await response.json() as {error?:string;message?:string};if(!response.ok)throw new Error(result.error);setMessage(result.message||"Submitted."); toast("success", result.message||"Submitted.");setOpen(false);router.refresh()}catch(error){setMessage(error instanceof Error?error.message:"Payment could not be submitted.");toast("error", error instanceof Error?error.message:"Payment could not be submitted.");}finally{busy.current=false;setPending(false)}}
   return <div className="billing-panel">
     <div className="billing-summary"><Metric label="Agreed project value" value={formatMoney(billing.agreed_value_minor,billing.currency,billing.currency_decimals)}/><Metric label="Paid" value={formatMoney(summary.paid_minor,billing.currency,billing.currency_decimals)}/><Metric label="Remaining" value={formatMoney(summary.remaining_minor,billing.currency,billing.currency_decimals)}/><Metric label="Payment progress" value={`${progress}%`}/></div>
     <div className="workspace-progress"><div className="client-progress" role="progressbar" aria-label="Payment progress" aria-valuemin={0} aria-valuemax={100} aria-valuenow={progress}><i style={{width:`${progress}%`}}/></div></div>
@@ -19,7 +22,7 @@ export function BillingPanel({projectId,data,readOnly=false,maintenanceMessage}:
     {billing.payment_instructions?<aside className="payment-instructions"><strong>Payment instructions</strong><p>{billing.payment_instructions}</p></aside>:null}
     <button className="action" type="button" disabled={readOnly} aria-describedby={readOnly?"payment-maintenance-note":undefined} onClick={()=>setOpen(value=>!value)}>{open?"Cancel":"Submit Payment"}</button>
     {readOnly?<p id="payment-maintenance-note" className="feedback-read-only">{maintenanceMessage||"New payment submissions are temporarily paused."}</p>:null}
-    {open&&!readOnly?<form className="payment-form" onSubmit={submit}><label>Installment<select name="scheduleItemId" defaultValue=""><option value="">General payment</option>{data.schedule.filter(i=>!i.archived_at).map(i=><option key={i.id} value={i.id}>{i.label}</option>)}</select></label><label>Amount ({billing.currency})<input name="amount" inputMode="decimal" required/></label><label>Payment method<select name="method">{billing.allowed_methods.map(method=><option key={method} value={method}>{paymentMethodLabel(method)}</option>)}</select></label><label>Transaction / reference ID<input name="referenceId" maxLength={160} required/></label><label className="wide">Optional note<textarea name="note" rows={3} maxLength={1000}/></label><p className="wide">Never enter a card number, PIN, OTP, password or other secret credential.</p><button disabled={pending}>Send for verification</button></form>:null}
+    {open&&!readOnly?<form className="payment-form" onSubmit={submit}><label>Installment<select name="scheduleItemId" defaultValue=""><option value="">General payment</option>{data.schedule.filter(i=>!i.archived_at).map(i=><option key={i.id} value={i.id}>{i.label}</option>)}</select></label><label>Amount ({billing.currency})<input name="amount" inputMode="decimal" required/></label><label>Payment method<select name="method">{billing.allowed_methods.map(method=><option key={method} value={method}>{paymentMethodLabel(method)}</option>)}</select></label><label>Transaction / reference ID<input name="referenceId" maxLength={160} required/></label><label className="wide">Optional note<textarea name="note" rows={3} maxLength={1000}/></label><p className="wide">Never enter a card number, PIN, OTP, password or other secret credential.</p><PendingButton pending={pending} pendingLabel={"Sending…"} disabled={pending}>Send for verification</PendingButton></form>:null}
     <p aria-live="polite">{message}</p>
   </div>;
 }

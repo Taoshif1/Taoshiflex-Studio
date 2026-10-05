@@ -1,7 +1,9 @@
 "use client";
+import { useToasts } from "@/components/ui/toast";
+import { PendingButton } from "@/components/ui/loading";
 
-import { useRef, useState } from "react";
-import { useRouter } from "next/navigation";
+import { useEffect, useRef, useState } from "react";
+import { usePathname, useRouter } from "next/navigation";
 import type { AppNotification, NotificationInbox } from "@/lib/notifications";
 
 function formatNotificationTime(value: string) {
@@ -20,6 +22,30 @@ export function NotificationCenter({
   placement?: "start" | "end";
 }) {
   const router = useRouter();
+  const { toast } = useToasts();
+  const pathname = usePathname();
+  const detailsRef = useRef<HTMLDetailsElement>(null);
+  const summaryRef = useRef<HTMLElement>(null);
+  useEffect(() => {
+    const details = detailsRef.current;
+    if (!details) return;
+    details.open = false;
+    function outside(event: PointerEvent) {
+      if (details?.open && event.target instanceof Node && !details.contains(event.target)) details.open = false;
+    }
+    function escape(event: KeyboardEvent) {
+      if (event.key !== "Escape" || !details?.open) return;
+      const restoreFocus = details.contains(document.activeElement);
+      details.open = false;
+      if (restoreFocus) summaryRef.current?.focus();
+    }
+    document.addEventListener("pointerdown", outside);
+    document.addEventListener("keydown", escape);
+    return () => {
+      document.removeEventListener("pointerdown", outside);
+      document.removeEventListener("keydown", escape);
+    };
+  }, [pathname]);
   const pendingRef = useRef(false);
   const [pending, setPending] = useState(false);
   const [notice, setNotice] = useState("");
@@ -40,7 +66,8 @@ export function NotificationCenter({
       if (!response.ok) throw new Error(result.error || "Notification could not be updated.");
       return true;
     } catch (error) {
-      setNotice(error instanceof Error ? error.message : "Notification could not be updated.");
+      const message = error instanceof Error ? error.message : "Notification could not be updated.";
+      setNotice(message); toast("error", message);
       return false;
     } finally {
       pendingRef.current = false;
@@ -49,16 +76,16 @@ export function NotificationCenter({
   }
 
   async function openNotification(event: React.MouseEvent<HTMLAnchorElement>, item: AppNotification) {
+    if (detailsRef.current) detailsRef.current.open = false;
     if (item.read_at || event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
     event.preventDefault();
-    if (await markRead("one", item.id)) {
-      router.push(item.href);
-    }
+    await markRead("one", item.id);
+    router.push(item.href);
   }
 
   return (
-    <details className={"notification-center placement-" + placement}>
-      <summary
+    <details ref={detailsRef} className={"notification-center placement-" + placement}>
+      <summary ref={summaryRef}
         className="notification-trigger"
         aria-label={"Notifications" + (inbox.unreadCount ? ", " + countLabel + " unread" : "")}
       >
@@ -73,7 +100,7 @@ export function NotificationCenter({
             <h2>Notifications</h2>
           </div>
           {inbox.unreadCount ? (
-            <button
+            <PendingButton pending={pending} pendingLabel={"Updating…"}
               type="button"
               disabled={pending}
               onClick={async () => {
@@ -81,7 +108,7 @@ export function NotificationCenter({
               }}
             >
               {pending ? "Updating…" : "Mark all as read"}
-            </button>
+            </PendingButton>
           ) : null}
         </header>
         {inbox.items.length ? (

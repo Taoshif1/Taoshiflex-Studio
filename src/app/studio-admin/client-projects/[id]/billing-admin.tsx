@@ -1,4 +1,6 @@
 "use client";
+import { PendingButton } from "@/components/ui/loading";
+import { useToasts } from "@/components/ui/toast";
 
 import { FormEvent, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
@@ -16,6 +18,7 @@ import { formatFeedbackTime } from "@/lib/client-projects";
 const headers = { "Content-Type": "application/json" };
 
 export function BillingAdmin({ projectId, data }: { projectId: string; data: CommercialData }) {
+  const { toast } = useToasts();
   const router = useRouter();
   const busy = useRef(false);
   const [pending, setPending] = useState(false);
@@ -34,10 +37,10 @@ export function BillingAdmin({ projectId, data }: { projectId: string; data: Com
       });
       const result = await response.json().catch(() => ({})) as { error?: string };
       if (!response.ok) throw new Error(result.error || "Billing action failed.");
-      setMessage(success);
+      setMessage(success); toast("success", success);
       router.refresh();
     } catch (error) {
-      setMessage(error instanceof Error ? error.message : "Billing action failed.");
+      setMessage(error instanceof Error ? error.message : "Billing action failed."); toast("error", error instanceof Error ? error.message : "Billing action failed.");
     } finally {
       busy.current = false;
       setPending(false);
@@ -57,7 +60,7 @@ export function BillingAdmin({ projectId, data }: { projectId: string; data: Com
         <label>Currency decimals<input name="decimals" type="number" defaultValue="2" min="0" max="3" /></label>
         <label>Initial deposit %<input name="depositPercentage" type="number" defaultValue="30" min="1" max="99" step="0.01" /></label>
         <p className="wide">The starting schedule uses the deposit percentage here and assigns the remainder to final payment.</p>
-        <button disabled={pending}>Create starting plan</button>
+        <PendingButton pending={pending} pendingLabel={"Saving…"} disabled={pending}>Create starting plan</PendingButton>
       </form>
     </section>;
   }
@@ -130,7 +133,7 @@ export function BillingAdmin({ projectId, data }: { projectId: string; data: Com
           <label>Agreed project value<input name="projectValue" defaultValue={(billing.agreed_value_minor / 10 ** billing.currency_decimals).toFixed(billing.currency_decimals)} required /></label>
           <fieldset><legend>Allowed methods</legend>{paymentMethods.map((method) => <label key={method}><input type="checkbox" name="methods" value={method} defaultChecked={billing.allowed_methods.includes(method)} />{paymentMethodLabel(method)}</label>)}</fieldset>
           <label className="wide">Private Client payment instructions<textarea name="instructions" rows={4} defaultValue={billing.payment_instructions} /></label>
-          <button disabled={pending}>Save billing settings</button>
+          <PendingButton pending={pending} pendingLabel={"Saving…"} disabled={pending}>Save billing settings</PendingButton>
         </form>
       </details>
 
@@ -151,7 +154,7 @@ export function BillingAdmin({ projectId, data }: { projectId: string; data: Com
           <label>Label<input name="label" required /></label><label>Amount<input name="amount" inputMode="decimal" required /></label>
           <label>Percentage (optional reference)<input name="percentage" type="number" min="0.01" max="100" step="0.01" /></label><label>Due date (optional)<input name="dueDate" type="date" /></label>
         </>} submit={(form) => void mutate("POST", { kind: "schedule", ...Object.fromEntries(form) }, "Installment added.")} />
-        {archivedSchedule.length ? <details className="archived-schedule"><summary>Archived installments ({archivedSchedule.length})</summary><div className="admin-payment-list">{archivedSchedule.map((item) => <article key={item.id}><div><strong>{item.label}</strong><span>{formatMoney(item.expected_amount_minor, billing.currency, billing.currency_decimals)}</span></div><span>Archived</span><button type="button" disabled={pending} onClick={() => void mutate("PATCH", { kind: "schedule-archive", id: item.id, archive: false }, "Installment restored.")}>Restore</button></article>)}</div></details> : null}
+        {archivedSchedule.length ? <details className="archived-schedule"><summary>Archived installments ({archivedSchedule.length})</summary><div className="admin-payment-list">{archivedSchedule.map((item) => <article key={item.id}><div><strong>{item.label}</strong><span>{formatMoney(item.expected_amount_minor, billing.currency, billing.currency_decimals)}</span></div><span>Archived</span><PendingButton pending={pending} pendingLabel={"Saving…"} type="button" disabled={pending} onClick={() => void mutate("PATCH", { kind: "schedule-archive", id: item.id, archive: false }, "Installment restored.")}>Restore</PendingButton></article>)}</div></details> : null}
       </details>
 
       <details>
@@ -160,7 +163,7 @@ export function BillingAdmin({ projectId, data }: { projectId: string; data: Com
           <label>Installment<select name="scheduleItemId" defaultValue=""><option value="">General payment</option>{activeSchedule.map((item) => <option key={item.id} value={item.id}>{item.label}</option>)}</select></label>
           <label>Amount<input name="amount" inputMode="decimal" required /></label><label>Method<select name="method">{billing.allowed_methods.map((method) => <option key={method} value={method}>{paymentMethodLabel(method)}</option>)}</select></label>
           <label>Reference<input name="referenceId" maxLength={160} /></label><label className="wide">Note<textarea name="note" rows={2} maxLength={1000} /></label>
-        </>} submit={(form) => void mutate("POST", { kind: "manual", ...Object.fromEntries(form) }, "Confirmed payment recorded.")} />
+        </>} submit={(form) => { if (confirm("Record this payment as received? This creates a confirmed ledger entry.")) void mutate("POST", { kind: "manual", ...Object.fromEntries(form) }, "Confirmed payment recorded."); }} />
       </details>
 
       <details>
@@ -195,16 +198,16 @@ function PaymentCard({ payment, billing, pending, decide, reverse }: {
     </div>
     <span className={`payment-state ${payment.status}`}>{payment.entry_type} / {payment.status}</span>
     {decide ? <div className="payment-actions">
-      <button type="button" disabled={pending} onClick={() => confirm("Confirm this payment as received?") && decide("confirmed", "")}>Confirm</button>
-      <button type="button" className="danger" disabled={pending} onClick={() => {
+      <PendingButton pending={pending} pendingLabel={"Verifying…"} type="button" disabled={pending} onClick={() => confirm("Confirm this payment as received?") && decide("confirmed", "")}>Confirm</PendingButton>
+      <PendingButton pending={pending} pendingLabel={"Saving…"} type="button" className="danger" disabled={pending} onClick={() => {
         const reason = prompt("Reason shown to the Client (optional)") ?? null;
         if (reason !== null) decide("rejected", reason);
-      }}>Reject</button>
+      }}>Reject</PendingButton>
     </div> : null}
-    {reverse && payment.status === "confirmed" && payment.entry_type === "payment" ? <details className="payment-reversal"><summary>Reversal options</summary><button type="button" className="danger" disabled={pending} onClick={() => {
+    {reverse && payment.status === "confirmed" && payment.entry_type === "payment" ? <details className="payment-reversal"><summary>Reversal options</summary><PendingButton pending={pending} pendingLabel={"Reversing…"} type="button" className="danger" disabled={pending} onClick={() => {
       const reason = prompt("Required auditable reversal reason") || "";
-      if (reason) reverse(reason);
-    }}>Record reversal</button></details> : null}
+      if (reason && confirm("Record this reversal? It changes the confirmed payment balance and remains in the audit history.")) reverse(reason);
+    }}>Record reversal</PendingButton></details> : null}
   </article>;
 }
 
@@ -228,10 +231,10 @@ function ScheduleForm({ item, decimals, locked, pending, moveUp, moveDown, save,
     <label>Due date<input name="dueDate" type="date" defaultValue={item.due_date ?? ""} disabled={locked} /></label>
     {locked ? <p className="wide schedule-lock">Amount, wording and due date are locked because this installment has confirmed payment history.</p> : null}
     <div className="editor-actions wide">
-      {!locked ? <button disabled={pending}>Save installment</button> : null}
-      <button type="button" disabled={pending || !moveUp} onClick={moveUp}>Move up</button>
-      <button type="button" disabled={pending || !moveDown} onClick={moveDown}>Move down</button>
-      <button type="button" className="danger" disabled={pending} onClick={archive}>Archive</button>
+      {!locked ? <PendingButton pending={pending} pendingLabel={"Saving…"} disabled={pending}>Save installment</PendingButton> : null}
+      <PendingButton pending={pending} pendingLabel={"Saving…"} type="button" disabled={pending || !moveUp} onClick={moveUp}>Move up</PendingButton>
+      <PendingButton pending={pending} pendingLabel={"Saving…"} type="button" disabled={pending || !moveDown} onClick={moveDown}>Move down</PendingButton>
+      <PendingButton pending={pending} pendingLabel={"Saving…"} type="button" className="danger" disabled={pending} onClick={archive}>Archive</PendingButton>
     </div>
   </form>;
 }
@@ -247,6 +250,6 @@ function SimpleForm({ title, button, pending, fields, submit }: {
     event.preventDefault();
     submit(new FormData(event.currentTarget));
   }}>
-    <h3 className="wide">{title}</h3>{fields}<button disabled={pending}>{button}</button>
+    <h3 className="wide">{title}</h3>{fields}<PendingButton pending={pending} pendingLabel={"Saving…"} disabled={pending}>{button}</PendingButton>
   </form>;
 }

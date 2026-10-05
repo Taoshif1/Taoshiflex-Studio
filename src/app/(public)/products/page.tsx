@@ -1,23 +1,13 @@
 import { T } from "@/i18n/language-context";
-import type { Metadata } from "next";
+import { publicMetadata } from "@/lib/seo";
 import { getPublishedProducts } from "@/lib/studio-data";
 import { ProductCard } from "@/components/products/product-card";
 import { MotionReveal } from "@/components/motion/motion-reveal";
 import "@/components/products/products.css";
 
-export const metadata: Metadata = {
-  title: "Products",
-  description: "Independent software, tools and systems built by Taoshiflex Studio.",
-  alternates: { canonical: "/products" },
-  openGraph: {
-    type: "website",
-    title: "Products — Taoshiflex Studio",
-    description: "Independent software, tools and systems built by Taoshiflex Studio.",
-    url: "/products",
-  },
-};
+export const metadata = publicMetadata("Products", "Explore Studio-owned digital products and software built by Taoshiflex Studio.", "/products");
 
-export const dynamic = "force-dynamic";
+export const revalidate = 60;
 
 export default async function ProductsPage() {
   const products = await getPublishedProducts();

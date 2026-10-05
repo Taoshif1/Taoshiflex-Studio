@@ -1,6 +1,8 @@
 "use client";
+import { PendingButton } from "@/components/ui/loading";
+import { useToasts } from "@/components/ui/toast";
 
-import { FormEvent, useState } from "react";
+import { FormEvent, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import type { ProjectDeliverable } from "@/lib/client-projects";
 import { createClient } from "@/lib/supabase/client";
@@ -14,13 +16,16 @@ type Props = {
 };
 
 export function DeliverableFilesAdmin({ projectId, deliverables }: Props) {
+  const { toast } = useToasts();
   const router = useRouter();
+  const busy = useRef(false);
+  const [operation, setOperation] = useState<"upload" | "remove">("upload");
   const [pendingId, setPendingId] = useState<string | null>(null);
   const [message, setMessage] = useState("");
 
   async function upload(event: FormEvent<HTMLFormElement>, deliverableId: string) {
     event.preventDefault();
-    if (pendingId) return;
+    if (busy.current) return;
     const formElement = event.currentTarget;
     const form = new FormData(formElement);
     const file = form.get("file");
@@ -32,6 +37,7 @@ export function DeliverableFilesAdmin({ projectId, deliverables }: Props) {
       setMessage("Deliverable files cannot exceed 25 MB.");
       return;
     }
+    busy.current = true; setOperation("upload");
     setPendingId(deliverableId);
     setMessage("");
     try {
@@ -75,18 +81,19 @@ export function DeliverableFilesAdmin({ projectId, deliverables }: Props) {
         message?: string;
       };
       if (!finalizeResponse.ok) throw new Error(result.error || "Upload could not be finalized.");
-      setMessage(result.message || "Private deliverable uploaded.");
+      setMessage(result.message || "Private deliverable uploaded."); toast("success", result.message || "Private deliverable uploaded.");
       formElement.reset();
       router.refresh();
     } catch (error) {
-      setMessage(error instanceof Error ? error.message : "Upload failed.");
+      setMessage(error instanceof Error ? error.message : "Upload failed."); toast("error", error instanceof Error ? error.message : "Upload failed.");
     } finally {
-      setPendingId(null);
+      busy.current = false; setPendingId(null);
     }
   }
 
   async function remove(deliverableId: string) {
-    if (pendingId || !confirm("Remove the private file from this deliverable?")) return;
+    if (busy.current || !confirm("Remove the private file from this deliverable?")) return;
+    busy.current = true; setOperation("remove");
     setPendingId(deliverableId);
     setMessage("");
     try {
@@ -97,12 +104,12 @@ export function DeliverableFilesAdmin({ projectId, deliverables }: Props) {
       });
       const result = (await response.json().catch(() => ({}))) as { error?: string; message?: string };
       if (!response.ok) throw new Error(result.error || "Removal failed.");
-      setMessage(result.message || "Private deliverable removed.");
+      setMessage(result.message || "Private deliverable removed."); toast("success", result.message || "Private deliverable removed.");
       router.refresh();
     } catch (error) {
-      setMessage(error instanceof Error ? error.message : "Removal failed.");
+      setMessage(error instanceof Error ? error.message : "Removal failed."); toast("error", error instanceof Error ? error.message : "Removal failed.");
     } finally {
-      setPendingId(null);
+      busy.current = false; setPendingId(null);
     }
   }
 
@@ -113,6 +120,12 @@ export function DeliverableFilesAdmin({ projectId, deliverables }: Props) {
         <h2>Deliverable storage</h2>
         <p>Files are stored in a private Supabase bucket. Clients receive short-lived signed download links only after project authorization.</p>
       </header>
+      <aside className="source-handoff-guide">
+        <h3>Source code archive</h3>
+        <p>Use a ZIP archive for a clean source handoff, up to 25 MB. Create a deliverable titled “Source code archive” and attach the ZIP below.</p>
+        <p><strong>Include:</strong> application source, package.json and package-lock.json, README / handoff instructions, .env.example, required migrations and configuration.</p>
+        <p><strong>Exclude:</strong> node_modules, .next / dist / build, .git, coverage/cache, .env, credentials/secrets, and unnecessary generated binaries or media. Check that .env.example contains placeholders only.</p>
+      </aside>
       <p className="admin-live-message" aria-live="polite">{message}</p>
       <div className="admin-item-list">
         {deliverables.length ? deliverables.map((item) => (
@@ -135,13 +148,13 @@ export function DeliverableFilesAdmin({ projectId, deliverables }: Props) {
                 disabled={Boolean(pendingId)}
                 required
               />
-              <button disabled={Boolean(pendingId)}>
+              <PendingButton pending={pendingId === item.id && operation === "upload"} pendingLabel={"Uploading…"} disabled={Boolean(pendingId)}>
                 {pendingId === item.id ? "Working…" : item.storage_path ? "Replace private file" : "Upload private file"}
-              </button>
+              </PendingButton>
               {item.storage_path ? (
-                <button type="button" className="danger" disabled={Boolean(pendingId)} onClick={() => remove(item.id)}>
+                <PendingButton pending={pendingId === item.id && operation === "remove"} pendingLabel={"Deleting…"} type="button" className="danger" disabled={Boolean(pendingId)} onClick={() => remove(item.id)}>
                   Remove private file
-                </button>
+                </PendingButton>
               ) : null}
             </form>
           </article>

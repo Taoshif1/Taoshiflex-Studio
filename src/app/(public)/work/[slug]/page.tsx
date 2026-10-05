@@ -1,3 +1,4 @@
+import { BreadcrumbData } from "@/components/global/breadcrumb-data";
 import { DynamicText, T } from "@/i18n/language-context";
 import type { Metadata } from "next";
 import Link from "next/link";
@@ -10,12 +11,12 @@ import { ReviewCard } from "@/components/reviews/review-card";
 
 type Props = { params: Promise<{ slug: string }> };
 
-export const dynamic = "force-dynamic";
+export const revalidate = 60;
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params;
   const project = await getPublishedProject(slug);
-  if (!project) return {};
+  if (!project) return { robots: { index: false, follow: false } };
   const images = project.coverMedia?.src ? [{ url: project.coverMedia.src, alt: project.coverMedia.alt || project.name }] : undefined;
   return {
     title: project.name,
@@ -38,17 +39,16 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
 export default async function CaseStudy({ params }: Props) {
   const { slug } = await params;
-  const projects = await getPublishedProjects();
+  const [projects, reviews] = await Promise.all([getPublishedProjects(), getPublishedProjectReview(slug)]);
   const project = projects.find((item) => item.slug === slug);
   if (!project) notFound();
-  const reviews = await getPublishedProjectReview(slug);
 
   const index = projects.findIndex((item) => item.slug === slug);
   const next = projects[(index + 1) % projects.length];
 
   return (
     <article className="case" style={{ "--project-accent": project.accent } as React.CSSProperties}>
-      <header className="case-hero container">
+      <BreadcrumbData items={[{name:"Work",path:"/work"},{name:project.name,path:"/work/"+slug}]}/><header className="case-hero container">
         <p className="eyebrow"><DynamicText text={project.category}/> / {project.year}</p>
         <h1 className="display title-accent" style={{ "--title-accent": project.accent } as React.CSSProperties}>{project.name}</h1>
         <p><DynamicText text={project.summary} slug={project.slug}/></p>
@@ -59,7 +59,7 @@ export default async function CaseStudy({ params }: Props) {
         </dl>
         {project.liveUrl || project.behanceUrl || project.facebookUrl || project.showRepository && project.repositoryUrl ? (
           <div className="case-links">
-            {project.liveUrl ? <a className="action action-solid" href={project.liveUrl} target="_blank" rel="noopener noreferrer"><T id="work.detail.viewLiveSite"/> <span aria-hidden>↗</span></a> : null}
+            {project.liveUrl ? <a className="action action-solid" data-analytics-project={project.slug} href={project.liveUrl} target="_blank" rel="noopener noreferrer"><T id="work.detail.viewLiveSite"/> <span aria-hidden>↗</span></a> : null}
             {project.behanceUrl ? <a className="action" href={project.behanceUrl} target="_blank" rel="noopener noreferrer"><T id="work.detail.viewCaseStudy"/> <span aria-hidden>↗</span></a> : null}
             {project.facebookUrl ? <a className="action" href={project.facebookUrl} target="_blank" rel="noopener noreferrer"><T id="work.detail.facebookPost"/> <span aria-hidden>↗</span></a> : null}
             {project.showRepository && project.repositoryUrl ? <a className="action" href={project.repositoryUrl} target="_blank" rel="noopener noreferrer"><T id="work.detail.viewRepository"/> <span aria-hidden>↗</span></a> : null}

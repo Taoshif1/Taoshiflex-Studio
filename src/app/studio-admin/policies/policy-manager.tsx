@@ -1,4 +1,6 @@
 "use client";
+import { PendingButton } from "@/components/ui/loading";
+import { useToasts } from "@/components/ui/toast";
 
 import { FormEvent, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
@@ -20,6 +22,7 @@ function isFarFuture(value: string) {
 }
 
 export function PolicyManager({ policies }: { policies: Policy[] }) {
+  const { toast } = useToasts();
   const router = useRouter();
   const busy = useRef(false);
   const [pending, setPending] = useState(false);
@@ -39,11 +42,11 @@ export function PolicyManager({ policies }: { policies: Policy[] }) {
       });
       const result = await response.json().catch(() => ({})) as { error?: string };
       if (!response.ok) throw new Error(result.error || "Policy action failed.");
-      setMessage(success);
+      setMessage(success); toast("success", success);
       router.refresh();
       return true;
     } catch (error) {
-      setMessage(error instanceof Error ? error.message : "Policy action failed.");
+      setMessage(error instanceof Error ? error.message : "Policy action failed."); toast("error", error instanceof Error ? error.message : "Policy action failed.");
       return false;
     } finally {
       busy.current = false;
@@ -73,7 +76,7 @@ export function PolicyManager({ policies }: { policies: Policy[] }) {
         <p className="eyebrow">No policy documents yet</p>
         <h2>Start with editable drafts</h2>
         <p>Policies are versioned documents. Nothing becomes public or Client-visible until an Admin explicitly publishes a reviewed version.</p>
-        <button type="button" disabled={pending} onClick={createStarters}>Create starter drafts</button>
+        <PendingButton pending={pending} pendingLabel={"Saving…"} type="button" disabled={pending} onClick={createStarters}>Create starter drafts</PendingButton>
       </div>
       <details>
         <summary>Create one policy manually</summary>
@@ -90,7 +93,7 @@ export function PolicyManager({ policies }: { policies: Policy[] }) {
           >{item.label}</button>)}
         </div>
         <div className="policy-tool-actions">
-          <button type="button" disabled={pending} onClick={createStarters}>Create starter drafts</button>
+          <PendingButton pending={pending} pendingLabel={"Saving…"} type="button" disabled={pending} onClick={createStarters}>Create starter drafts</PendingButton>
           <details>
             <summary>Create another policy draft</summary>
             <PolicyCreateForm pending={pending} create={(body) => void mutate("POST", body, "Policy draft created.")} />
@@ -104,7 +107,7 @@ export function PolicyManager({ policies }: { policies: Policy[] }) {
       >
         <header>
           <div><p className="eyebrow">{policy.slug} / {policy.archived_at ? "Archived" : "Active"}</p><h2>{current?.title || policy.slug}</h2></div>
-          {!editable && current ? <button disabled={pending} onClick={() => void mutate("PATCH", { kind: "new-version", policyId: policy.id }, "New version draft created.")}>Create next version</button> : null}
+          {!editable && current ? <PendingButton pending={pending} pendingLabel={"Saving…"} disabled={pending} onClick={() => void mutate("PATCH", { kind: "new-version", policyId: policy.id }, "New version draft created.")}>Create next version</PendingButton> : null}
         </header>
         <details className="policy-settings">
           <summary>Document settings</summary>
@@ -129,7 +132,7 @@ function PolicyCreateForm({ pending, create }: { pending: boolean; create: (body
     <label className="wide">Summary<textarea name="summary" rows={2} maxLength={500} /></label>
     <label className="wide">Content (plain structured text)<textarea name="content" rows={7} maxLength={100000} /></label>
     <label>Effective date<input name="effectiveDate" type="date" /><small>Date the policy is intended to take effect.</small></label>
-    <button disabled={pending}>Create draft</button>
+    <PendingButton pending={pending} pendingLabel={"Saving…"} disabled={pending}>Create draft</PendingButton>
   </form>;
 }
 
@@ -148,7 +151,7 @@ function PolicyIdentity({ policy, pending, save }: { policy: Policy; pending: bo
     <label>Slug<input name="slug" defaultValue={policy.slug} required /><small>URL-friendly identifier; usually do not change after publishing.</small></label>
     <label>Sort order<input name="sortOrder" type="number" defaultValue={policy.sort_order} /></label>
     <label className="check"><input name="archived" type="checkbox" defaultChecked={Boolean(policy.archived_at)} /><span>Archive document family</span></label>
-    <button disabled={pending}>Save settings</button>
+    <PendingButton pending={pending} pendingLabel={"Saving…"} disabled={pending}>Save settings</PendingButton>
   </form>;
 }
 
@@ -193,9 +196,9 @@ function VersionForm({ version, canDelete, pending, mutate }: {
       {placeholderWarning ? <p>Placeholder or starter language may remain. Review and replace it before publishing.</p> : null}
     </div>
     <div className="editor-actions wide">
-      <button disabled={pending}>Save draft</button>
-      <button type="button" disabled={pending || dirty} aria-describedby={guidanceId} onClick={publish}>Publish reviewed version</button>
-      {canDelete ? <button type="button" className="danger" disabled={pending} onClick={() => confirm("Delete this never-published draft?") && void mutate("DELETE", { id: version.id }, "Draft deleted.")}>Delete draft</button> : <span>To remove this only draft from active use, archive the policy above.</span>}
+      <PendingButton pending={pending} pendingLabel={"Saving…"} disabled={pending}>Save draft</PendingButton>
+      <PendingButton pending={pending} pendingLabel={"Saving…"} type="button" disabled={pending || dirty} aria-describedby={guidanceId} onClick={publish}>Publish reviewed version</PendingButton>
+      {canDelete ? <PendingButton pending={pending} pendingLabel={"Deleting…"} type="button" className="danger" disabled={pending} onClick={() => confirm("Delete this never-published draft?") && void mutate("DELETE", { id: version.id }, "Draft deleted.")}>Delete draft</PendingButton> : <span>To remove this only draft from active use, archive the policy above.</span>}
     </div>
   </form>;
 }

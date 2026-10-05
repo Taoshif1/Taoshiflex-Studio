@@ -44,7 +44,7 @@ test("translated inquiry labels do not mutate stable backend values", () => {
 
 test("pricing features use a real marker column rather than an overlapping pseudo-element", () => {
   const component = readFileSync(new URL("../src/components/pricing/pricing-content.tsx", import.meta.url), "utf8");
-  const css = readFileSync(new URL("../src/app/pricing/pricing.css", import.meta.url), "utf8");
+  const css = readFileSync(new URL("../src/app/(public)/pricing/pricing.css", import.meta.url), "utf8");
   assert.match(component, /pricing-feature-mark/);
   assert.match(css, /grid-template-columns:1rem minmax\(0,1fr\)/);
   assert.doesNotMatch(css, /\.pricing-grid li::before/);
@@ -52,7 +52,7 @@ test("pricing features use a real marker column rather than an overlapping pseud
 
 
 test("secondary public UI is wired through localization", () => {
-  const loading = readFileSync(new URL("../src/app/loading.tsx", import.meta.url), "utf8");
+  const loading = readFileSync(new URL("../src/app/(public)/loading.tsx", import.meta.url), "utf8");
   const reviews = readFileSync(new URL("../src/components/reviews/review-marquee.tsx", import.meta.url), "utf8");
   const xSystem = readFileSync(new URL("../src/components/home/x-system.tsx", import.meta.url), "utf8");
   const mediaViewer = readFileSync(new URL("../src/components/work/project-media-viewer.tsx", import.meta.url), "utf8");
@@ -114,4 +114,23 @@ test("exact-source pricing copy is reachable even without a keyed English entry"
   assert.equal(translateText("bn", "constructor"), "constructor");
   assert.equal(translateText("bn", "constructor", "personacv"), "constructor");
   assert.equal(translateText("bn", "Unknown copy", "__proto__"), "Unknown copy");
+});
+
+import * as React from "react";
+import { renderToString } from "react-dom/server";
+
+test("deferred language consumers retain the server snapshot after the provider selects Bangla", () => {
+  let languageContext;
+  const { useLanguage } = loadTs("src/i18n/language-context.tsx", {
+    react: { ...React, createContext(value) { languageContext = React.createContext(value); return languageContext; } },
+    "next/navigation": { usePathname: () => "/" },
+  });
+  function DeferredText() {
+    const { language, t, text } = useLanguage();
+    return React.createElement("p", { lang: language }, t("nav.startAProject"), " / ", text("Ask the Studio"));
+  }
+  const html = renderToString(React.createElement(languageContext.Provider, {
+    value: { language: "bn", privatePage: false, setLanguage() {} },
+  }, React.createElement(DeferredText)));
+  assert.equal(html, '<p lang="en">Start a Project<!-- --> / <!-- -->Ask the Studio</p>');
 });

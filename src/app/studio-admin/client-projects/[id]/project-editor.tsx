@@ -1,4 +1,6 @@
 "use client";
+import { PendingButton } from "@/components/ui/loading";
+import { useToasts } from "@/components/ui/toast";
 import { FormEvent, useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -28,6 +30,7 @@ export function ClientProjectEditor({
   updates,
   deliverables,
 }: Props) {
+  const { toast } = useToasts();
   const router = useRouter(),
     pendingRef = useRef(false),
     [pending, setPending] = useState(false),
@@ -52,11 +55,11 @@ export function ClientProjectEditor({
           message?: string;
         };
       if (!response.ok) throw new Error(result.error || "Operation failed.");
-      setMessage(result.message || success);
+      setMessage(result.message || success); toast("success", result.message || success);
       router.refresh();
       return true;
     } catch (error) {
-      setMessage(error instanceof Error ? error.message : "Operation failed.");
+      setMessage(error instanceof Error ? error.message : "Operation failed."); toast("error", error instanceof Error ? error.message : "Operation failed.");
       return false;
     } finally {
       pendingRef.current = false;
@@ -153,7 +156,7 @@ export function ClientProjectEditor({
             label="Next action"
             value={project.next_action}
           />
-          <button disabled={pending}>Save project overview</button>
+          <PendingButton pending={pending} pendingLabel={"Saving…"} disabled={pending}>Save project overview</PendingButton>
         </form>
         {project.source_inquiry_id ? (
           <Link
@@ -179,7 +182,7 @@ export function ClientProjectEditor({
               <div className="member-access">
                 <span>Access assigned</span>
                 {item.role === "client" ? <button type="button" disabled={pending} onClick={() => setPasswordMember(item)}>Reset password</button> : null}
-                <button
+                <PendingButton pending={pending} pendingLabel={"Deleting…"}
                   type="button"
                   className="danger"
                   disabled={pending}
@@ -192,7 +195,7 @@ export function ClientProjectEditor({
                   }
                 >
                   Remove
-                </button>
+                </PendingButton>
               </div>
             </article>
           ))}
@@ -237,7 +240,7 @@ export function ClientProjectEditor({
             autoComplete="new-password"
             optional
           />
-          <button disabled={pending}>Create Client Access</button>
+          <PendingButton pending={pending} pendingLabel={"Saving…"} disabled={pending}>Create Client Access</PendingButton>
           <small>
             New clients receive an Auth account using this temporary password.
             Existing clients keep their current password. Membership—not the
@@ -312,7 +315,7 @@ export function ClientProjectEditor({
             )
           }
         />
-        {previousMilestones.length?<div className="milestone-admin-history"><h3>Completed / Previous milestones</h3>{previousMilestones.map(item=><article className="admin-record" key={item.id}><div><strong>{item.title}</strong><p>{statusLabel(item.status)}{item.archived_at?" / Archived":""}{item.completed_at?` / Completed ${new Date(item.completed_at).toLocaleDateString("en-BD")}`:""}</p></div>{item.archived_at&&item.status!=="completed"?<button type="button" disabled={pending} onClick={()=>mutate("PATCH",{kind:"milestone-archive",projectId:project.id,id:item.id,archive:false},"Milestone restored.")}>Restore to active</button>:null}</article>)}</div>:null}
+        {previousMilestones.length?<div className="milestone-admin-history"><h3>Completed / Previous milestones</h3>{previousMilestones.map(item=><article className="admin-record" key={item.id}><div><strong>{item.title}</strong><p>{statusLabel(item.status)}{item.archived_at?" / Archived":""}{item.completed_at?` / Completed ${new Date(item.completed_at).toLocaleDateString("en-BD")}`:""}</p></div>{item.archived_at&&item.status!=="completed"?<PendingButton pending={pending} pendingLabel={"Saving…"} type="button" disabled={pending} onClick={()=>mutate("PATCH",{kind:"milestone-archive",projectId:project.id,id:item.id,archive:false},"Milestone restored.")}>Restore to active</PendingButton>:null}</article>)}</div>:null}
       </section>
       <section id="updates">
         <header>
@@ -337,7 +340,7 @@ export function ClientProjectEditor({
         >
           <Field name="title" label="Update title" />
           <Area name="body" label="Concise client-visible update" />
-          <button disabled={pending}>Publish update</button>
+          <PendingButton pending={pending} pendingLabel={"Saving…"} disabled={pending}>Publish update</PendingButton>
         </form>
         <div className="admin-item-list">
           {updates.map((item) => (
@@ -346,7 +349,7 @@ export function ClientProjectEditor({
                 <strong>{item.title}</strong>
                 <p>{item.body}</p>
               </div>
-              <button
+              <PendingButton pending={pending} pendingLabel={"Deleting…"}
                 className="danger"
                 disabled={pending}
                 onClick={() =>
@@ -358,7 +361,7 @@ export function ClientProjectEditor({
                 }
               >
                 Remove
-              </button>
+              </PendingButton>
             </article>
           ))}
         </div>
@@ -454,7 +457,7 @@ function PasswordResetDialog({ member, pending, close, reset }: { member: Client
         <label>Confirm temporary password<input name="confirmation" type="password" minLength={8} maxLength={128} autoComplete="new-password" required/></label>
         <label className="password-reset-confirm"><input name="acknowledge" type="checkbox" required/><span>I confirm this will replace the Client Auth account password.</span></label>
         <p className="conversion-message" role="alert">{error}</p>
-        <div className="dialog-actions"><button type="button" onClick={close} disabled={pending}>Cancel</button><button className="solid-danger" disabled={pending}>{pending ? "Resetting..." : "Reset Client Password"}</button></div>
+        <div className="dialog-actions"><button type="button" onClick={close} disabled={pending}>Cancel</button><PendingButton pending={pending} pendingLabel={"Resetting..."} className="solid-danger" disabled={pending}>{pending ? "Resetting..." : "Reset Client Password"}</PendingButton></div>
       </form>
     </div>
   </div>;
@@ -512,30 +515,30 @@ function MilestoneForm({
       </div>
       <Area name="description" label="Description" value={item?.description} />
       <div className="editor-actions">
-        <button disabled={pending}>
+        <PendingButton pending={pending} pendingLabel={"Saving…"} disabled={pending}>
           {create ? "Create milestone" : "Save milestone"}
-        </button>
+        </PendingButton>
         {move ? (
           <>
-            <button type="button" disabled={pending} onClick={() => move(-1)}>
+            <PendingButton pending={pending} pendingLabel={"Saving…"} type="button" disabled={pending} onClick={() => move(-1)}>
               Move up
-            </button>
-            <button type="button" disabled={pending} onClick={() => move(1)}>
+            </PendingButton>
+            <PendingButton pending={pending} pendingLabel={"Saving…"} type="button" disabled={pending} onClick={() => move(1)}>
               Move down
-            </button>
+            </PendingButton>
           </>
         ) : null}
         {remove ? (
-          <button
+          <PendingButton pending={pending} pendingLabel={"Deleting…"}
             type="button"
             className="danger"
             disabled={pending}
             onClick={() => confirm("Permanently delete this unused pending milestone draft?") && remove()}
           >
             Delete unused draft
-          </button>
+          </PendingButton>
         ) : null}
-        {archive ? <button type="button" disabled={pending} onClick={archive}>Archive milestone</button> : null}
+        {archive ? <PendingButton pending={pending} pendingLabel={"Saving…"} type="button" disabled={pending} onClick={archive}>Archive milestone</PendingButton> : null}
       </div>
     </form>
   );
@@ -590,18 +593,18 @@ function DeliverableForm({
       </div>
       <Area name="description" label="Description" value={item?.description} />
       <div className="editor-actions">
-        <button disabled={pending}>
+        <PendingButton pending={pending} pendingLabel={"Saving…"} disabled={pending}>
           {create ? "Create deliverable" : "Save deliverable"}
-        </button>
+        </PendingButton>
         {remove ? (
-          <button
+          <PendingButton pending={pending} pendingLabel={"Deleting…"}
             type="button"
             className="danger"
             disabled={pending}
             onClick={remove}
           >
             Delete
-          </button>
+          </PendingButton>
         ) : null}
       </div>
     </form>

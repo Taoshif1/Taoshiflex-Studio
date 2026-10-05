@@ -99,6 +99,7 @@ export async function SiteFooter() {
                       target="_blank"
                       rel="noreferrer"
                       key={link.id}
+                      data-analytics-platform={link.platform}
                       aria-label={`${studioPresencePlatformLabels[link.platform]} — ${link.label}`}
                       title={`${studioPresencePlatformLabels[link.platform]} — ${link.label}`}
                     >

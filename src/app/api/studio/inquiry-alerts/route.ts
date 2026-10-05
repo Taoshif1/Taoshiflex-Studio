@@ -1,3 +1,4 @@
+import { smtpDiagnostic } from "@/lib/smtp-diagnostics";
 import { readJson } from "@/lib/request-body";
 import { authorizeMutation } from "@/lib/admin-security";
 import { sendTestInquiryAlert } from "@/lib/inquiry-alerts";
@@ -14,9 +15,10 @@ export async function POST(request: Request) {
   try {
     await sendTestInquiryAlert("email");
     return Response.json({ ok: true });
-  } catch {
+  } catch (error) {
+    const diagnostic = smtpDiagnostic(error);
     return Response.json(
-      { error: "Test email could not be delivered. Review the saved recipient and server configuration." },
+      { error: diagnostic.message, code: diagnostic.code },
       { status: 503 },
     );
   }

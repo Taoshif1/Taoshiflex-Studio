@@ -1,0 +1,7 @@
+import { PolicyLanguageNote, T } from "@/i18n/language-context";
+import { publicMetadata } from "@/lib/seo";
+import Link from "next/link";
+import { currentVersion, formatPolicyDate, getPublicPolicies } from "@/lib/policies";
+
+export const metadata = publicMetadata("Policies", "Read the current published policies for working with Taoshiflex Studio.", "/policies");
+export default async function PoliciesPage(){const policies=await getPublicPolicies();return <div className="policy-shell"><PolicyLanguageNote/><header><p className="eyebrow"><T id="policies.governancePublicDocuments"/></p><h1 className="display display-md">Studio <span className="title-accent"><T id="policies.policies"/></span></h1><p><T id="policies.currentTermsAndWorkingPoliciesPublishedByTaoshiflexStudio"/></p></header>{policies.length?<div className="policy-index">{policies.map(policy=>{const version=currentVersion(policy);return <Link href={`/policies/${policy.slug}`} key={policy.id}><span><T id="policies.version"/> {version.version} <T id="policies.effective"/> {formatPolicyDate(version.effective_date)}</span><h2>{version.title}</h2>{version.summary?<p>{version.summary}</p>:null}<strong><T id="policies.readPolicy"/></strong></Link>})}</div>:<section className="policy-empty"><h2><T id="policies.noPublicPoliciesArePublished"/></h2><p><T id="policies.publishedDocumentsWillAppearHereAfterStudioReview"/></p></section>}</div>}

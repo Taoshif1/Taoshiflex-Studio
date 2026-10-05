@@ -10,7 +10,7 @@ export function DeliverableActions({ deliverable }: { deliverable: ProjectDelive
     <div className="deliverable-actions">
       {deliverable.storage_path ? (
         <a className="action action-solid" href={`/api/client/deliverables/${deliverable.id}/download`}>
-          Download private file ↓
+          { /\.zip$/i.test(deliverable.storage_path) ? "Download source archive" : "Download private file" } ↓
         </a>
       ) : null}
       {deliverable.external_url ? (

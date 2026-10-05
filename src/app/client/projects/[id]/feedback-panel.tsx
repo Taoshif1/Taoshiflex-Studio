@@ -1,4 +1,6 @@
 "use client";
+import { PendingButton } from "@/components/ui/loading";
+import { useToasts } from "@/components/ui/toast";
 
 import { FormEvent, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
@@ -22,6 +24,7 @@ type Props = {
 type ComposeMode = Extract<FeedbackIntent, "changes_requested" | "comment"> | null;
 
 export function FeedbackPanel({ projectId, targetType, targetId, feedback, readOnly = false, maintenanceMessage }: Props) {
+  const { toast } = useToasts();
   const router = useRouter();
   const pendingRef = useRef(false);
   const [pending, setPending] = useState(false);
@@ -42,10 +45,10 @@ export function FeedbackPanel({ projectId, targetType, targetId, feedback, readO
       const result = (await response.json().catch(() => ({}))) as { error?: string; message?: string };
       if (!response.ok) throw new Error(result.error || "Feedback could not be saved.");
       setMode(null);
-      setNotice(result.message || "Feedback sent.");
+      setNotice(result.message || "Feedback sent."); toast("success", result.message || "Feedback sent.");
       router.refresh();
     } catch (error) {
-      setNotice(error instanceof Error ? error.message : "Feedback could not be saved.");
+      setNotice(error instanceof Error ? error.message : "Feedback could not be saved."); toast("error", error instanceof Error ? error.message : "Feedback could not be saved.");
     } finally {
       pendingRef.current = false;
       setPending(false);
@@ -66,7 +69,7 @@ export function FeedbackPanel({ projectId, targetType, targetId, feedback, readO
         <span>{feedback.length ? `${feedback.length} ${feedback.length === 1 ? "response" : "responses"}` : "Share your review"}</span>
       </div>
       <div className="feedback-actions" aria-label="Feedback options">
-        <button type="button" disabled={pending || readOnly} onClick={() => void submit("looks_good")}>Looks good</button>
+        <PendingButton pending={pending} pendingLabel={"Saving…"} type="button" disabled={pending || readOnly} onClick={() => void submit("looks_good")}>Looks good</PendingButton>
         <button type="button" disabled={pending || readOnly} onClick={() => { setNotice(""); setMode("changes_requested"); }}>Request changes</button>
         <button type="button" disabled={pending || readOnly} onClick={() => { setNotice(""); setMode("comment"); }}>Leave a comment</button>
       </div>
@@ -86,7 +89,7 @@ export function FeedbackPanel({ projectId, targetType, targetId, feedback, readO
             required
           />
           <div>
-            <button className="feedback-send" disabled={pending}>{pending ? "Sending…" : mode === "comment" ? "Send comment" : "Send feedback"}</button>
+            <PendingButton pending={pending} pendingLabel={"Sending…"} className="feedback-send" disabled={pending}>{pending ? "Sending…" : mode === "comment" ? "Send comment" : "Send feedback"}</PendingButton>
             <button type="button" disabled={pending} onClick={() => setMode(null)}>Cancel</button>
           </div>
         </form>

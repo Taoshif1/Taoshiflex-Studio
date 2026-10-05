@@ -1,15 +1,16 @@
 "use client";
+import { PendingButton } from "@/components/ui/loading";
 
 import { useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { inquiryStatuses, type InquiryStatus } from "@/lib/inquiries";
-import { ToastRegion, useToasts } from "@/components/ui/toast";
+import { useToasts } from "@/components/ui/toast";
 
 export function InquiryStatusActions({ id, status }: { id: string; status: InquiryStatus }) {
   const router = useRouter();
   const pendingRef = useRef(false);
   const [pending, setPending] = useState(false);
-  const { toasts, toast, dismiss } = useToasts();
+  const { toast } = useToasts();
   async function update(nextStatus: InquiryStatus) {
     if (pendingRef.current || nextStatus === status) return;
     pendingRef.current = true; setPending(true);
@@ -21,5 +22,5 @@ export function InquiryStatusActions({ id, status }: { id: string; status: Inqui
     } catch (error) { toast("error", error instanceof Error ? error.message : "Inquiry could not be updated."); }
     finally { pendingRef.current = false; setPending(false); }
   }
-  return <><div className="status-actions" aria-label="Update inquiry status">{inquiryStatuses.map((item) => <button type="button" key={item} disabled={pending} aria-pressed={status === item} onClick={() => update(item)}>{item}</button>)}</div><ToastRegion toasts={toasts} dismiss={dismiss}/></>;
+  return <><div className="status-actions" aria-label="Update inquiry status">{inquiryStatuses.map((item) => <PendingButton pending={pending} pendingLabel={"Saving…"} type="button" key={item} disabled={pending} aria-pressed={status === item} onClick={() => update(item)}>{item}</PendingButton>)}</div></>;
 }

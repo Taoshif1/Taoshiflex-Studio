@@ -99,7 +99,6 @@ export function ProjectMediaViewer({
               <span className={styles.thumbnailStage}>
                 {item.src ? (
                   <Image
-                    unoptimized
                     src={item.src}
                     alt=""
                     width={item.width || 1600}
