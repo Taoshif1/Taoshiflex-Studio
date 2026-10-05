@@ -1,20 +1,10 @@
 import { DynamicText, T } from "@/i18n/language-context";
-import type { Metadata } from "next";
+import { publicMetadata } from "@/lib/seo";
 import Link from "next/link";
 import { capabilities, processStages } from "@/content/site";
 import "./services.css";
 
-export const metadata: Metadata = {
-  title: "Services",
-  description: "Custom websites, e-commerce systems, business platforms and digital products from Taoshiflex Studio.",
-  alternates: { canonical: "/services" },
-  openGraph: {
-    type: "website",
-    title: "Services — Taoshiflex Studio",
-    description: "Custom websites, e-commerce systems, business platforms and digital products from Taoshiflex Studio.",
-    url: "/services",
-  },
-};
+export const metadata = publicMetadata("Services", "Custom web development, ecommerce systems, business platforms and digital products from Taoshiflex Studio in Dhaka, Bangladesh.", "/services");
 
 const serviceDetails = {
   websites: {

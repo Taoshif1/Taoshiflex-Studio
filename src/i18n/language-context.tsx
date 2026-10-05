@@ -1,5 +1,6 @@
 "use client";
 import { createContext, useContext, useEffect, useState, useSyncExternalStore } from "react";
+import { trackPublicEvent } from "@/lib/public-analytics";
 import { usePathname } from "next/navigation";
 import { languageStorageKey, parseLanguage, type Language } from "./config";
 import { translate, translateText } from "./helpers";
@@ -13,6 +14,7 @@ function subscribe(notify: () => void) {
   return () => window.removeEventListener("storage", notify);
 }
 const english = (): Language => "en";
+const subscribeToContext = () => () => {};
 const LanguageContext = createContext<{ language: Language; setLanguage: (language: Language) => void; privatePage: boolean }>({ language: "en", setLanguage: () => {}, privatePage: false });
 export function LanguageProvider({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
@@ -22,6 +24,7 @@ export function LanguageProvider({ children }: { children: React.ReactNode }) {
   const language = privatePage ? "en" : selection ?? saved;
   function setLanguage(next: Language) {
     setSelection(next);
+    if (next !== language) trackPublicEvent("language_change", { language: next });
     try { localStorage.setItem(languageStorageKey, next); } catch { /* In-memory switching still works. */ }
   }
   useEffect(() => { document.documentElement.lang = language; }, [language]);
@@ -29,7 +32,10 @@ export function LanguageProvider({ children }: { children: React.ReactNode }) {
 }
 export function useLanguage() {
   const context = useContext(LanguageContext);
-  return { ...context, t: (key: string) => translate(context.language, key), text: (value: string, slug?: string) => translateText(context.language, value, slug) };
+  // A streamed Suspense child can hydrate after the provider reads localStorage.
+  // Keep that child's first render consistent with its English server HTML.
+  const language = useSyncExternalStore(subscribeToContext, () => context.language, english);
+  return { ...context, language, t: (key: string) => translate(language, key), text: (value: string, slug?: string) => translateText(language, value, slug) };
 }
 export function LanguageToggle() {
   const { language, setLanguage, privatePage } = useLanguage();

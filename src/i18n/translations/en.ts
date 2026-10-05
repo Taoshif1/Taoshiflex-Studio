@@ -1,4 +1,18 @@
 export const en: Record<string, string> = {
+  "inquiry.selectOne": "Select one option to continue.",
+  "inquiry.selectMultiple": "Select all that apply, then continue.",
+  "inquiry.unsureType": "Not sure which one fits? Choose Something Else — we’ll help define it.",
+  "inquiry.contextExample": "For example: what you do today, what isn’t working, and what you want the new site or system to improve.",
+  "inquiry.emailReassurance": "We’ll reply to this email. No mailing list.",
+  "inquiry.contactName": "Name",
+  "inquiry.contactEmail": "Email",
+  "inquiry.required": "Required",
+  "inquiry.yourBrief": "Your brief",
+  "inquiry.answeredCount": "{count} of 5 project choices answered",
+  "inquiry.briefEmpty": "Your choices will appear here.",
+  "inquiry.viewSummary": "View summary",
+  "inquiry.collapseSummary": "Collapse summary",
+
   "global.dismissNotification": "Dismiss notification",
   "nav.clientAccess": "Client Access",
   "nav.startAProject": "Start a Project",

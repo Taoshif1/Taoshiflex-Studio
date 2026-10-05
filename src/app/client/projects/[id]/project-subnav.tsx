@@ -12,6 +12,7 @@ const sections = [
   ["Deliverables", "deliverables"],
   ["Billing", "billing"],
   ["Feedback", "feedback"],
+  ["Review", "review"],
 ] as const;
 
 const legacyHashes: Record<string, string> = {
@@ -22,6 +23,7 @@ const legacyHashes: Record<string, string> = {
   "#deliverables": "deliverables",
   "#billing": "billing",
   "#feedback": "feedback",
+  "#review": "review",
 };
 
 export function ProjectSubnav({ projectId }: { projectId: string }) {

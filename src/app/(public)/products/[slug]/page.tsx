@@ -1,3 +1,4 @@
+import { BreadcrumbData } from "@/components/global/breadcrumb-data";
 import { DynamicText, T } from "@/i18n/language-context";
 import type { Metadata } from "next";
 import type { CSSProperties } from "react";
@@ -11,12 +12,12 @@ import "@/components/products/products.css";
 
 type Props = { params: Promise<{ slug: string }> };
 
-export const dynamic = "force-dynamic";
+export const revalidate = 60;
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params;
   const product = await getPublishedProduct(slug);
-  if (!product) return {};
+  if (!product) return { robots: { index: false, follow: false } };
   const cover = product.media.find(item => item.role === "cover");
   const images = cover?.src ? [{ url: cover.src, alt: cover.alt || product.name }] : undefined;
   return {
@@ -52,7 +53,7 @@ export default async function ProductPage({ params }: Props) {
       className="product-detail container"
       style={{ "--product-accent": product.accent, "--title-accent": product.accent } as CSSProperties}
     >
-      <header className="product-detail-hero">
+      <BreadcrumbData items={[{name:"Products",path:"/products"},{name:product.name,path:"/products/"+slug}]}/><header className="product-detail-hero">
         <div className="product-detail-copy">
           <Link href="/products" className="product-back-link technical">
             <span aria-hidden="true">←</span> <T id="products.detail.allProducts"/> </Link>
@@ -70,7 +71,7 @@ export default async function ProductPage({ params }: Props) {
             {product.product_url && (
               <a
                 className="product-detail-cta product-detail-cta-primary"
-                href={product.product_url}
+                data-analytics-product={product.slug} href={product.product_url}
                 target="_blank"
                 rel="noopener noreferrer"
               >

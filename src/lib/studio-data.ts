@@ -2,6 +2,7 @@ import { safeWebUrl, safeInternalPath } from "./security-contract";
 import { projects as localProjects } from "@/content/projects";
 import { servicePackages as localPackages } from "@/content/pricing";
 import { cache } from "react";
+import { selectHomepageReviews } from "./review-selection";
 import type { AssistantSettings, Project, ServicePackage, PublicReview } from "@/types/content";
 import { projectMediaPublicUrl } from "./project-media-url";
 import { isSupabasePublicConfigured, supabasePublicRest } from "./supabase-rest";
@@ -65,7 +66,7 @@ const getPublishedReviews = cache(async (): Promise<PublicReview[]> => {
   try { return await supabasePublicRest<PublicReview[]>("published_project_reviews?select=id,reviewer_name,reviewer_role,reviewer_company,rating,review_text,featured,project_slug,project_name,accent&order=sort_order.asc,id.asc"); }
   catch { return []; }
 });
-export async function getFeaturedReviews() { return (await getPublishedReviews()).filter(review => review.featured); }
+export async function getFeaturedReviews() { return selectHomepageReviews(await getPublishedReviews()); }
 export async function getPublishedProjectReview(slug: string) { return (await getPublishedReviews()).filter(review => review.project_slug === slug); }
 
 import { mapPublishedProduct } from "@/lib/product-contract";

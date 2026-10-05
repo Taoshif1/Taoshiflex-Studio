@@ -1,10 +1,11 @@
 "use client";
+import { PendingButton } from "@/components/ui/loading";
 
 import Link from "next/link";
 import { FormEvent, useRef, useState } from "react";
 
 import { PasswordField } from "@/components/ui/password-field";
-import { ToastRegion, useToasts } from "@/components/ui/toast";
+import { useToasts } from "@/components/ui/toast";
 import { RecoveryRequestForm } from "./recovery-request-form";
 
 const minimumPasswordLength = 8;
@@ -18,7 +19,7 @@ export function ResetPasswordForm() {
   const [message, setMessage] = useState("");
   const [complete, setComplete] = useState(false);
   const [unavailable, setUnavailable] = useState(false);
-  const { toasts, toast, dismiss } = useToasts();
+  const { toast } = useToasts();
 
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -86,7 +87,7 @@ export function ResetPasswordForm() {
       <><div className="client-sent-state" role="alert">
         <h2>This recovery link is no longer available.</h2>
         <RecoveryRequestForm />
-      </div><ToastRegion toasts={toasts} dismiss={dismiss} /></>
+      </div></>
     );
   }
 
@@ -99,7 +100,7 @@ export function ResetPasswordForm() {
         <Link className="action action-solid" href="/client">
           Return to Client Workspace
         </Link>
-      </div><ToastRegion toasts={toasts} dismiss={dismiss} /></>
+      </div></>
     );
   }
 
@@ -129,9 +130,9 @@ export function ResetPasswordForm() {
         {message ||
           `Use ${minimumPasswordLength} to ${maximumPasswordLength} characters.`}
       </p>
-      <button className="action action-solid" disabled={pending}>
+      <PendingButton pending={pending} pendingLabel={"Updating..."} className="action action-solid" disabled={pending}>
         {pending ? "Updating..." : "Update Password"}
-      </button>
-    </form><ToastRegion toasts={toasts} dismiss={dismiss} /></>
+      </PendingButton>
+    </form></>
   );
 }

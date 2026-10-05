@@ -1,16 +1,22 @@
 "use client";
 
-import { useState } from "react";
+import { PendingButton } from "@/components/ui/loading";
+import { useToasts } from "@/components/ui/toast";
+import { useRef, useState } from "react";
 
 import { createClient } from "@/lib/supabase/client";
 
 export function RecoveryRequestForm() {
+  const { toast } = useToasts();
+  const busy = useRef(false);
   const [email, setEmail] = useState("");
   const [status, setStatus] =
     useState<"idle" | "sending" | "sent">("idle");
 
   async function requestReset(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    if (busy.current) return;
+    busy.current = true;
     setStatus("sending");
 
     try {
@@ -23,7 +29,9 @@ export function RecoveryRequestForm() {
       // Keep the response generic so account existence is never disclosed.
     }
 
+    busy.current = false;
     setStatus("sent");
+    toast("info", "If a Client account matches that email, a recovery link has been requested.");
   }
 
   return (
@@ -38,13 +46,13 @@ export function RecoveryRequestForm() {
         value={email}
         onChange={(event) => setEmail(event.target.value)}
       />
-      <button
+      <PendingButton pending={status === "sending"} pendingLabel="Sending…"
         className="action action-solid"
         type="submit"
         disabled={status === "sending"}
       >
         {status === "sending" ? "Sending..." : "Request a new password reset"}
-      </button>
+      </PendingButton>
       <p className="client-form-note" role="status" aria-live="polite">
         {status === "sent"
           ? "If a Client account matches that email, a new recovery link is on its way."

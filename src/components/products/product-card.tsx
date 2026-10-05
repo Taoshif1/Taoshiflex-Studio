@@ -74,7 +74,7 @@ export function ProductCard({
             <span aria-hidden="true">↗</span>
           </Link>
           {product.status === "Live" && product.product_url && (
-            <a className="product-card-action" href={product.product_url} target="_blank" rel="noopener noreferrer">
+            <a className="product-card-action" data-analytics-product={product.slug} href={product.product_url} target="_blank" rel="noopener noreferrer">
               <span><T id="products.card.visitProduct"/></span>
               <span aria-hidden="true">↗</span>
             </a>

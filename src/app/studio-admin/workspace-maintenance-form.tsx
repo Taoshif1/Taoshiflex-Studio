@@ -1,4 +1,5 @@
 "use client";
+import { PendingButton } from "@/components/ui/loading";
 
 import { FormEvent, useState } from "react";
 
@@ -80,9 +81,9 @@ export function WorkspaceMaintenanceForm({
           I understand that Client feedback, approvals, change requests, and new payment submissions will pause until maintenance is disabled.
         </label>
       ) : null}
-      <button disabled={pending || (needsConfirmation && !confirmed)}>
+      <PendingButton pending={pending} pendingLabel={"Saving..."} disabled={pending || (needsConfirmation && !confirmed)}>
         {pending ? "Saving..." : "Save maintenance setting"}
-      </button>
+      </PendingButton>
     </form>
   );
 }

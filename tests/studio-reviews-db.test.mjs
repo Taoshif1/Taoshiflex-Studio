@@ -42,6 +42,10 @@ test('Postgres enforces review eligibility, uniqueness, immutable testimony and 
     await db.exec('set role anon');
     const rows=(await db.query('select * from public.published_project_reviews')).rows;
     assert.equal(rows.length,1);assert.equal(rows[0].featured,true);
+    await db.exec('reset role;update public.project_reviews set featured=false;set role anon');
+    assert.equal((await db.query('select * from public.published_project_reviews')).rows.length,1);
+    await db.exec('reset role;update public.project_reviews set published=false;set role anon');
+    assert.equal((await db.query('select * from public.published_project_reviews')).rows.length,0);
     for(const key of ['reviewer_user_id','client_project_id','moderation_note','email'])assert.equal(key in rows[0],false);
     await assert.rejects(db.query('select * from public.client_projects'),/permission denied/);
     await assert.rejects(db.query('select * from public.client_project_members'),/permission denied/);

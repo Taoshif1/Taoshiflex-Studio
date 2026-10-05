@@ -1,25 +1,30 @@
 "use client";
-import { useState, type FormEvent } from "react";
+import { PendingButton } from "@/components/ui/loading";
+import { useToasts } from "@/components/ui/toast";
+import { useRef, useState, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import "@/components/reviews/reviews.css";
 
 export function ReviewForm({ projectId }: { projectId: string }) {
+  const { toast } = useToasts();
   const router = useRouter();
+  const pendingRef = useRef(false);
   const [busy, setBusy] = useState(false);
   const [sent, setSent] = useState(false);
   const [error, setError] = useState("");
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    if (busy) return;
+    if (pendingRef.current) return;
+    pendingRef.current = true;
     const data = new FormData(event.currentTarget);
     setBusy(true); setError("");
     try {
       const response = await fetch("/api/client/reviews", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ projectId, reviewer_name: data.get("reviewer_name"), reviewer_role: data.get("reviewer_role"), reviewer_company: data.get("reviewer_company"), rating: Number(data.get("rating")), review_text: data.get("review_text") }) });
       const result = await response.json();
       if (!response.ok) throw new Error(result.error || "Please try again.");
-      setSent(true); router.refresh();
-    } catch (error) { setError(error instanceof Error ? error.message : "Please try again."); }
-    finally { setBusy(false); }
+      toast("success", "Review submitted for moderation."); setSent(true); router.refresh();
+    } catch (error) { setError(error instanceof Error ? error.message : "Please try again."); toast("error", error instanceof Error ? error.message : "Please try again."); }
+    finally { pendingRef.current = false; setBusy(false); }
   }
   if (sent) return <p role="status">Thank you. Your review has been submitted for Studio moderation. Contact Studio if you need a correction.</p>;
   return <form className="review-form" onSubmit={submit}>
@@ -30,6 +35,6 @@ export function ReviewForm({ projectId }: { projectId: string }) {
     <label>Your experience<textarea name="review_text" required minLength={20} maxLength={1500} rows={5} placeholder="What was it like working with the Studio?"/></label>
     <small>20–1,500 characters. Please keep private project details out of your review.</small>
     {error && <p role="alert">{error}</p>}
-    <button className="action" disabled={busy}>{busy ? "Submitting…" : "Submit review"}</button>
+    <PendingButton pending={busy} pendingLabel={"Submitting…"} className="action" disabled={busy}>{busy ? "Submitting…" : "Submit review"}</PendingButton>
   </form>;
 }

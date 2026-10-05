@@ -1,4 +1,5 @@
 "use client";
+import { PendingButton } from "@/components/ui/loading";
 
 import { FormEvent, useState } from "react";
 
@@ -43,7 +44,7 @@ export function InquiryAlertSettings({
             <h3>New inquiry email</h3>
           </div>
           <span className={readiness.email ? "configured" : "missing"}>
-            {readiness.email ? "Provider configured" : "Missing SMTP configuration"}
+            {readiness.email ? "SMTP configuration present" : "Missing SMTP configuration"}
           </span>
         </div>
         <label>
@@ -65,21 +66,21 @@ export function InquiryAlertSettings({
           />
           Send an email after a new inquiry is safely stored
         </label>
-        <button
+        <PendingButton pending={pending.has("alert-test:email")} pendingLabel={"Sending test..."}
           type="button"
           disabled={!readiness.email || pending.has("alert-test:email")}
           onClick={() => test("email")}
         >
           {pending.has("alert-test:email") ? "Sending test..." : "Send test email"}
-        </button>
+        </PendingButton>
       </div>
       <p className="alert-settings-note">
-        Save recipient changes before sending a test. Alert delivery is best-effort; a
+        Save recipient changes before sending a test. Configuration presence does not verify SMTP authentication or delivery. The test connects, authenticates and sends to the saved recipient. Alert delivery is best-effort; a
         provider problem never removes or rejects a saved inquiry.
       </p>
-      <button disabled={pending.has("studio-alerts")}>
+      <PendingButton pending={pending.has("studio-alerts")} pendingLabel={"Saving..."} disabled={pending.has("studio-alerts")}>
         {pending.has("studio-alerts") ? "Saving..." : "Save Inquiry Alerts"}
-      </button>
+      </PendingButton>
     </form>
   );
 }

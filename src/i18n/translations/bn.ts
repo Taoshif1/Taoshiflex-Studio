@@ -1,6 +1,18 @@
 import { en } from "./en";
 
 const source: Record<string, string> = {
+  "Name": "নাম", "Email": "ইমেইল",
+  "Select one option to continue.": "এগিয়ে যেতে একটি অপশন নির্বাচন করুন।",
+  "Select all that apply, then continue.": "যেগুলো প্রযোজ্য সবগুলো নির্বাচন করুন, তারপর এগিয়ে যান।",
+  "Not sure which one fits? Choose Something Else — we’ll help define it.": "কোনটি আপনার জন্য ঠিক বুঝতে পারছেন না? ‘অন্য কিছু’ বেছে নিন—আমরা একসঙ্গে ঠিক করে নেব।",
+  "For example: what you do today, what isn’t working, and what you want the new site or system to improve.": "যেমন: এখন কাজ কীভাবে করেন, কোথায় সমস্যা হচ্ছে, আর নতুন সাইট বা সিস্টেম দিয়ে কী সহজ করতে চান।",
+  "We’ll reply to this email. No mailing list.": "এই ইমেইলেই আমরা উত্তর দেব। কোনো মেইলিং লিস্টে যোগ করব না।",
+  "Required": "আবশ্যক",
+  "Your brief": "আপনার ব্রিফ",
+  "{count} of 5 project choices answered": "প্রজেক্টের ৫টি প্রশ্নের মধ্যে {count}টির উত্তর দেওয়া হয়েছে",
+  "Your choices will appear here.": "আপনার বেছে নেওয়া উত্তরগুলো এখানে দেখা যাবে।",
+  "View summary": "সারসংক্ষেপ দেখুন",
+  "Collapse summary": "সারসংক্ষেপ গুটিয়ে নিন",
   "Work": "কাজ",
   "Products": "প্রোডাক্ট",
   "Pricing": "প্রাইসিং",
