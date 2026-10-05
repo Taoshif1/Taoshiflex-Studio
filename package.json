@@ -7,7 +7,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint .",
-    "test:analytics": "node --test tests/studio-dashboard.test.mjs tests/public-analytics-seo.test.mjs",
+    "test:analytics": "node --test tests/studio-dashboard.test.mjs tests/public-analytics-seo.test.mjs tests/public-navigation-scroll.test.mjs",
     "test:assistant": "node --test tests/studio-assistant.test.mjs",
     "test:studio": "node --test tests/studio-reviews.test.mjs tests/studio-reviews-db.test.mjs tests/studio-products.test.mjs",
     "test:security": "node --test tests/security*.test.mjs",
